@@ -45,7 +45,6 @@ const initialForm: FormData = {
 
 const Signup = () => {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState<FormData>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -53,6 +52,7 @@ const Signup = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [activeLegalTab, setActiveLegalTab] = useState<LegalTab>("terms");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -121,20 +121,66 @@ const Signup = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  if (!validate()) {
-    return;
-  }
+    if (!validate()) {
+      return;
+    }
 
-  localStorage.setItem(
-    "lab_signup_data",
-    JSON.stringify(formData)
-  );
+    try {
+      setIsSubmitting(true);
 
-  navigate("/login");
-};
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/auth/signup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            labName: formData.labName,
+            adminName: formData.adminName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            password: formData.password,
+            confirmPassword: formData.confirmPassword,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Signup failed:", data);
+
+        setErrors({
+          email:
+            data?.detail?.[0]?.msg ||
+            "Unable to create account. Please try again.",
+        });
+
+        return;
+      }
+
+      console.log("Signup successful:", data);
+
+      // Don't store the password in localStorage.
+      localStorage.removeItem("lab_signup_data");
+
+      navigate("/login");
+    } catch (error) {
+      console.error("Signup API error:", error);
+
+      setErrors({
+        email:
+          "Unable to connect to the server. Please make sure the backend is running.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const openLegalModal = (tab: LegalTab) => {
     setActiveLegalTab(tab);
@@ -278,9 +324,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper ${
-                        errors.labName ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper ${errors.labName ? "input-error" : ""
+                        }`}
                     >
                       <ScienceOutlinedIcon />
 
@@ -306,9 +351,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper textarea-wrapper ${
-                        errors.address ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper textarea-wrapper ${errors.address ? "input-error" : ""
+                        }`}
                     >
                       <LocationOnOutlinedIcon />
 
@@ -348,9 +392,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper ${
-                        errors.adminName ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper ${errors.adminName ? "input-error" : ""
+                        }`}
                     >
                       <PersonIcon />
 
@@ -376,9 +419,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper ${
-                        errors.phone ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper ${errors.phone ? "input-error" : ""
+                        }`}
                     >
                       <PhoneOutlinedIcon />
 
@@ -421,9 +463,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper ${
-                        errors.email ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper ${errors.email ? "input-error" : ""
+                        }`}
                     >
                       <EmailOutlinedIcon />
 
@@ -449,9 +490,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper ${
-                        errors.password ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper ${errors.password ? "input-error" : ""
+                        }`}
                     >
                       <LockOutlinedIcon />
 
@@ -494,9 +534,8 @@ const Signup = () => {
                     </label>
 
                     <div
-                      className={`input-wrapper ${
-                        errors.confirmPassword ? "input-error" : ""
-                      }`}
+                      className={`input-wrapper ${errors.confirmPassword ? "input-error" : ""
+                        }`}
                     >
                       <LockOutlinedIcon />
 
@@ -588,9 +627,17 @@ const Signup = () => {
                 )}
               </div>
 
-              <button type="submit" className="signup-submit">
-                <span>Create Laboratory Account</span>
-                <span className="submit-arrow">→</span>
+              <button
+                type="submit"
+                className="signup-submit"
+                disabled={isSubmitting}
+              >
+                <span>
+                  {isSubmitting ? "Creating Account..." : "Create Laboratory Account"}
+                </span>
+                <span className="submit-arrow">
+                  {isSubmitting ? "..." : "→"}
+                </span>
               </button>
             </form>
 

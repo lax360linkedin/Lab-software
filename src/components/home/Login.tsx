@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -8,10 +7,8 @@ import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-
 import { useAuth } from "../auth/useAuth";
 import type { User } from "../auth/authTypes";
-
 import "./login.css";
 
 const Login = () => {
@@ -22,8 +19,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
     let isValid = true;
@@ -45,54 +45,68 @@ const Login = () => {
       return;
     }
 
-    /*
-      TEMPORARY FRONTEND LOGIN
+    try {
+      setIsSubmitting(true);
 
-      Backend will later return:
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+          }),
+        }
+      );
 
-      {
-        userId,
-        labId,
-        labName,
-        name,
-        email,
-        role
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Login failed:", data);
+
+        const backendMessage =
+          data?.detail?.[0]?.msg ||
+          "Invalid email or password.";
+
+        setEmailError(backendMessage);
+
+        return;
       }
 
-      Then simply call:
+      console.log("Login successful:", data);
 
-      login(response.user)
-    */
+      const user: User = {
+        userId: data.user.userId,
+        labId: data.user.labId,
+        labName: data.user.labName,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+      };
+      login(user);
+      localStorage.setItem(
+        "accessToken",
+        data.accessToken
+      );
 
-    const signupData = localStorage.getItem("lab_signup_data");
+      localStorage.setItem(
+        "tokenType",
+        data.tokenType
+      );
 
-    let storedSignupData: {
-      labName?: string;
-      name?: string;
-      email?: string;
-    } = {};
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login API error:", error);
 
-    if (signupData) {
-      try {
-        storedSignupData = JSON.parse(signupData);
-      } catch {
-        storedSignupData = {};
-      }
+      setEmailError(
+        "Unable to connect to the server. Please make sure the backend is running."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const mockUser: User = {
-      userId: "USR-001",
-      labId: "LAB-001",
-      labName:
-        storedSignupData.labName || "Laboratory Management System",
-      name: storedSignupData.name || "Administrator",
-      email: email.trim(),
-      role: "admin",
-    };
-
-    login(mockUser);
-
-    navigate("/dashboard");
   };
 
   return (
@@ -171,15 +185,9 @@ const Login = () => {
           </div>
         </section>
 
-        {/* =========================================
-            LOGIN FORM
-        ========================================= */}
-
         <section className="login-form-section">
 
           <div className="login-form-wrapper">
-
-            {/* Mobile Logo */}
 
             <div className="login-mobile-brand">
 
@@ -193,8 +201,6 @@ const Login = () => {
               </div>
 
             </div>
-
-            {/* Heading */}
 
             <div className="login-heading">
 
@@ -228,9 +234,8 @@ const Login = () => {
                 </label>
 
                 <div
-                  className={`login-input-wrapper ${
-                    emailError ? "login-input-error" : ""
-                  }`}
+                  className={`login-input-wrapper ${emailError ? "login-input-error" : ""
+                    }`}
                 >
                   <EmailOutlinedIcon />
 
@@ -273,9 +278,8 @@ const Login = () => {
                 </div>
 
                 <div
-                  className={`login-input-wrapper ${
-                    passwordError ? "login-input-error" : ""
-                  }`}
+                  className={`login-input-wrapper ${passwordError ? "login-input-error" : ""
+                    }`}
                 >
                   <LockOutlinedIcon />
 
@@ -295,7 +299,9 @@ const Login = () => {
                     type="button"
                     className="login-password-toggle"
                     onClick={() =>
-                      setShowPassword((previous) => !previous)
+                      setShowPassword(
+                        (previous) => !previous
+                      )
                     }
                     aria-label={
                       showPassword
@@ -342,8 +348,12 @@ const Login = () => {
               <button
                 type="submit"
                 className="login-submit"
+                disabled={isSubmitting}
               >
-                <span>Sign In</span>
+                <span>
+                  {isSubmitting ? "Signing In..." : "Sign In"}
+                </span>
+
                 <ArrowForwardIcon className="login-submit-arrow" />
               </button>
 
