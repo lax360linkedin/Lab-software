@@ -1,0 +1,60 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Payment Statistics Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.payment-statistics-page {
+  @apply w-full;
+}
+
+/* Method Channel Badges */
+.channel-upi {
+  @apply bg-blue-50 text-blue-700 border border-blue-200/60;
+}
+
+.channel-card {
+  @apply bg-purple-50 text-purple-700 border border-purple-200/60;
+}
+
+.channel-cash {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200/60;
+}
+
+.channel-online {
+  @apply bg-amber-50 text-amber-700 border border-amber-200/60;
+}
+
+.channel-tpa {
+  @apply bg-cyan-50 text-cyan-700 border border-cyan-200/60;
+}
+
+/* Custom scrollbar */
+.payment-statistics-page .overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.payment-statistics-page .overflow-x-auto::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300;
+}
+
+/* Print Styles */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .payment-statistics-page button,
+  .payment-statistics-page input,
+  .payment-statistics-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .payment-statistics-page {
+    padding: 0 !important;
+  }
+}

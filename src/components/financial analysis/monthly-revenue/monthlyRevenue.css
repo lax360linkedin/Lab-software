@@ -1,0 +1,52 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Monthly Revenue Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.monthly-revenue-page {
+  @apply w-full;
+}
+
+/* Status Badges */
+.status-closed {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200/60;
+}
+
+.status-active {
+  @apply bg-blue-50 text-blue-700 border border-blue-200/60;
+}
+
+.status-projected {
+  @apply bg-purple-50 text-purple-700 border border-purple-200/60;
+}
+
+/* Custom scrollbar */
+.monthly-revenue-page .overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.monthly-revenue-page .overflow-x-auto::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300;
+}
+
+/* Print Styles */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .monthly-revenue-page button,
+  .monthly-revenue-page input,
+  .monthly-revenue-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .monthly-revenue-page {
+    padding: 0 !important;
+  }
+}

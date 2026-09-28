@@ -1,0 +1,56 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Total Billing Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.total-billing-page {
+  @apply w-full;
+}
+
+/* Category Badges */
+.category-walkin {
+  @apply bg-blue-50 text-blue-700 border border-blue-200/60;
+}
+
+.category-referral {
+  @apply bg-purple-50 text-purple-700 border border-purple-200/60;
+}
+
+.category-corporate {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200/60;
+}
+
+.category-home {
+  @apply bg-amber-50 text-amber-700 border border-amber-200/60;
+}
+
+/* Custom scrollbar */
+.total-billing-page .overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.total-billing-page .overflow-x-auto::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300;
+}
+
+/* Print Styles */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .total-billing-page button,
+  .total-billing-page input,
+  .total-billing-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .total-billing-page {
+    padding: 0 !important;
+  }
+}

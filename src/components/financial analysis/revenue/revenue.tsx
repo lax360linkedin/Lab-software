@@ -8,6 +8,8 @@ import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
 import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
+import Table from "../../../common components/Table";
+import Pagination from "../../../common components/Pagination";
 
 import "./revenue.css";
 
@@ -155,11 +157,23 @@ const TEST_REVENUE_DATA: TestRevenueItem[] = [
   },
 ];
 
+const columns = [
+  "Test Code & Name",
+  "Department",
+  "Unit Price",
+  "Tests Done",
+  "Total Revenue",
+  "Revenue Share",
+  "Demand",
+];
+
 const Revenue = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState<string>("All");
   const [sortBy, setSortBy] = useState<"revenue" | "tests" | "price" | "name">("revenue");
   const [timeRange, setTimeRange] = useState<"Today" | "This Week" | "This Month">("Today");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   // Overall Totals
   const overallTotalRevenue = useMemo(() => {
@@ -265,6 +279,15 @@ const Revenue = () => {
   const filteredTestsCount = useMemo(() => {
     return filteredAndSortedTests.reduce((acc, t) => acc + t.testsPerformed, 0);
   }, [filteredAndSortedTests]);
+
+  const totalPages = Math.ceil(filteredAndSortedTests.length / rowsPerPage);
+
+  const currentTests = useMemo(() => {
+    return filteredAndSortedTests.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredAndSortedTests, currentPage, rowsPerPage]);
 
   // Top 5 Tests for Visual Ranking
   const topFiveTests = useMemo(() => {
@@ -529,7 +552,10 @@ const Revenue = () => {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Search test name or code..."
                 className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none"
               />
@@ -540,7 +566,10 @@ const Revenue = () => {
               <FilterListOutlinedIcon className="text-slate-400 text-sm" />
               <select
                 value={selectedDept}
-                onChange={(e) => setSelectedDept(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDept(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none"
               >
                 <option value="All">All Departments</option>
@@ -556,7 +585,10 @@ const Revenue = () => {
             <div>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as "revenue" | "tests" | "price" | "name")}
+                onChange={(e) => {
+                  setSortBy(e.target.value as "revenue" | "tests" | "price" | "name");
+                  setCurrentPage(1);
+                }}
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none"
               >
                 <option value="revenue">Sort by: Revenue (High to Low)</option>
@@ -568,136 +600,113 @@ const Revenue = () => {
           </div>
         </div>
 
-        {/* Table View */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Test Code & Name
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Department
-                </th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500">
-                  Unit Price
-                </th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500">
-                  Tests Done
-                </th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500">
-                  Total Revenue
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Revenue Share
-                </th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-slate-500">
-                  Demand
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAndSortedTests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-xs text-slate-400">
-                    No laboratory tests match your selected criteria.
+        {/* Detailed Table View using Common Table component */}
+        <div className="w-full overflow-x-auto p-4 sm:p-5">
+          <Table
+            columns={columns}
+            data={currentTests}
+            maxHeight="520px"
+            emptyMessage="No laboratory tests match your selected criteria."
+            renderRow={(item: TestRevenueItem) => {
+              const sharePercent =
+                overallTotalRevenue > 0
+                  ? ((item.totalRevenue / overallTotalRevenue) * 100).toFixed(1)
+                  : "0";
+
+              return (
+                <>
+                  <td className="whitespace-nowrap px-4 py-3.5">
+                    <div className="font-semibold text-xs text-slate-900">
+                      {item.testName}
+                    </div>
+                    <div className="text-[10px] font-mono text-blue-600">
+                      {item.testCode}
+                    </div>
                   </td>
-                </tr>
-              ) : (
-                filteredAndSortedTests.map((item) => {
-                  const sharePercent =
-                    overallTotalRevenue > 0
-                      ? ((item.totalRevenue / overallTotalRevenue) * 100).toFixed(1)
-                      : "0";
 
-                  return (
-                    <tr
-                      key={item.id}
-                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition-colors"
+                  <td className="whitespace-nowrap px-4 py-3.5">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                        item.department === "Hematology"
+                          ? "bg-rose-50 text-rose-600"
+                          : item.department === "Biochemistry"
+                          ? "bg-blue-50 text-blue-600"
+                          : item.department === "Endocrinology"
+                          ? "bg-purple-50 text-purple-600"
+                          : item.department === "Clinical Pathology"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-amber-50 text-amber-600"
+                      }`}
                     >
-                      <td className="px-5 py-3.5">
-                        <div className="font-semibold text-xs text-slate-900">
-                          {item.testName}
-                        </div>
-                        <div className="text-[10px] font-mono text-blue-600">
-                          {item.testCode}
-                        </div>
-                      </td>
+                      {item.department}
+                    </span>
+                  </td>
 
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
-                            item.department === "Hematology"
-                              ? "bg-rose-50 text-rose-600"
-                              : item.department === "Biochemistry"
-                              ? "bg-blue-50 text-blue-600"
-                              : item.department === "Endocrinology"
-                              ? "bg-purple-50 text-purple-600"
-                              : item.department === "Clinical Pathology"
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-amber-50 text-amber-600"
-                          }`}
-                        >
-                          {item.department}
-                        </span>
-                      </td>
+                  <td className="whitespace-nowrap px-4 py-3.5 text-right font-medium text-xs text-slate-700">
+                    ₹{item.unitPrice.toLocaleString("en-IN")}
+                  </td>
 
-                      <td className="px-5 py-3.5 text-right font-medium text-xs text-slate-700">
-                        ₹{item.unitPrice.toLocaleString("en-IN")}
-                      </td>
+                  <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                    <span className="font-semibold text-xs text-slate-900">
+                      {item.testsPerformed}
+                    </span>
+                  </td>
 
-                      <td className="px-5 py-3.5 text-right">
-                        <span className="font-semibold text-xs text-slate-900">
-                          {item.testsPerformed}
-                        </span>
-                      </td>
+                  <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                    <span className="font-bold text-xs text-slate-900">
+                      ₹{item.totalRevenue.toLocaleString("en-IN")}
+                    </span>
+                  </td>
 
-                      <td className="px-5 py-3.5 text-right">
-                        <span className="font-bold text-xs text-slate-900">
-                          ₹{item.totalRevenue.toLocaleString("en-IN")}
-                        </span>
-                      </td>
+                  <td className="whitespace-nowrap px-4 py-3.5 min-w-[140px]">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-blue-600"
+                          style={{ width: `${Math.min(Number(sharePercent) * 4, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-[11px] font-medium text-slate-500 w-8 text-right">
+                        {sharePercent}%
+                      </span>
+                    </div>
+                  </td>
 
-                      <td className="px-5 py-3.5 min-w-[140px]">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full bg-blue-600"
-                              style={{ width: `${Math.min(Number(sharePercent) * 4, 100)}%` }}
-                            />
-                          </div>
-                          <span className="text-[11px] font-medium text-slate-500 w-8 text-right">
-                            {sharePercent}%
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-3.5 text-center">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                            item.demandStatus === "High Volume"
-                              ? "bg-blue-50 text-blue-700"
-                              : item.demandStatus === "Moderate"
-                              ? "bg-slate-100 text-slate-700"
-                              : "bg-slate-50 text-slate-500"
-                          }`}
-                        >
-                          {item.demandStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  <td className="whitespace-nowrap px-4 py-3.5 text-center">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        item.demandStatus === "High Volume"
+                          ? "bg-blue-50 text-blue-700"
+                          : item.demandStatus === "Moderate"
+                          ? "bg-slate-100 text-slate-700"
+                          : "bg-slate-50 text-slate-500"
+                      }`}
+                    >
+                      {item.demandStatus}
+                    </span>
+                  </td>
+                </>
+              );
+            }}
+          />
         </div>
+
+        {/* Pagination Controls */}
+        {filteredAndSortedTests.length > 0 && totalPages > 1 && (
+          <div className="border-t border-slate-200 px-5 py-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
 
         {/* Table Summary Footer */}
         <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
           <div>
-            Showing <strong>{filteredAndSortedTests.length}</strong> of{" "}
-            <strong>{TEST_REVENUE_DATA.length}</strong> catalog tests | Total Volume:{" "}
+            Showing <strong>{currentTests.length}</strong> of{" "}
+            <strong>{filteredAndSortedTests.length}</strong> filtered tests (Total Catalog: {TEST_REVENUE_DATA.length}) | Total Volume:{" "}
             <strong className="text-slate-800">{filteredTestsCount} tests</strong>
           </div>
           <div className="font-semibold text-slate-800">

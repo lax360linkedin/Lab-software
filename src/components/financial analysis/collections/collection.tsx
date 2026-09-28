@@ -13,6 +13,8 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
+import Table from "../../../common components/Table";
+import Pagination from "../../../common components/Pagination";
 
 import "./collection.css";
 
@@ -246,9 +248,21 @@ const SHIFTS_DATA: ShiftCollection[] = [
   },
 ];
 
+const columns = [
+  "Bill / Invoice ID",
+  "Patient Details",
+  "Test / Investigation",
+  "Payment Method",
+  "Date / Time",
+  "Amount",
+  "Status",
+];
+
 const Collection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   // Calculate high-level summary from transactions
   const totalCollection = useMemo(() => {
@@ -319,6 +333,15 @@ const Collection = () => {
       return matchesSearch && matchesMethod;
     });
   }, [searchTerm, selectedMethod]);
+
+  const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
+
+  const currentTransactions = useMemo(() => {
+    return filteredTransactions.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredTransactions, currentPage, rowsPerPage]);
 
   const filteredTotal = useMemo(() => {
     return filteredTransactions.reduce((acc, t) => acc + t.amount, 0);
@@ -636,7 +659,10 @@ const Collection = () => {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Search patient, invoice..."
                 className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none"
               />
@@ -646,7 +672,10 @@ const Collection = () => {
               <FilterListOutlinedIcon className="text-slate-400 text-sm" />
               <select
                 value={selectedMethod}
-                onChange={(e) => setSelectedMethod(e.target.value)}
+                onChange={(e) => {
+                  setSelectedMethod(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none"
               >
                 <option value="All">All Methods</option>
@@ -659,112 +688,91 @@ const Collection = () => {
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px]">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Bill / Invoice ID
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Patient Details
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Test / Investigation
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Payment Method
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
-                  Date / Time
-                </th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500">
-                  Amount
-                </th>
-                <th className="px-5 py-3 text-center text-xs font-semibold text-slate-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransactions.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-xs text-slate-400">
-                    No transactions match your search criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredTransactions.map((tx) => (
-                  <tr
-                    key={tx.id}
-                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition-colors"
+        {/* Transactions Table using Common Table Component */}
+        <div className="w-full overflow-x-auto p-4 sm:p-5">
+          <Table
+            columns={columns}
+            data={currentTransactions}
+            maxHeight="520px"
+            emptyMessage="No transactions match your search criteria."
+            renderRow={(tx: CollectionTransaction) => (
+              <>
+                <td className="whitespace-nowrap px-4 py-3.5">
+                  <div className="font-semibold text-xs text-blue-600">
+                    {tx.invoiceId}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    {tx.transactionRef}
+                  </div>
+                </td>
+
+                <td className="whitespace-nowrap px-4 py-3.5">
+                  <div className="text-xs font-semibold text-slate-800">
+                    {tx.patientName}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    {tx.patientId}
+                  </div>
+                </td>
+
+                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600 max-w-[220px] truncate">
+                  {tx.testName}
+                </td>
+
+                <td className="whitespace-nowrap px-4 py-3.5">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                      tx.paymentMethod === "UPI"
+                        ? "bg-blue-50 text-blue-600"
+                        : tx.paymentMethod === "Cash"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : tx.paymentMethod === "Card"
+                        ? "bg-purple-50 text-purple-600"
+                        : "bg-amber-50 text-amber-600"
+                    }`}
                   >
-                    <td className="px-5 py-3.5">
-                      <div className="font-semibold text-xs text-blue-600">
-                        {tx.invoiceId}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-mono">
-                        {tx.transactionRef}
-                      </div>
-                    </td>
+                    {getMethodIcon(tx.paymentMethod)}
+                    {tx.paymentMethod}
+                  </span>
+                </td>
 
-                    <td className="px-5 py-3.5">
-                      <div className="text-xs font-semibold text-slate-800">
-                        {tx.patientName}
-                      </div>
-                      <div className="text-[10px] text-slate-400">
-                        {tx.patientId}
-                      </div>
-                    </td>
+                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-500">
+                  {tx.time}
+                  <span className="block text-[10px] text-slate-400">
+                    {tx.counter}
+                  </span>
+                </td>
 
-                    <td className="px-5 py-3.5 text-xs text-slate-600 max-w-[220px] truncate">
-                      {tx.testName}
-                    </td>
+                <td className="whitespace-nowrap px-4 py-3.5 text-right font-bold text-xs text-slate-900">
+                  ₹{tx.amount.toLocaleString("en-IN")}
+                </td>
 
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                        tx.paymentMethod === "UPI"
-                          ? "bg-blue-50 text-blue-600"
-                          : tx.paymentMethod === "Cash"
-                          ? "bg-emerald-50 text-emerald-600"
-                          : tx.paymentMethod === "Card"
-                          ? "bg-purple-50 text-purple-600"
-                          : "bg-amber-50 text-amber-600"
-                      }`}>
-                        {getMethodIcon(tx.paymentMethod)}
-                        {tx.paymentMethod}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-3.5 text-xs text-slate-500 whitespace-nowrap">
-                      {tx.time}
-                      <span className="block text-[10px] text-slate-400">
-                        {tx.counter}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-3.5 text-right font-bold text-xs text-slate-900 whitespace-nowrap">
-                      ₹{tx.amount.toLocaleString("en-IN")}
-                    </td>
-
-                    <td className="px-5 py-3.5 text-center">
-                      <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
-                        {tx.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                <td className="whitespace-nowrap px-4 py-3.5 text-center">
+                  <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+                    {tx.status}
+                  </span>
+                </td>
+              </>
+            )}
+          />
         </div>
+
+        {/* Pagination Controls */}
+        {filteredTransactions.length > 0 && totalPages > 1 && (
+          <div className="border-t border-slate-200 px-5 py-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
 
         {/* Table Footer with Summary */}
         <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
           <div>
-            Showing <strong>{filteredTransactions.length}</strong> of{" "}
-            <strong>{totalBills}</strong> transactions today
+            Showing <strong>{currentTransactions.length}</strong> of{" "}
+            <strong>{filteredTransactions.length}</strong> filtered transactions (Total: {totalBills})
           </div>
           <div className="font-semibold text-slate-800">
             Total Filtered Amount:{" "}

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import Layout from "../../common components/layout/Layout";
 import Signup from "../home/Signup";
@@ -17,6 +17,12 @@ import SampleTracking from "../accession/SampleTracking";
 import PendingTests from "../analysis/PendingTests";
 import Processing from "../analysis/Processing";
 import Completed from "../analysis/Completed";
+import TotalBilling from "../financial analysis/total-billing/totalBilling";
+import Discounts from "../financial analysis/discounts/discounts";
+import PendingPayments from "../financial analysis/pending-payments/pendingPayments";
+import MonthlyRevenue from "../financial analysis/monthly-revenue/monthlyRevenue";
+import PaymentStatistics from "../financial analysis/payment-statistics/paymentStatistics";
+
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
@@ -41,6 +47,26 @@ const AppRoutes = () => {
                     <Route path="/analysis/pending" element={<PendingTests />} />
                     <Route path="/analysis/processing"element={<Processing />} />
                     <Route path="/analysis/completed" element={<Completed />} />
+                   <Route
+            path="/financial-analysis/total-billing"
+            element={<TotalBilling />}
+          />
+          <Route
+            path="/financial-analysis/discounts"
+            element={<Discounts />}
+          />
+          <Route
+            path="/financial-analysis/pending-payments"
+            element={<PendingPayments />}
+          />
+          <Route
+            path="/financial-analysis/monthly-revenue"
+            element={<MonthlyRevenue />}
+          />
+          <Route
+            path="/financial-analysis/payment-statistics"
+            element={<PaymentStatistics />}
+          />
                 </Route>
             </Route>
 
@@ -48,6 +74,7 @@ const AppRoutes = () => {
 
         </Routes>
     );
+
 };
 
 export default AppRoutes;

@@ -1,0 +1,56 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Discounts Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.discounts-page {
+  @apply w-full;
+}
+
+/* Discount Scheme Badges */
+.scheme-senior {
+  @apply bg-blue-50 text-blue-700 border border-blue-200/60;
+}
+
+.scheme-camp {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200/60;
+}
+
+.scheme-courtesy {
+  @apply bg-purple-50 text-purple-700 border border-purple-200/60;
+}
+
+.scheme-staff {
+  @apply bg-amber-50 text-amber-700 border border-amber-200/60;
+}
+
+/* Custom scrollbar */
+.discounts-page .overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.discounts-page .overflow-x-auto::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300;
+}
+
+/* Print Styles */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .discounts-page button,
+  .discounts-page input,
+  .discounts-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .discounts-page {
+    padding: 0 !important;
+  }
+}

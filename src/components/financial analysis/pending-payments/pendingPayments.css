@@ -1,0 +1,56 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Pending Payments Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.pending-payments-page {
+  @apply w-full;
+}
+
+/* Aging Status Badges */
+.aging-today {
+  @apply bg-blue-50 text-blue-700 border border-blue-200/60;
+}
+
+.aging-recent {
+  @apply bg-amber-50 text-amber-700 border border-amber-200/60;
+}
+
+.aging-overdue {
+  @apply bg-orange-50 text-orange-700 border border-orange-200/60;
+}
+
+.aging-critical {
+  @apply bg-rose-50 text-rose-700 border border-rose-200/60;
+}
+
+/* Custom scrollbar */
+.pending-payments-page .overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.pending-payments-page .overflow-x-auto::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300;
+}
+
+/* Print Styles */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .pending-payments-page button,
+  .pending-payments-page input,
+  .pending-payments-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .pending-payments-page {
+    padding: 0 !important;
+  }
+}
