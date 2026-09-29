@@ -64,7 +64,7 @@ const AppRoutes = () => {
                     <Route path="/financial-analysis/total-billing"element={<TotalBilling />}/>
                     <Route path="/financial-analysis/discounts" element={<Discounts />} />
                     <Route path="/financial-analysis/pending-payments" element={<PendingPayments />}/>
-                    <Rout path="/financial-analysis/monthly-revenue" element={<MonthlyRevenue />}/>
+                    <Route path="/financial-analysis/monthly-revenue" element={<MonthlyRevenue />}/>
                     <Route path="/financial-analysis/payment-statistics"element={<PaymentStatistics />}/>
                     <Route path="/expenses" element={<ExpenseDashboard />} />
                     <Route path="/expenses/add" element={<AddExpense />} />
