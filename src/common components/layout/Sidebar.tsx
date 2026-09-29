@@ -52,42 +52,16 @@ const menuItems: MenuItem[] = [
   // ==================== MASTER DATA ====================
   {
     label: "Tests",
+    path:  "/tests",
     icon: <HealthAndSafetyOutlinedIcon />,
     roles: ["admin"],
-    children: [
-      {
-        label: "Test List",
-        path: "/tests",
-      },
-      {
-        label: "Add Test",
-        path: "/tests/add",
-      },
-      {
-        label: "Categories",
-        path: "/tests/categories",
-      },
-    ],
   },
 
   {
     label: "Doctors / Referrals",
+    path: "/doctors",
     icon: <LocalHospitalOutlinedIcon />,
     roles: ["admin", "receptionist"],
-    children: [
-      {
-        label: "Doctor List",
-        path: "/doctors",
-      },
-      {
-        label: "Referred Patients",
-        path: "/doctors/referred-patients",
-      },
-      {
-        label: "Referral History",
-        path: "/doctors/referral-history",
-      },
-    ],
   },
 
   // ==================== PATIENT ====================
