@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Staff Roles Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.staff-roles-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .staff-roles-page button,
+  .staff-roles-page input,
+  .staff-roles-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .staff-roles-page {
+    padding: 0 !important;
+  }
+}

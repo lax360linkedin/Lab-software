@@ -17,6 +17,23 @@ import SampleTracking from "../accession/SampleTracking";
 import PendingTests from "../analysis/PendingTests";
 import Processing from "../analysis/Processing";
 import Completed from "../analysis/Completed";
+import Discounts from "../financial analysis/discounts/discounts";
+import MonthlyRevenue from "../financial analysis/monthly-revenue/monthlyRevenue";
+import PaymentStatistics from "../financial analysis/payment-statistics/paymentStatistics";
+import PendingPayments from "../financial analysis/pending-payments/pendingPayments";
+import TotalBilling from "../financial analysis/total-billing/totalBilling";
+import ExpenseDashboard from "../expenses/dashboard/ExpenseDashboard";
+import AddExpense from "../expenses/add-expense/AddExpense";
+import ExpenseList from "../expenses/expense-list/ExpenseList";
+import ExpenseCategories from "../expenses/categories/ExpenseCategories";
+import ExpenseReports from "../expenses/reports/ExpenseReports";
+import StaffUsers from "../staff/users/StaffUsers";
+import StaffRoles from "../staff/roles/StaffRoles";
+import StaffPermissions from "../staff/permissions/StaffPermissions";
+import Departments from "../lab-management/departments/Departments";
+import Equipment from "../lab-management/equipment/Equipment";
+import LabSettings from "../lab-management/settings/LabSettings";
+import LabProfile from "../lab-profile/LabProfile";
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
@@ -39,14 +56,30 @@ const AppRoutes = () => {
                     <Route path="/accession/accepted-samples" element={<AcceptedSamples />} />
                     <Route path="/accession/rejected-samples" element={<RejectedSamples />} />
                     <Route path="/accession/sample-tracking" element={<SampleTracking />} />
-
                     <Route path="/analysis/pending" element={<PendingTests />} />
                     <Route path="/analysis/processing" element={<Processing />} />
                     <Route path="/analysis/completed" element={<Completed />} />
-
                     <Route path="/financial-analysis/collections" element={<Collection />} />
                     <Route path="/financial-analysis/revenue" element={<Revenue />} />
-                </Route>
+                    <Route path="/financial-analysis/total-billing"element={<TotalBilling />}/>
+                    <Route path="/financial-analysis/discounts" element={<Discounts />} />
+                    <Route path="/financial-analysis/pending-payments" element={<PendingPayments />}/>
+                    <Rout path="/financial-analysis/monthly-revenue" element={<MonthlyRevenue />}/>
+                    <Route path="/financial-analysis/payment-statistics"element={<PaymentStatistics />}/>
+                    <Route path="/expenses" element={<ExpenseDashboard />} />
+                    <Route path="/expenses/add" element={<AddExpense />} />
+                    <Route path="/expenses/list" element={<ExpenseList />} />
+                    <Route path="/expenses/categories" element={<ExpenseCategories />} />
+                    <Route path="/expenses/reports" element={<ExpenseReports />} />
+                    <Route path="/staff/users" element={<StaffUsers />} />
+                    <Route path="/staff/roles" element={<StaffRoles />} />
+                    <Route path="/staff/permissions" element={<StaffPermissions />} />
+                  <Route path="/lab-management/departments" element={<Departments />} />
+                  <Route path="/lab-management/equipment" element={<Equipment />} />
+                  <Route path="/lab-management/settings" element={<LabSettings />} />
+                   <Route path="/lab-profile" element={<LabProfile />} />
+        </Route>
+
             </Route>
 
             <Route

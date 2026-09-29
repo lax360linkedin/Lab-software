@@ -207,7 +207,7 @@ const PaymentStatistics = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // KPI calculations
   const totalVolumeOverall = useMemo(() => {
@@ -281,8 +281,6 @@ const PaymentStatistics = () => {
     });
   }, [searchTerm, selectedCategory, selectedStatus]);
 
-  const totalPages = Math.ceil(filteredChannels.length / rowsPerPage);
-
   const currentChannels = useMemo(() => {
     return filteredChannels.slice(
       (currentPage - 1) * rowsPerPage,
@@ -290,9 +288,6 @@ const PaymentStatistics = () => {
     );
   }, [filteredChannels, currentPage, rowsPerPage]);
 
-  const filteredTotalVolume = useMemo(() => {
-    return filteredChannels.reduce((sum, item) => sum + item.totalVolume, 0);
-  }, [filteredChannels]);
 
   const getCategoryIcon = (category: ChannelCategory) => {
     switch (category) {
@@ -539,35 +534,36 @@ const PaymentStatistics = () => {
         </div>
 
         {/* Table View */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentChannels}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No payment channels match your search criteria."
             renderRow={(item: PaymentChannelStat) => (
               <>
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-slate-900">
                     {item.channelName}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     ID: {item.id}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs text-slate-800 font-medium">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm text-slate-800 font-medium">
                     {item.provider}
                   </div>
-                  <div className="text-[10px] text-blue-600 font-mono">
+                  <div className="text-xs text-blue-600 font-mono">
                     {item.terminalId}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                       item.category === "UPI"
                         ? "bg-blue-50 text-blue-700"
                         : item.category === "Card"
@@ -584,28 +580,28 @@ const PaymentStatistics = () => {
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-800 font-semibold">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-800 font-semibold">
                   {item.transactionCount.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 font-bold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4 font-bold text-sm text-slate-900">
                   ₹{item.totalVolume.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
                   ₹{item.avgTicketSize.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                    <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 14 }} />
+                <td className="whitespace-nowrap px-4 py-4">
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+                    <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 16 }} />
                     {item.successRate}%
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       item.status === "Reconciled"
                         ? "bg-emerald-50 text-emerald-700"
                         : item.status === "Settled"
@@ -622,29 +618,20 @@ const PaymentStatistics = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredChannels.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredChannels.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredChannels.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Summary Footer */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentChannels.length}</strong> of{" "}
-            <strong>{filteredChannels.length}</strong> channels (Total: {PAYMENT_STATS_DATA.length})
-          </div>
-          <div className="font-semibold text-slate-800">
-            Filtered Processed Volume:{" "}
-            <span className="text-blue-600 text-sm font-bold">
-              ₹{filteredTotalVolume.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );

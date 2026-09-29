@@ -204,7 +204,7 @@ const MonthlyRevenue = () => {
   const [selectedQuarter, setSelectedQuarter] = useState<string>("All");
   const [selectedYear, setSelectedYear] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // KPI Calculations
   const totalNetTurnover = useMemo(() => {
@@ -266,8 +266,6 @@ const MonthlyRevenue = () => {
     });
   }, [searchTerm, selectedQuarter, selectedYear]);
 
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
   const currentData = useMemo(() => {
     return filteredData.slice(
       (currentPage - 1) * rowsPerPage,
@@ -275,9 +273,6 @@ const MonthlyRevenue = () => {
     );
   }, [filteredData, currentPage, rowsPerPage]);
 
-  const filteredNetTotal = useMemo(() => {
-    return filteredData.reduce((sum, item) => sum + item.netRevenue, 0);
-  }, [filteredData]);
 
   return (
     <div className="monthly-revenue-page space-y-6">
@@ -506,48 +501,49 @@ const MonthlyRevenue = () => {
         </div>
 
         {/* Table View */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentData}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No monthly revenue records match your search criteria."
             renderRow={(item: MonthlyRevenueItem) => (
               <>
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-slate-900">
                     {item.monthName}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {item.monthCode}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <span className="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <span className="inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">
                     {item.quarter}
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-700">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-700">
                   {item.testsConducted.toLocaleString("en-IN")} tests
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
                   ₹{item.grossBilling.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-rose-600">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-rose-600">
                   -₹{item.discounts.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 font-bold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4 font-bold text-sm text-slate-900">
                   ₹{item.netRevenue.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
+                    className={`inline-flex items-center gap-0.5 text-sm font-semibold ${
                       item.growthRate >= 0 ? "text-emerald-600" : "text-rose-600"
                     }`}
                   >
@@ -556,9 +552,9 @@ const MonthlyRevenue = () => {
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       item.status === "Completed"
                         ? "bg-emerald-50 text-emerald-700"
                         : item.status === "Current Month"
@@ -575,29 +571,20 @@ const MonthlyRevenue = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredData.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredData.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Summary Footer */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentData.length}</strong> of{" "}
-            <strong>{filteredData.length}</strong> months (Total: {MONTHLY_DATA.length})
-          </div>
-          <div className="font-semibold text-slate-800">
-            Filtered Total Net Intake:{" "}
-            <span className="text-blue-600 text-sm font-bold">
-              ₹{filteredNetTotal.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );

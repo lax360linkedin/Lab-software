@@ -256,7 +256,7 @@ const PendingPayments = () => {
   const [selectedAging, setSelectedAging] = useState<string>("All");
   const [selectedAction, setSelectedAction] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // KPI calculations
   const totalBalanceDue = useMemo(() => {
@@ -325,8 +325,6 @@ const PendingPayments = () => {
     });
   }, [searchTerm, selectedAging, selectedAction]);
 
-  const totalPages = Math.ceil(filteredList.length / rowsPerPage);
-
   const currentList = useMemo(() => {
     return filteredList.slice(
       (currentPage - 1) * rowsPerPage,
@@ -334,9 +332,6 @@ const PendingPayments = () => {
     );
   }, [filteredList, currentPage, rowsPerPage]);
 
-  const filteredBalanceTotal = useMemo(() => {
-    return filteredList.reduce((sum, item) => sum + item.balanceDue, 0);
-  }, [filteredList]);
 
   return (
     <div className="pending-payments-page space-y-6">
@@ -566,60 +561,61 @@ const PendingPayments = () => {
         </div>
 
         {/* Table View */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentList}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No pending payment records match your search criteria."
             renderRow={(item: PendingPaymentItem) => (
               <>
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-blue-600">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-blue-600">
                     {item.invoiceNumber}
                   </div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-xs text-slate-400">
                     Billed: {item.billingDate}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-slate-800">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-slate-800">
                     {item.patientName}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {item.patientId} • {item.phone}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
                   {item.sponsorOrDoctor}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs text-slate-700 max-w-[200px] truncate">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm text-slate-700 max-w-[220px] truncate">
                     {item.testsOrdered}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                  <div className="text-xs text-slate-500">
+                <td className="whitespace-nowrap px-4 py-4 text-right">
+                  <div className="text-sm text-slate-600">
                     Total: ₹{item.totalBill.toLocaleString("en-IN")}
                   </div>
-                  <div className="text-[10px] text-emerald-600">
+                  <div className="text-xs text-emerald-600 font-medium">
                     Paid: ₹{item.paidAmount.toLocaleString("en-IN")}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                  <span className="font-bold text-xs text-rose-600">
+                <td className="whitespace-nowrap px-4 py-4 text-right">
+                  <span className="font-bold text-sm text-rose-600">
                     ₹{item.balanceDue.toLocaleString("en-IN")}
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       item.agingCategory === "Due Today"
                         ? "bg-blue-50 text-blue-700"
                         : item.agingCategory === "1-3 Days"
@@ -633,8 +629,8 @@ const PendingPayments = () => {
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="flex items-center gap-1.5 text-sm text-slate-700">
                     <PhoneCallbackOutlinedIcon className="text-slate-400 text-sm" />
                     <span>{item.followupStatus}</span>
                   </div>
@@ -645,29 +641,20 @@ const PendingPayments = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredList.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredList.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredList.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Summary Footer */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentList.length}</strong> of{" "}
-            <strong>{filteredList.length}</strong> accounts (Total: {totalOverdueInvoices})
-          </div>
-          <div className="font-semibold text-slate-800">
-            Total Filtered Dues:{" "}
-            <span className="text-rose-600 text-sm font-bold">
-              ₹{filteredBalanceTotal.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );

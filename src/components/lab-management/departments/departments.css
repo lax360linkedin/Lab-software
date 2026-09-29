@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Laboratory Departments Management Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.departments-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .departments-page button,
+  .departments-page input,
+  .departments-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .departments-page {
+    padding: 0 !important;
+  }
+}

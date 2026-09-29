@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Staff Permissions Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.staff-permissions-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .staff-permissions-page button,
+  .staff-permissions-page input,
+  .staff-permissions-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .staff-permissions-page {
+    padding: 0 !important;
+  }
+}

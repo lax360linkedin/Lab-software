@@ -30,14 +30,7 @@
   @apply bg-cyan-50 text-cyan-700 border border-cyan-200/60;
 }
 
-/* Custom scrollbar */
-.payment-statistics-page .overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
 
-.payment-statistics-page .overflow-x-auto::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-slate-300;
-}
 
 /* Print Styles */
 @media print {

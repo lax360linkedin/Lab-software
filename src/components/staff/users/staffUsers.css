@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Staff Users Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.staff-users-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .staff-users-page button,
+  .staff-users-page input,
+  .staff-users-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .staff-users-page {
+    padding: 0 !important;
+  }
+}

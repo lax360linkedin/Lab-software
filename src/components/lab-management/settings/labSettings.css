@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Laboratory Settings & Management Functions Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.lab-settings-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .lab-settings-page button,
+  .lab-settings-page input,
+  .lab-settings-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .lab-settings-page {
+    padding: 0 !important;
+  }
+}

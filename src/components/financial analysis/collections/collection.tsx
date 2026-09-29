@@ -262,7 +262,7 @@ const Collection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Calculate high-level summary from transactions
   const totalCollection = useMemo(() => {
@@ -334,8 +334,6 @@ const Collection = () => {
     });
   }, [searchTerm, selectedMethod]);
 
-  const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
-
   const currentTransactions = useMemo(() => {
     return filteredTransactions.slice(
       (currentPage - 1) * rowsPerPage,
@@ -343,9 +341,6 @@ const Collection = () => {
     );
   }, [filteredTransactions, currentPage, rowsPerPage]);
 
-  const filteredTotal = useMemo(() => {
-    return filteredTransactions.reduce((acc, t) => acc + t.amount, 0);
-  }, [filteredTransactions]);
 
   const getMethodIcon = (method: PaymentMethod) => {
     switch (method) {
@@ -689,39 +684,40 @@ const Collection = () => {
         </div>
 
         {/* Transactions Table using Common Table Component */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentTransactions}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No transactions match your search criteria."
             renderRow={(tx: CollectionTransaction) => (
               <>
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-blue-600">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-blue-600">
                     {tx.invoiceId}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {tx.transactionRef}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs font-semibold text-slate-800">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm font-semibold text-slate-800">
                     {tx.patientName}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {tx.patientId}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600 max-w-[220px] truncate">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600 min-w-[200px]">
                   {tx.testName}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                       tx.paymentMethod === "UPI"
                         ? "bg-blue-50 text-blue-600"
                         : tx.paymentMethod === "Cash"
@@ -736,19 +732,19 @@ const Collection = () => {
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-500">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-500">
                   {tx.time}
-                  <span className="block text-[10px] text-slate-400">
+                  <span className="block text-xs text-slate-400">
                     {tx.counter}
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right font-bold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4 text-right font-bold text-sm text-slate-900">
                   ₹{tx.amount.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-center">
-                  <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+                <td className="whitespace-nowrap px-4 py-4 text-center">
+                  <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
                     {tx.status}
                   </span>
                 </td>
@@ -758,29 +754,20 @@ const Collection = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredTransactions.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredTransactions.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredTransactions.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Footer with Summary */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentTransactions.length}</strong> of{" "}
-            <strong>{filteredTransactions.length}</strong> filtered transactions (Total: {totalBills})
-          </div>
-          <div className="font-semibold text-slate-800">
-            Total Filtered Amount:{" "}
-            <span className="text-blue-600 text-sm font-bold">
-              ₹{filteredTotal.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );
