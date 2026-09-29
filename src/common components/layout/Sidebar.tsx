@@ -41,6 +41,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
+  // ==================== DASHBOARD ====================
   {
     label: "Dashboard",
     path: "/dashboard",
@@ -48,6 +49,48 @@ const menuItems: MenuItem[] = [
     roles: ["admin", "receptionist", "lab_technician"],
   },
 
+  // ==================== MASTER DATA ====================
+  {
+    label: "Tests",
+    icon: <HealthAndSafetyOutlinedIcon />,
+    roles: ["admin"],
+    children: [
+      {
+        label: "Test List",
+        path: "/tests",
+      },
+      {
+        label: "Add Test",
+        path: "/tests/add",
+      },
+      {
+        label: "Categories",
+        path: "/tests/categories",
+      },
+    ],
+  },
+
+  {
+    label: "Doctors / Referrals",
+    icon: <LocalHospitalOutlinedIcon />,
+    roles: ["admin", "receptionist"],
+    children: [
+      {
+        label: "Doctor List",
+        path: "/doctors",
+      },
+      {
+        label: "Referred Patients",
+        path: "/doctors/referred-patients",
+      },
+      {
+        label: "Referral History",
+        path: "/doctors/referral-history",
+      },
+    ],
+  },
+
+  // ==================== PATIENT ====================
   {
     label: "Patients",
     icon: <PeopleOutlineOutlinedIcon />,
@@ -68,6 +111,28 @@ const menuItems: MenuItem[] = [
     ],
   },
 
+  // ==================== BILLING ====================
+  {
+    label: "Billing",
+    icon: <ReceiptLongOutlinedIcon />,
+    roles: ["admin", "receptionist"],
+    children: [
+      {
+        label: "New Bill",
+        path: "/billing/new",
+      },
+      {
+        label: "Payments",
+        path: "/billing/payments",
+      },
+      {
+        label: "Pending Payments",
+        path: "/billing/pending",
+      },
+    ],
+  },
+
+  // ==================== ACCESSION ====================
   {
     label: "Accession",
     icon: <BiotechOutlinedIcon />,
@@ -96,6 +161,7 @@ const menuItems: MenuItem[] = [
     ],
   },
 
+  // ==================== ANALYSIS ====================
   {
     label: "Analysis",
     icon: <ScienceOutlinedIcon />,
@@ -116,110 +182,7 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  {
-    label: "Results",
-    icon: <AssignmentOutlinedIcon />,
-    roles: ["admin", "lab_technician"],
-    children: [
-      {
-        label: "Enter Results",
-        path: "/results/enter",
-      },
-      {
-        label: "Pending Verification",
-        path: "/results/pending-verification",
-      },
-      {
-        label: "Verified Results",
-        path: "/results/verified",
-      },
-    ],
-  },
-
-  {
-    label: "Reports",
-    icon: <DescriptionOutlinedIcon />,
-    roles: ["admin", "receptionist"],
-    children: [
-      {
-        label: "Pending Reports",
-        path: "/reports/pending",
-      },
-      {
-        label: "Generated Reports",
-        path: "/reports/generated",
-      },
-      {
-        label: "Report History",
-        path: "/reports/history",
-      },
-      {
-        label: "Share Report",
-        path: "/reports/share",
-      },
-    ],
-  },
-
-  {
-    label: "Billing",
-    icon: <ReceiptLongOutlinedIcon />,
-    roles: ["admin", "receptionist"],
-    children: [
-      {
-        label: "New Bill",
-        path: "/billing/new",
-      },
-      {
-        label: "Payments",
-        path: "/billing/payments",
-      },
-      {
-        label: "Pending Payments",
-        path: "/billing/pending",
-      },
-    ],
-  },
-
-  {
-    label: "Doctors",
-    icon: <LocalHospitalOutlinedIcon />,
-    roles: ["admin", "receptionist"],
-    children: [
-      {
-        label: "Doctor List",
-        path: "/doctors",
-      },
-      {
-        label: "Referred Patients",
-        path: "/doctors/referred-patients",
-      },
-      {
-        label: "Referral History",
-        path: "/doctors/referral-history",
-      },
-    ],
-  },
-
-  {
-    label: "Tests",
-    icon: <HealthAndSafetyOutlinedIcon />,
-    roles: ["admin"],
-    children: [
-      {
-        label: "Test List",
-        path: "/tests",
-      },
-      {
-        label: "Add Test",
-        path: "/tests/add",
-      },
-      {
-        label: "Categories",
-        path: "/tests/categories",
-      },
-    ],
-  },
-
+  // ==================== QUALITY CONTROL ====================
   {
     label: "Quality Control",
     icon: <ScienceIcon />,
@@ -244,6 +207,74 @@ const menuItems: MenuItem[] = [
     ],
   },
 
+  // ==================== RESULTS ====================
+  {
+    label: "Results",
+    icon: <AssignmentOutlinedIcon />,
+    roles: ["admin", "lab_technician"],
+    children: [
+      {
+        label: "Enter Results",
+        path: "/results/enter",
+      },
+      {
+        label: "Pending Verification",
+        path: "/results/pending-verification",
+      },
+      {
+        label: "Verified Results",
+        path: "/results/verified",
+      },
+    ],
+  },
+
+  // ==================== REPORTS ====================
+  {
+    label: "Reports",
+    icon: <DescriptionOutlinedIcon />,
+    roles: ["admin", "receptionist"],
+    children: [
+      {
+        label: "Pending Reports",
+        path: "/reports/pending",
+      },
+      {
+        label: "Generated Reports",
+        path: "/reports/generated",
+      },
+      {
+        label: "Report History",
+        path: "/reports/history",
+      },
+      {
+        label: "Share Report",
+        path: "/reports/share",
+      },
+    ],
+  },
+
+  // ==================== NOTIFICATIONS ====================
+  {
+    label: "Notifications",
+    icon: <NotificationsNoneOutlinedIcon />,
+    roles: ["admin"],
+    children: [
+      {
+        label: "Communication History",
+        path: "/notifications/history",
+      },
+      {
+        label: "Message Templates",
+        path: "/notifications/templates",
+      },
+      {
+        label: "Notification Settings",
+        path: "/notifications/settings",
+      },
+    ],
+  },
+
+  // ==================== FINANCE ====================
   {
     label: "Financial Analysis",
     icon: <AccountBalanceOutlinedIcon />,
@@ -308,26 +339,7 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  {
-    label: "Notifications",
-    icon: <NotificationsNoneOutlinedIcon />,
-    roles: ["admin"],
-    children: [
-      {
-        label: "Communication History",
-        path: "/notifications/history",
-      },
-      {
-        label: "Message Templates",
-        path: "/notifications/templates",
-      },
-      {
-        label: "Notification Settings",
-        path: "/notifications/settings",
-      },
-    ],
-  },
-
+  // ==================== ADMINISTRATION ====================
   {
     label: "Staff / Users",
     icon: <GroupsOutlinedIcon />,
@@ -468,8 +480,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               {user.role === "lab_technician"
                 ? "Lab Technician"
                 : user.role === "receptionist"
-                ? "Receptionist"
-                : "Administrator"}
+                  ? "Receptionist"
+                  : "Administrator"}
             </span>
           </div>
         </div>
@@ -486,8 +498,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   to={item.path}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `sidebar-nav-item ${
-                      isActive ? "sidebar-nav-active" : ""
+                    `sidebar-nav-item ${isActive ? "sidebar-nav-active" : ""
                     }`
                   }
                 >
@@ -511,11 +522,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               >
                 <button
                   type="button"
-                  className={`sidebar-nav-item sidebar-menu-button ${
-                    isOpenMenu
+                  className={`sidebar-nav-item sidebar-menu-button ${isOpenMenu
                       ? "sidebar-menu-open"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => toggleMenu(item.label)}
                 >
                   <span className="sidebar-nav-icon">
@@ -527,9 +537,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   </span>
 
                   <ExpandMoreIcon
-                    className={`sidebar-expand-icon ${
-                      isOpenMenu ? "sidebar-expand-active" : ""
-                    }`}
+                    className={`sidebar-expand-icon ${isOpenMenu ? "sidebar-expand-active" : ""
+                      }`}
                   />
                 </button>
 
@@ -541,10 +550,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         to={child.path}
                         onClick={onClose}
                         className={({ isActive }) =>
-                          `sidebar-submenu-item ${
-                            isActive
-                              ? "sidebar-submenu-active"
-                              : ""
+                          `sidebar-submenu-item ${isActive
+                            ? "sidebar-submenu-active"
+                            : ""
                           }`
                         }
                       >
