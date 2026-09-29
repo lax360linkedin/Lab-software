@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Expense Reports Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.expense-reports-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .expense-reports-page button,
+  .expense-reports-page input,
+  .expense-reports-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .expense-reports-page {
+    padding: 0 !important;
+  }
+}

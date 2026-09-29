@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Expense Categories Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.expense-categories-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .expense-categories-page button,
+  .expense-categories-page input,
+  .expense-categories-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .expense-categories-page {
+    padding: 0 !important;
+  }
+}

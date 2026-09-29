@@ -173,7 +173,7 @@ const Revenue = () => {
   const [sortBy, setSortBy] = useState<"revenue" | "tests" | "price" | "name">("revenue");
   const [timeRange, setTimeRange] = useState<"Today" | "This Week" | "This Month">("Today");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Overall Totals
   const overallTotalRevenue = useMemo(() => {
@@ -270,17 +270,6 @@ const Revenue = () => {
 
     return result;
   }, [searchTerm, selectedDept, sortBy]);
-
-  // Totals for filtered view
-  const filteredRevenue = useMemo(() => {
-    return filteredAndSortedTests.reduce((acc, t) => acc + t.totalRevenue, 0);
-  }, [filteredAndSortedTests]);
-
-  const filteredTestsCount = useMemo(() => {
-    return filteredAndSortedTests.reduce((acc, t) => acc + t.testsPerformed, 0);
-  }, [filteredAndSortedTests]);
-
-  const totalPages = Math.ceil(filteredAndSortedTests.length / rowsPerPage);
 
   const currentTests = useMemo(() => {
     return filteredAndSortedTests.slice(
@@ -601,11 +590,12 @@ const Revenue = () => {
         </div>
 
         {/* Detailed Table View using Common Table component */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentTests}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No laboratory tests match your selected criteria."
             renderRow={(item: TestRevenueItem) => {
               const sharePercent =
@@ -615,18 +605,18 @@ const Revenue = () => {
 
               return (
                 <>
-                  <td className="whitespace-nowrap px-4 py-3.5">
-                    <div className="font-semibold text-xs text-slate-900">
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <div className="font-semibold text-sm text-slate-900">
                       {item.testName}
                     </div>
-                    <div className="text-[10px] font-mono text-blue-600">
+                    <div className="text-xs font-mono text-blue-600">
                       {item.testCode}
                     </div>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5">
+                  <td className="whitespace-nowrap px-4 py-4">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                         item.department === "Hematology"
                           ? "bg-rose-50 text-rose-600"
                           : item.department === "Biochemistry"
@@ -642,39 +632,39 @@ const Revenue = () => {
                     </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-right font-medium text-xs text-slate-700">
+                  <td className="whitespace-nowrap px-4 py-4 text-right font-medium text-sm text-slate-700">
                     ₹{item.unitPrice.toLocaleString("en-IN")}
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                    <span className="font-semibold text-xs text-slate-900">
+                  <td className="whitespace-nowrap px-4 py-4 text-right">
+                    <span className="font-semibold text-sm text-slate-900">
                       {item.testsPerformed}
                     </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                    <span className="font-bold text-xs text-slate-900">
+                  <td className="whitespace-nowrap px-4 py-4 text-right">
+                    <span className="font-bold text-sm text-slate-900">
                       ₹{item.totalRevenue.toLocaleString("en-IN")}
                     </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 min-w-[140px]">
+                  <td className="whitespace-nowrap px-4 py-4 min-w-[140px]">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
                         <div
                           className="h-full rounded-full bg-blue-600"
                           style={{ width: `${Math.min(Number(sharePercent) * 4, 100)}%` }}
                         />
                       </div>
-                      <span className="text-[11px] font-medium text-slate-500 w-8 text-right">
+                      <span className="text-xs font-medium text-slate-500 w-8 text-right">
                         {sharePercent}%
                       </span>
                     </div>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center">
+                  <td className="whitespace-nowrap px-4 py-4 text-center">
                     <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
                         item.demandStatus === "High Volume"
                           ? "bg-blue-50 text-blue-700"
                           : item.demandStatus === "Moderate"
@@ -692,30 +682,20 @@ const Revenue = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredAndSortedTests.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredAndSortedTests.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredAndSortedTests.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Summary Footer */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentTests.length}</strong> of{" "}
-            <strong>{filteredAndSortedTests.length}</strong> filtered tests (Total Catalog: {TEST_REVENUE_DATA.length}) | Total Volume:{" "}
-            <strong className="text-slate-800">{filteredTestsCount} tests</strong>
-          </div>
-          <div className="font-semibold text-slate-800">
-            Filtered Revenue:{" "}
-            <span className="text-blue-600 text-sm font-bold">
-              ₹{filteredRevenue.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );

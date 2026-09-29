@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Expense Dashboard Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.expense-dashboard-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .expense-dashboard-page button,
+  .expense-dashboard-page input,
+  .expense-dashboard-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .expense-dashboard-page {
+    padding: 0 !important;
+  }
+}

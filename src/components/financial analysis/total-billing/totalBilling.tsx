@@ -259,7 +259,7 @@ const TotalBilling = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Key KPI totals
   const totalGrossBilling = useMemo(() => {
@@ -332,8 +332,6 @@ const TotalBilling = () => {
     });
   }, [searchTerm, selectedCategory, selectedStatus]);
 
-  const totalPages = Math.ceil(filteredInvoices.length / rowsPerPage);
-
   const currentInvoices = useMemo(() => {
     return filteredInvoices.slice(
       (currentPage - 1) * rowsPerPage,
@@ -341,9 +339,6 @@ const TotalBilling = () => {
     );
   }, [filteredInvoices, currentPage, rowsPerPage]);
 
-  const filteredTotal = useMemo(() => {
-    return filteredInvoices.reduce((acc, inv) => acc + inv.netAmount, 0);
-  }, [filteredInvoices]);
 
   return (
     <div className="total-billing-page space-y-6">
@@ -573,39 +568,40 @@ const TotalBilling = () => {
         </div>
 
         {/* Table View */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentInvoices}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No billing records match your search criteria."
             renderRow={(inv: BillingInvoice) => (
               <>
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-blue-600">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-blue-600">
                     {inv.invoiceNumber}
                   </div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-xs text-slate-400">
                     {inv.date} • {inv.time}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs font-semibold text-slate-800">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm font-semibold text-slate-800">
                     {inv.patientName}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {inv.patientId}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">
+                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
                   {inv.doctorReferral}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       inv.category === "Walk-in"
                         ? "bg-blue-50 text-blue-700"
                         : inv.category === "Doctor Referral"
@@ -619,29 +615,29 @@ const TotalBilling = () => {
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs text-slate-700 max-w-[200px] truncate">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm text-slate-700 max-w-[220px] truncate">
                     {inv.testsSummary}
                   </div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-xs text-slate-400">
                     {inv.itemsCount} {inv.itemsCount === 1 ? "test" : "tests"}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                  <div className="font-bold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4 text-right">
+                  <div className="font-bold text-sm text-slate-900">
                     ₹{inv.netAmount.toLocaleString("en-IN")}
                   </div>
                   {inv.discountAmount > 0 && (
-                    <div className="text-[10px] text-emerald-600">
+                    <div className="text-xs text-emerald-600">
                       -₹{inv.discountAmount} off
                     </div>
                   )}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-center">
+                <td className="whitespace-nowrap px-4 py-4 text-center">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       inv.status === "Paid"
                         ? "bg-emerald-50 text-emerald-600"
                         : inv.status === "Partially Paid"
@@ -658,29 +654,20 @@ const TotalBilling = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredInvoices.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredInvoices.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredInvoices.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Summary Footer */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentInvoices.length}</strong> of{" "}
-            <strong>{filteredInvoices.length}</strong> filtered invoices (Total: {totalInvoices})
-          </div>
-          <div className="font-semibold text-slate-800">
-            Total Filtered Billing:{" "}
-            <span className="text-blue-600 text-sm font-bold">
-              ₹{filteredTotal.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );

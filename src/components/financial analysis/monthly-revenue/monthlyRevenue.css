@@ -22,14 +22,7 @@
   @apply bg-purple-50 text-purple-700 border border-purple-200/60;
 }
 
-/* Custom scrollbar */
-.monthly-revenue-page .overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
 
-.monthly-revenue-page .overflow-x-auto::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-slate-300;
-}
 
 /* Print Styles */
 @media print {

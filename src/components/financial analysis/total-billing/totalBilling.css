@@ -26,14 +26,7 @@
   @apply bg-amber-50 text-amber-700 border border-amber-200/60;
 }
 
-/* Custom scrollbar */
-.total-billing-page .overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
 
-.total-billing-page .overflow-x-auto::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-slate-300;
-}
 
 /* Print Styles */
 @media print {

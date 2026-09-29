@@ -30,14 +30,7 @@
   @apply bg-amber-50 text-amber-700 border border-amber-200/60;
 }
 
-/* Custom scrollbar for table horizontal overflow */
-.revenue-page .overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
 
-.revenue-page .overflow-x-auto::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-slate-300;
-}
 
 /* Print Styles */
 @media print {

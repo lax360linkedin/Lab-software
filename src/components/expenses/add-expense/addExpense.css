@@ -1,0 +1,29 @@
+@reference "../../../index.css";
+
+/* ==========================================================================
+   Add Expense Page Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.add-expense-page {
+  @apply w-full;
+}
+
+@media print {
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .add-expense-page button,
+  .add-expense-page input,
+  .add-expense-page select {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .add-expense-page {
+    padding: 0 !important;
+  }
+}

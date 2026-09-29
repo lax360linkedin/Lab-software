@@ -1,0 +1,64 @@
+@reference "../../index.css";
+
+/* ==========================================================================
+   Laboratory Profile & Report Letterhead Styling
+   Medical Laboratory Management System
+   ========================================================================== */
+
+.lab-profile-page {
+  @apply w-full;
+}
+
+@media print {
+  /* Hide application shell when printing the report */
+  .app-sidebar,
+  .app-header,
+  .mobile-menu-button,
+  .notification-button,
+  .lab-profile-page button,
+  .lab-profile-page form,
+  .lab-profile-page .lg\:col-span-7,
+  .lab-profile-page .sticky > div:first-child,
+  .lab-profile-page .bg-blue-50\/60 {
+    display: none !important;
+  }
+
+  body, html, #root {
+    background-color: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .lab-profile-page {
+    padding: 0 !important;
+  }
+
+  .lab-profile-page .grid {
+    display: block !important;
+  }
+
+  .lab-profile-page .lg\:col-span-5 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .lab-profile-page .sticky {
+    position: static !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  #report-printable-sheet {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+  }
+}

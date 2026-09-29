@@ -234,7 +234,7 @@ const Discounts = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScheme, setSelectedScheme] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // KPI Calculations
   const totalDiscountAmount = useMemo(() => {
@@ -308,8 +308,6 @@ const Discounts = () => {
     });
   }, [searchTerm, selectedScheme]);
 
-  const totalPages = Math.ceil(filteredRecords.length / rowsPerPage);
-
   const currentRecords = useMemo(() => {
     return filteredRecords.slice(
       (currentPage - 1) * rowsPerPage,
@@ -317,9 +315,6 @@ const Discounts = () => {
     );
   }, [filteredRecords, currentPage, rowsPerPage]);
 
-  const filteredDiscountTotal = useMemo(() => {
-    return filteredRecords.reduce((sum, r) => sum + r.discountAmount, 0);
-  }, [filteredRecords]);
 
   return (
     <div className="discounts-page space-y-6">
@@ -534,44 +529,45 @@ const Discounts = () => {
         </div>
 
         {/* Table View */}
-        <div className="w-full overflow-x-auto p-4 sm:p-5">
+        <div className="w-full overflow-x-auto">
           <Table
             columns={columns}
             data={currentRecords}
-            maxHeight="520px"
+            maxHeight="430px"
+            minWidth="1200px"
             emptyMessage="No discount records match your search criteria."
             renderRow={(d: DiscountRecord) => (
               <>
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-blue-600">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-blue-600">
                     {d.discountId}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {d.reason}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="font-semibold text-xs text-slate-800">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="font-semibold text-sm text-slate-800">
                     {d.invoiceNumber}
                   </div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-xs text-slate-400">
                     {d.date}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs font-semibold text-slate-800">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm font-semibold text-slate-800">
                     {d.patientName}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-xs text-slate-400 font-mono">
                     {d.patientId}
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
+                <td className="whitespace-nowrap px-4 py-4">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                       d.scheme === "Senior Citizen Concession"
                         ? "bg-blue-50 text-blue-700"
                         : d.scheme === "Health Camp Coupon"
@@ -587,25 +583,25 @@ const Discounts = () => {
                   </span>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right font-medium text-xs text-slate-600">
+                <td className="whitespace-nowrap px-4 py-4 text-right font-medium text-sm text-slate-600">
                   ₹{d.originalAmount.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                  <div className="font-bold text-xs text-emerald-600">
+                <td className="whitespace-nowrap px-4 py-4 text-right">
+                  <div className="font-bold text-sm text-emerald-600">
                     -₹{d.discountAmount.toLocaleString("en-IN")}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-semibold">
+                  <div className="text-xs text-slate-400 font-semibold">
                     ({d.discountPercent}% off)
                   </div>
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5 text-right font-bold text-xs text-slate-900">
+                <td className="whitespace-nowrap px-4 py-4 text-right font-bold text-sm text-slate-900">
                   ₹{d.finalPayable.toLocaleString("en-IN")}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-3.5">
-                  <div className="text-xs font-medium text-slate-700">
+                <td className="whitespace-nowrap px-4 py-4">
+                  <div className="text-sm font-medium text-slate-700">
                     {d.authorizedBy}
                   </div>
                 </td>
@@ -615,29 +611,20 @@ const Discounts = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredRecords.length > 0 && totalPages > 1 && (
-          <div className="border-t border-slate-200 px-5 py-4">
+        {filteredRecords.length > 0 && (
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
             <Pagination
+              totalItems={filteredRecords.length}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
               currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
-
-        {/* Table Summary Footer */}
-        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-          <div>
-            Showing <strong>{currentRecords.length}</strong> of{" "}
-            <strong>{filteredRecords.length}</strong> filtered records (Total: {totalPatientsBenefited})
-          </div>
-          <div className="font-semibold text-slate-800">
-            Total Concessions Value:{" "}
-            <span className="text-blue-600 text-sm font-bold">
-              ₹{filteredDiscountTotal.toLocaleString("en-IN")}
-            </span>
-          </div>
-        </div>
       </section>
     </div>
   );
