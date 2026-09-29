@@ -1,17 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import PersonIcon from "@mui/icons-material/Person";
-import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import LocalHospitalOutlinedIcon from "@mui/icons-material/LocalHospitalOutlined";
-import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import AddIcon from "@mui/icons-material/Add";
-import WhatsAppIcon from "@mui/icons-material/WhatsApp";
-import SmsOutlinedIcon from "@mui/icons-material/SmsOutlined";
-import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
+import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import type { Doctor, Referral } from "../../doctors/Doctor";
 
 interface FormData {
   patientName: string;
@@ -19,69 +11,144 @@ interface FormData {
   gender: string;
   phone: string;
   address: string;
+  doctorId: string;
   doctorReferral: string;
   requiredTests: string[];
 }
 
-interface FormErrors {
-  patientName?: string;
-  age?: string;
-  gender?: string;
-  phone?: string;
-  requiredTests?: string;
-}
-
-interface TestOption {
-  id: string;
-  name: string;
-  category: string;
-}
-
-const testOptions: TestOption[] = [
-  {
-    id: "CBC",
-    name: "Complete Blood Count (CBC)",
-    category: "Hematology",
-  },
-  {
-    id: "LFT",
-    name: "Liver Function Test (LFT)",
-    category: "Biochemistry",
-  },
-  {
-    id: "KFT",
-    name: "Kidney Function Test (KFT)",
-    category: "Biochemistry",
-  },
-  {
-    id: "LIPID",
-    name: "Lipid Profile",
-    category: "Biochemistry",
-  },
-  {
-    id: "THYROID",
-    name: "Thyroid Profile",
-    category: "Hormones",
-  },
-  {
-    id: "HBA1C",
-    name: "HbA1c",
-    category: "Diabetes",
-  },
-  {
-    id: "URINE",
-    name: "Urine Routine",
-    category: "Clinical Pathology",
-  },
-  {
-    id: "DENGUE",
-    name: "Dengue Test",
-    category: "Immunology",
-  },
+const testOptions = [
+  { code: "CBC", name: "Complete Blood Count" },
+  { code: "LFT", name: "Liver Function Test" },
+  { code: "KFT", name: "Kidney Function Test" },
+  { code: "LIPID", name: "Lipid Profile" },
+  { code: "THYROID", name: "Thyroid Profile" },
+  { code: "HBA1C", name: "HbA1c" },
+  { code: "URINE", name: "Urine Routine" },
+  { code: "DENGUE", name: "Dengue Test" },
 ];
 
-const NewRegistration = () => {
+const DOCTOR_STORAGE_KEY = "lab_doctors";
+const PATIENT_STORAGE_KEY = "lab_patients";
+const REFERRAL_STORAGE_KEY = "lab_referrals";
+
+const getDoctors = (): Doctor[] => {
+  const storedDoctors = localStorage.getItem(DOCTOR_STORAGE_KEY);
+
+  if (!storedDoctors) {
+    return [];
+  }
+
+  try {
+    const parsedDoctors = JSON.parse(storedDoctors);
+
+    return Array.isArray(parsedDoctors) ? parsedDoctors : [];
+  } catch {
+    return [];
+  }
+};
+
+const getReferrals = (): Referral[] => {
+  const storedReferrals = localStorage.getItem(REFERRAL_STORAGE_KEY);
+
+  if (!storedReferrals) {
+    return [];
+  }
+
+  try {
+    const parsedReferrals = JSON.parse(storedReferrals);
+
+    return Array.isArray(parsedReferrals) ? parsedReferrals : [];
+  } catch {
+    return [];
+  }
+};
+
+const generatePatientId = () => {
+  const storedPatients = localStorage.getItem(PATIENT_STORAGE_KEY);
+
+  let patients: Array<{ patientId?: string }> = [];
+
+  if (storedPatients) {
+    try {
+      const parsed = JSON.parse(storedPatients);
+
+      if (Array.isArray(parsed)) {
+        patients = parsed;
+      }
+    } catch {
+      patients = [];
+    }
+  }
+
+  const numbers = patients
+    .map((patient) => {
+      const match = patient.patientId?.match(/PAT-(\d+)/);
+
+      return match ? Number(match[1]) : 0;
+    })
+    .filter((number) => number > 0);
+
+  const nextNumber = numbers.length > 0
+    ? Math.max(...numbers) + 1
+    : 10001;
+
+  return `PAT-${nextNumber}`;
+};
+
+const generateRegistrationId = () => {
+  const storedPatients = localStorage.getItem(PATIENT_STORAGE_KEY);
+
+  let patients: Array<{ registrationId?: string }> = [];
+
+  if (storedPatients) {
+    try {
+      const parsed = JSON.parse(storedPatients);
+
+      if (Array.isArray(parsed)) {
+        patients = parsed;
+      }
+    } catch {
+      patients = [];
+    }
+  }
+
+  const numbers = patients
+    .map((patient) => {
+      const match = patient.registrationId?.match(/REG-(\d+)/);
+
+      return match ? Number(match[1]) : 0;
+    })
+    .filter((number) => number > 0);
+
+  const nextNumber = numbers.length > 0
+    ? Math.max(...numbers) + 1
+    : 10001;
+
+  return `REG-${nextNumber}`;
+};
+
+const generateReferralId = () => {
+  const referrals = getReferrals();
+
+  const numbers = referrals
+    .map((referral) => {
+      const match = referral.id?.match(/REF-(\d+)/);
+
+      return match ? Number(match[1]) : 0;
+    })
+    .filter((number) => number > 0);
+
+  const nextNumber = numbers.length > 0
+    ? Math.max(...numbers) + 1
+    : 1;
+
+  return `REF-${String(nextNumber).padStart(4, "0")}`;
+};
+
+export default function NewRegistration() {
   const navigate = useNavigate();
+
+  const [doctors] = useState<Doctor[]>(() => getDoctors());
 
   const [formData, setFormData] = useState<FormData>({
     patientName: "",
@@ -89,16 +156,25 @@ const NewRegistration = () => {
     gender: "",
     phone: "",
     address: "",
+    doctorId: "",
     doctorReferral: "",
     requiredTests: [],
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [registrationId, setRegistrationId] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
+  const [registeredPatient, setRegisteredPatient] = useState<{
+    patientId: string;
+    registrationId: string;
+    patientName: string;
+    doctorName: string;
+    tests: string[];
+  } | null>(null);
 
   const handleChange = (
-    field: keyof Omit<FormData, "requiredTests">,
+    field: keyof FormData,
     value: string
   ) => {
     setFormData((previous) => ({
@@ -112,18 +188,34 @@ const NewRegistration = () => {
     }));
   };
 
-  const handleTestChange = (testId: string) => {
+  const handleDoctorChange = (doctorId: string) => {
+    const selectedDoctor = doctors.find(
+      (doctor) => doctor.id === doctorId
+    );
+
+    setFormData((previous) => ({
+      ...previous,
+      doctorId,
+      doctorReferral: selectedDoctor?.doctorName ?? "",
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      doctorId: "",
+    }));
+  };
+
+  const handleTestChange = (testCode: string) => {
     setFormData((previous) => {
-      const alreadySelected =
-        previous.requiredTests.includes(testId);
+      const alreadySelected = previous.requiredTests.includes(testCode);
 
       return {
         ...previous,
         requiredTests: alreadySelected
           ? previous.requiredTests.filter(
-              (id) => id !== testId
-            )
-          : [...previous.requiredTests, testId],
+            (test) => test !== testCode
+          )
+          : [...previous.requiredTests, testCode],
       };
     });
 
@@ -134,35 +226,30 @@ const NewRegistration = () => {
   };
 
   const validateForm = () => {
-    const newErrors: FormErrors = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.patientName.trim()) {
-      newErrors.patientName = "Patient name is required.";
+      newErrors.patientName = "Patient name is required";
     }
 
     if (!formData.age.trim()) {
-      newErrors.age = "Age is required.";
-    } else if (
-      Number(formData.age) < 1 ||
-      Number(formData.age) > 120
-    ) {
-      newErrors.age = "Please enter a valid age.";
+      newErrors.age = "Age is required";
     }
 
     if (!formData.gender) {
-      newErrors.gender = "Please select gender.";
+      newErrors.gender = "Gender is required";
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required.";
-    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
-      newErrors.phone =
-        "Please enter a valid 10-digit phone number.";
+      newErrors.phone = "Phone number is required";
+    }
+
+    if (!formData.doctorId) {
+      newErrors.doctorId = "Please select the concerned doctor";
     }
 
     if (formData.requiredTests.length === 0) {
-      newErrors.requiredTests =
-        "Please select at least one test.";
+      newErrors.requiredTests = "Please select at least one test";
     }
 
     setErrors(newErrors);
@@ -170,62 +257,115 @@ const NewRegistration = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const generateRegistrationId = () => {
-    const number = Math.floor(
-      10000 + Math.random() * 90000
+  const handleSubmit = () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    const selectedDoctor = doctors.find(
+      (doctor) => doctor.id === formData.doctorId
     );
 
-    return `REG-${number}`;
-  };
+    if (!selectedDoctor) {
+      setErrors({
+        doctorId: "Selected doctor could not be found",
+      });
 
-  const handleSubmit = (event: React.FormEvent) => {
-  event.preventDefault();
+      return;
+    }
 
-  if (!validateForm()) {
-    return;
-  }
+    const patientId = generatePatientId();
+    const registrationId = generateRegistrationId();
+    const referralId = generateReferralId();
 
-  const generatedRegistrationId = generateRegistrationId();
+    const registrationDate = new Date().toISOString();
 
-  const newPatient = {
-    id: `PAT-${Date.now()}`,
-    patientId: `PAT-${Math.floor(10000 + Math.random() * 90000)}`,
-    registrationId: generatedRegistrationId,
-    patientName: formData.patientName.trim(),
-    age: formData.age,
-    gender: formData.gender,
-    phone: formData.phone,
-    address: formData.address.trim(),
-    doctorReferral: formData.doctorReferral.trim(),
-    requiredTests: formData.requiredTests,
-    registrationDate: new Date().toISOString(),
-    status: "Registered",
-  };
+    const newPatient = {
+      id: patientId,
+      patientId,
+      registrationId,
+      patientName: formData.patientName.trim(),
+      age: formData.age,
+      gender: formData.gender,
+      phone: formData.phone.trim(),
+      address: formData.address.trim(),
+      doctorId: selectedDoctor.id,
+      doctorReferral: selectedDoctor.doctorName,
+      requiredTests: formData.requiredTests,
+      registrationDate,
+      status: "Registered",
+    };
 
-  const existingPatients = localStorage.getItem("lab_patients");
+    const existingPatients = localStorage.getItem(
+      PATIENT_STORAGE_KEY
+    );
 
-  let patients = [];
+    let patients: unknown[] = [];
 
-  if (existingPatients) {
-    try {
-      patients = JSON.parse(existingPatients);
+    if (existingPatients) {
+      try {
+        const parsedPatients = JSON.parse(existingPatients);
 
-      if (!Array.isArray(patients)) {
+        if (Array.isArray(parsedPatients)) {
+          patients = parsedPatients;
+        }
+      } catch {
         patients = [];
       }
-    } catch {
-      patients = [];
     }
-  }
 
-  localStorage.setItem(
-    "lab_patients",
-    JSON.stringify([newPatient, ...patients])
-  );
+    localStorage.setItem(
+      PATIENT_STORAGE_KEY,
+      JSON.stringify([
+        newPatient,
+        ...patients,
+      ])
+    );
 
-  setRegistrationId(generatedRegistrationId);
-  setShowSuccess(true);
-};
+    const newReferral: Referral = {
+      id: referralId,
+
+      patientId: patientId,
+
+      patientName: formData.patientName.trim(),
+
+      doctorId: selectedDoctor.id,
+
+      doctorName: selectedDoctor.doctorName,
+
+      referralDate: registrationDate,
+
+      tests: formData.requiredTests,
+
+      billAmount: 0,
+
+      sampleStatus: "Not Collected",
+
+      reportStatus: "Pending",
+
+      status: "Registered",
+    };
+
+    const existingReferrals = getReferrals();
+
+    localStorage.setItem(
+      REFERRAL_STORAGE_KEY,
+      JSON.stringify([
+        newReferral,
+        ...existingReferrals,
+      ])
+    );
+
+    setRegisteredPatient({
+      patientId,
+      registrationId,
+      patientName: formData.patientName.trim(),
+      doctorName: selectedDoctor.doctorName,
+      tests: formData.requiredTests,
+    });
+
+    setRegistrationSuccess(true);
+  };
 
   const handleNewRegistration = () => {
     setFormData({
@@ -234,340 +374,182 @@ const NewRegistration = () => {
       gender: "",
       phone: "",
       address: "",
+      doctorId: "",
       doctorReferral: "",
       requiredTests: [],
     });
 
     setErrors({});
-    setRegistrationId("");
-    setShowSuccess(false);
-  };
-  
-  const handleView = () => {
-    navigate("/patients");
+    setRegisteredPatient(null);
+    setRegistrationSuccess(false);
   };
 
+  if (registrationSuccess && registeredPatient) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="mx-auto max-w-3xl">
 
-if (showSuccess) {
-  return (
-    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center p-4 sm:p-6">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
 
-        <div className="flex flex-col items-center text-center">
-
-          {/* Success Icon */}
-          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-            <CheckCircleIcon
-              className="text-green-600"
-              sx={{ fontSize: 42 }}
-            />
-          </div>
-
-          {/* Success Message */}
-          <h2 className="text-2xl font-bold text-slate-800">
-            Patient Registered Successfully
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            The patient registration has been created successfully.
-          </p>
-
-          {/* Registration ID */}
-          <div className="mt-7 w-full rounded-xl border border-blue-100 bg-blue-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-              Registration ID
-            </p>
-
-            <p className="mt-1 text-2xl font-bold tracking-wide text-blue-800">
-              {registrationId}
-            </p>
-          </div>
-
-          {/* Patient Details */}
-          <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-
-            <div className="rounded-xl bg-slate-50 p-4 text-left">
-              <p className="text-xs text-slate-500">
-                Patient Name
-              </p>
-
-              <p className="mt-1 font-semibold text-slate-800">
-                {formData.patientName}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 p-4 text-left">
-              <p className="text-xs text-slate-500">
-                Phone
-              </p>
-
-              <p className="mt-1 font-semibold text-slate-800">
-                {formData.phone}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 p-4 text-left">
-              <p className="text-xs text-slate-500">
-                Age / Gender
-              </p>
-
-              <p className="mt-1 font-semibold text-slate-800">
-                {formData.age} / {formData.gender}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 p-4 text-left">
-              <p className="text-xs text-slate-500">
-                Tests
-              </p>
-
-              <p className="mt-1 font-semibold text-slate-800">
-                {formData.requiredTests.length} selected
-              </p>
-            </div>
-
-          </div>
-
-          {/* Notification Section */}
-          <div className="mt-7 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-
-            <div className="mb-4 text-left">
-              <h3 className="text-sm font-semibold text-slate-800">
-                Send Welcome Notification
-              </h3>
-
-              <p className="mt-1 text-xs text-slate-500">
-                Send the patient's registration details through the preferred communication channel.
-              </p>
-            </div>
-
-            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-
-              {/* WhatsApp */}
-              <button
-                type="button"
-                onClick={() => {
-                  // Backend notification API will be added here
-                  console.log(
-                    "Send WhatsApp welcome notification",
-                    registrationId
-                  );
-                }}
-                className="
-                  flex items-center justify-center gap-2
-                  rounded-xl
-                  border border-green-200
-                  bg-green-50
-                  px-4 py-3
-                  text-sm font-semibold
-                  text-green-700
-                  transition
-                  hover:bg-green-100
-                "
-              >
-                <WhatsAppIcon fontSize="small" />
-                WhatsApp
-              </button>
-
-              {/* SMS */}
-              <button
-                type="button"
-                onClick={() => {
-                  // Backend notification API will be added here
-                  console.log(
-                    "Send SMS welcome notification",
-                    registrationId
-                  );
-                }}
-                className="
-                  flex items-center justify-center gap-2
-                  rounded-xl
-                  border border-blue-200
-                  bg-blue-50
-                  px-4 py-3
-                  text-sm font-semibold
-                  text-blue-700
-                  transition
-                  hover:bg-blue-100
-                "
-              >
-                <SmsOutlinedIcon fontSize="small" />
-                SMS
-              </button>
-
-              {/* Email */}
-              <button
-                type="button"
-                onClick={() => {
-                  // Backend notification API will be added here
-                  console.log(
-                    "Send Email welcome notification",
-                    registrationId
-                  );
-                }}
-                className="
-                  flex items-center justify-center gap-2
-                  rounded-xl
-                  border border-purple-200
-                  bg-purple-50
-                  px-4 py-3
-                  text-sm font-semibold
-                  text-purple-700
-                  transition
-                  hover:bg-purple-100
-                "
-              >
-                <EmailOutlinedIcon fontSize="small" />
-                Email
-              </button>
-
-            </div>
-
-          </div>
-
-          {/* Main Actions */}
-          <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
-
-            {/* View Patients */}
-            <button
-              type="button"
-              onClick={handleView}
-              className="
-                flex flex-1
-                items-center justify-center
-                gap-2
-                rounded-xl
-                border border-slate-200
-                px-5 py-3
-                text-sm font-semibold
-                text-slate-700
-                transition
-                hover:bg-slate-50
-              "
-            >
-              <VisibilityOutlinedIcon fontSize="small" />
-              View Patients
-            </button>
-
-            {/* New Registration */}
-            <button
-              type="button"
-              onClick={handleNewRegistration}
-              className="
-                flex flex-1
-                items-center justify-center
-                gap-2
-                rounded-xl
-                bg-slate-700
-                px-5 py-3
-                text-sm font-semibold
-                text-white
-                transition
-                hover:bg-slate-800
-              "
-            >
-              <AddIcon fontSize="small" />
-              New Registration
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-  return (
-    <div className="w-full space-y-6">
-
-      {/* PAGE HEADER */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-        <div>
-          <button
-            type="button"
-            onClick={() => navigate("/patients")}
-            className="
-              mb-3
-              flex items-center gap-1.5
-              text-sm font-medium
-              text-slate-500
-              transition
-              hover:text-blue-600
-            "
-          >
-            <ArrowBackIcon fontSize="small" />
-            Back to Patients
-          </button>
-
-          <h1 className="text-2xl font-bold text-slate-800">
-            New Patient Registration
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Register a new patient and assign the required laboratory tests.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-          <ScienceOutlinedIcon className="text-blue-600" />
-
-          <div>
-            <p className="text-xs text-slate-500">
-              Registration ID
-            </p>
-
-            <p className="text-sm font-bold text-blue-700">
-              Auto Generated
-            </p>
-          </div>
-        </div>
-
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* PATIENT INFORMATION */}
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-          <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
-            <div className="flex items-center gap-3">
-
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                <PersonIcon className="text-blue-600" />
+            <div className="mb-6 flex flex-col items-center text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <CheckCircleOutlineOutlinedIcon
+                  className="text-green-600"
+                  sx={{ fontSize: 40 }}
+                />
               </div>
 
-              <div>
-                <h2 className="font-semibold text-slate-800">
-                  Patient Information
-                </h2>
+              <h1 className="text-2xl font-bold text-slate-800">
+                Patient Registered Successfully
+              </h1>
 
-                <p className="text-xs text-slate-500">
-                  Enter the patient's basic information.
+              <p className="mt-2 text-sm text-slate-500">
+                Patient and referral records have been created.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-500">
+                  Patient ID
+                </p>
+
+                <p className="mt-1 text-lg font-semibold text-slate-800">
+                  {registeredPatient.patientId}
                 </p>
               </div>
 
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-500">
+                  Registration ID
+                </p>
+
+                <p className="mt-1 text-lg font-semibold text-slate-800">
+                  {registeredPatient.registrationId}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-500">
+                  Patient Name
+                </p>
+
+                <p className="mt-1 font-semibold text-slate-800">
+                  {registeredPatient.patientName}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-500">
+                  Concerned Doctor
+                </p>
+
+                <p className="mt-1 font-semibold text-slate-800">
+                  {registeredPatient.doctorName}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
+                <p className="text-xs font-medium text-slate-500">
+                  Required Tests
+                </p>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {registeredPatient.tests.map((test) => (
+                    <span
+                      key={test}
+                      className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                    >
+                      {test}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
             </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+
+              <button
+                type="button"
+                onClick={() => navigate("/patients")}
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                View Patients
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/doctors?tab=referred")}
+                className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                View Referral
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNewRegistration}
+                className="rounded-lg border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+              >
+                New Registration
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="mx-auto max-w-5xl">
+
+        {/* Header */}
+        <div className="mb-6 flex items-center gap-3">
+
+          <button
+            type="button"
+            onClick={() => navigate("/patients")}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
+          >
+            <ArrowBackOutlinedIcon />
+          </button>
+
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              New Patient Registration
+            </h1>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Register a patient and assign the concerned doctor.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 p-5 sm:p-6 md:grid-cols-2">
+        </div>
 
-            {/* Patient Name */}
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Patient Name <span className="text-red-500">*</span>
-              </label>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
-              <div
-                className={`flex items-center rounded-xl border bg-white transition ${
-                  errors.patientName
-                    ? "border-red-400"
-                    : "border-slate-200 focus-within:border-blue-500"
-                }`}
-              >
-                <PersonIcon className="ml-3 text-slate-400" />
+          {/* Patient Information */}
+          <div className="mb-8">
+
+            <div className="mb-5 flex items-center gap-2">
+              <PersonAddOutlinedIcon className="text-blue-600" />
+
+              <h2 className="text-lg font-semibold text-slate-800">
+                Patient Information
+              </h2>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+
+              {/* Patient Name */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Patient Name *
+                </label>
 
                 <input
                   type="text"
@@ -578,148 +560,109 @@ if (showSuccess) {
                       event.target.value
                     )
                   }
-                  placeholder="Enter patient full name"
-                  className="w-full rounded-xl border-0 bg-transparent px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  placeholder="Enter patient name"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
+
+                {errors.patientName && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.patientName}
+                  </p>
+                )}
               </div>
 
-              {errors.patientName && (
-                <p className="mt-1.5 text-xs text-red-500">
-                  {errors.patientName}
-                </p>
-              )}
-            </div>
+              {/* Age */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Age *
+                </label>
 
-            {/* Age */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Age <span className="text-red-500">*</span>
-              </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.age}
+                  onChange={(event) =>
+                    handleChange(
+                      "age",
+                      event.target.value
+                    )
+                  }
+                  placeholder="Enter age"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
 
-              <input
-                type="number"
-                min="1"
-                max="120"
-                value={formData.age}
-                onChange={(event) =>
-                  handleChange("age", event.target.value)
-                }
-                placeholder="Enter age"
-                className={`w-full rounded-xl border px-4 py-3 text-sm text-slate-800 outline-none transition ${
-                  errors.age
-                    ? "border-red-400"
-                    : "border-slate-200 focus:border-blue-500"
-                }`}
-              />
+                {errors.age && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.age}
+                  </p>
+                )}
+              </div>
 
-              {errors.age && (
-                <p className="mt-1.5 text-xs text-red-500">
-                  {errors.age}
-                </p>
-              )}
-            </div>
+              {/* Gender */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Gender *
+                </label>
 
-            {/* Gender */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Gender <span className="text-red-500">*</span>
-              </label>
+                <select
+                  value={formData.gender}
+                  onChange={(event) =>
+                    handleChange(
+                      "gender",
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">
+                    Select gender
+                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
 
-              <select
-                value={formData.gender}
-                onChange={(event) =>
-                  handleChange("gender", event.target.value)
-                }
-                className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 outline-none transition ${
-                  errors.gender
-                    ? "border-red-400"
-                    : "border-slate-200 focus:border-blue-500"
-                }`}
-              >
-                <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
+                {errors.gender && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.gender}
+                  </p>
+                )}
+              </div>
 
-              {errors.gender && (
-                <p className="mt-1.5 text-xs text-red-500">
-                  {errors.gender}
-                </p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Phone <span className="text-red-500">*</span>
-              </label>
-
-              <div
-                className={`flex items-center rounded-xl border bg-white ${
-                  errors.phone
-                    ? "border-red-400"
-                    : "border-slate-200 focus-within:border-blue-500"
-                }`}
-              >
-                <PhoneOutlinedIcon className="ml-3 text-slate-400" />
+              {/* Phone */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Phone *
+                </label>
 
                 <input
                   type="tel"
-                  maxLength={10}
                   value={formData.phone}
                   onChange={(event) =>
                     handleChange(
                       "phone",
-                      event.target.value.replace(/\D/g, "")
-                    )
-                  }
-                  placeholder="Enter 10-digit phone number"
-                  className="w-full rounded-xl border-0 bg-transparent px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                />
-              </div>
-
-              {errors.phone && (
-                <p className="mt-1.5 text-xs text-red-500">
-                  {errors.phone}
-                </p>
-              )}
-            </div>
-
-            {/* Doctor / Referral */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Doctor / Referral
-              </label>
-
-              <div className="flex items-center rounded-xl border border-slate-200 bg-white focus-within:border-blue-500">
-                <LocalHospitalOutlinedIcon className="ml-3 text-slate-400" />
-
-                <input
-                  type="text"
-                  value={formData.doctorReferral}
-                  onChange={(event) =>
-                    handleChange(
-                      "doctorReferral",
                       event.target.value
                     )
                   }
-                  placeholder="Enter doctor or referral source"
-                  className="w-full rounded-xl border-0 bg-transparent px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  placeholder="Enter phone number"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
+
+                {errors.phone && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
-            </div>
 
-            {/* Address */}
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Address
-              </label>
-
-              <div className="flex rounded-xl border border-slate-200 bg-white focus-within:border-blue-500">
-                <HomeOutlinedIcon className="ml-3 mt-3 text-slate-400" />
+              {/* Address */}
+              <div className="md:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Address
+                </label>
 
                 <textarea
+                  rows={3}
                   value={formData.address}
                   onChange={(event) =>
                     handleChange(
@@ -728,144 +671,168 @@ if (showSuccess) {
                     )
                   }
                   placeholder="Enter patient address"
-                  rows={3}
-                  className="w-full resize-none rounded-xl border-0 bg-transparent px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
+
             </div>
-
           </div>
-        </section>
 
-        {/* REQUIRED TESTS */}
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {/* Doctor Referral */}
+          <div className="mb-8 border-t border-slate-200 pt-8">
 
-          <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
+            <h2 className="mb-5 text-lg font-semibold text-slate-800">
+              Doctor / Referral
+            </h2>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                Concerned Doctor *
+              </label>
 
-              <div className="flex items-center gap-3">
+              <select
+                value={formData.doctorId}
+                onChange={(event) =>
+                  handleDoctorChange(
+                    event.target.value
+                  )
+                }
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">
+                  Select concerned doctor
+                </option>
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                  <ScienceOutlinedIcon className="text-blue-600" />
-                </div>
+                {doctors
+                  .filter(
+                    (doctor) =>
+                      doctor.status === "Active"
+                  )
+                  .map((doctor) => (
+                    <option
+                      key={doctor.id}
+                      value={doctor.id}
+                    >
+                      {doctor.doctorName} — {doctor.specialization}
+                    </option>
+                  ))}
+              </select>
 
-                <div>
-                  <h2 className="font-semibold text-slate-800">
-                    Required Tests
-                  </h2>
+              {errors.doctorId && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.doctorId}
+                </p>
+              )}
 
-                  <p className="text-xs text-slate-500">
-                    Select the laboratory tests required for this patient.
+              {doctors.filter(
+                (doctor) => doctor.status === "Active"
+              ).length === 0 && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No active doctors available. Please add a
+                    doctor before registering a referred patient.
                   </p>
-                </div>
-
-              </div>
-
-              <div className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
-                {formData.requiredTests.length} Selected
-              </div>
-
+                )}
             </div>
+
           </div>
 
-          <div className="p-5 sm:p-6">
+          {/* Required Tests */}
+          <div className="border-t border-slate-200 pt-8">
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-2 text-lg font-semibold text-slate-800">
+              Required Tests
+            </h2>
+
+            <p className="mb-5 text-sm text-slate-500">
+              Select the tests requested for this patient.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
 
               {testOptions.map((test) => {
                 const selected =
-                  formData.requiredTests.includes(test.id);
+                  formData.requiredTests.includes(
+                    test.code
+                  );
 
                 return (
-                  <label
-                    key={test.id}
-                    className={`cursor-pointer rounded-xl border p-4 transition ${
-                      selected
-                        ? "border-blue-400 bg-blue-50"
-                        : "border-slate-200 bg-white hover:border-blue-200 hover:bg-slate-50"
-                    }`}
+                  <button
+                    key={test.code}
+                    type="button"
+                    onClick={() =>
+                      handleTestChange(test.code)
+                    }
+                    className={`rounded-xl border p-4 text-left transition ${selected
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
+                      }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center justify-between">
 
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() =>
-                          handleTestChange(test.id)
-                        }
-                        className="mt-1 h-4 w-4 accent-blue-600"
-                      />
+                      <span
+                        className={`text-sm font-semibold ${selected
+                          ? "text-blue-700"
+                          : "text-slate-800"
+                          }`}
+                      >
+                        {test.code}
+                      </span>
 
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">
-                          {test.name}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {test.category}
-                        </p>
-                      </div>
+                      <span
+                        className={`flex h-5 w-5 items-center justify-center rounded border ${selected
+                          ? "border-blue-600 bg-blue-600"
+                          : "border-slate-300"
+                          }`}
+                      >
+                        {selected && (
+                          <span className="text-xs text-white">
+                            ✓
+                          </span>
+                        )}
+                      </span>
 
                     </div>
-                  </label>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      {test.name}
+                    </p>
+                  </button>
                 );
               })}
 
             </div>
 
             {errors.requiredTests && (
-              <p className="mt-3 text-xs text-red-500">
+              <p className="mt-2 text-xs text-red-500">
                 {errors.requiredTests}
               </p>
             )}
 
           </div>
-        </section>
 
-        {/* ACTIONS */}
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          {/* Buttons */}
+          <div className="mt-8 flex justify-end gap-3 border-t border-slate-200 pt-6">
 
-          <button
-            type="button"
-            onClick={() => navigate("/patients")}
-            className="
-              rounded-xl
-              border border-slate-200
-              bg-white
-              px-6 py-3
-              text-sm font-semibold
-              text-slate-700
-              transition
-              hover:bg-slate-50
-            "
-          >
-            Cancel
-          </button>
+            <button
+              type="button"
+              onClick={() => navigate("/patients")}
+              className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Cancel
+            </button>
 
-          <button
-            type="submit"
-            className="
-              flex items-center justify-center gap-2
-              rounded-xl
-              bg-slate-700
-              px-6 py-3
-              text-sm font-semibold
-              text-white
-              shadow-sm
-              transition
-              hover:bg-slate-800
-            "
-          >
-            <CheckCircleIcon fontSize="small" />
-            Register Patient
-          </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+            >
+              Register Patient
+            </button>
+
+          </div>
 
         </div>
-
-      </form>
+      </div>
     </div>
   );
-};
-
-export default NewRegistration;
+}
