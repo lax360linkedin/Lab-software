@@ -16,6 +16,7 @@ import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 
+import { getTodayLabel, getCurrentISODate } from "../../../common components/dateUtils";
 import "./collection.css";
 
 export type PaymentMethod = "Cash" | "UPI" | "Card" | "Online Payment";
@@ -52,6 +53,8 @@ export interface ShiftCollection {
   billsCount: number;
 }
 
+const todayDateStr = getCurrentISODate();
+
 // Local realistic mock data for Today's Collections
 const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
   {
@@ -63,7 +66,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 650,
     paymentMethod: "UPI",
     transactionRef: "UPI/3948291048",
-    timestamp: "2026-09-25 12:45 PM",
+    timestamp: `${todayDateStr} 12:45 PM`,
     time: "12:45 PM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -77,7 +80,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 2200,
     paymentMethod: "Card",
     transactionRef: "POS/AUTH-88219",
-    timestamp: "2026-09-25 12:30 PM",
+    timestamp: `${todayDateStr} 12:30 PM`,
     time: "12:30 PM",
     counter: "Desk 2 (Cash Counter)",
     status: "Completed",
@@ -91,7 +94,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 950,
     paymentMethod: "Cash",
     transactionRef: "CASH-REC-104",
-    timestamp: "2026-09-25 12:15 PM",
+    timestamp: `${todayDateStr} 12:15 PM`,
     time: "12:15 PM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -105,7 +108,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 850,
     paymentMethod: "UPI",
     transactionRef: "UPI/9928172635",
-    timestamp: "2026-09-25 11:50 AM",
+    timestamp: `${todayDateStr} 11:50 AM`,
     time: "11:50 AM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -119,7 +122,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 4500,
     paymentMethod: "Card",
     transactionRef: "POS/AUTH-99120",
-    timestamp: "2026-09-25 11:25 AM",
+    timestamp: `${todayDateStr} 11:25 AM`,
     time: "11:25 AM",
     counter: "Desk 2 (Cash Counter)",
     status: "Completed",
@@ -133,7 +136,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 1200,
     paymentMethod: "Online Payment",
     transactionRef: "PG/RAZ-771829",
-    timestamp: "2026-09-25 11:00 AM",
+    timestamp: `${todayDateStr} 11:00 AM`,
     time: "11:00 AM",
     counter: "Online Portal",
     status: "Completed",
@@ -147,7 +150,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 300,
     paymentMethod: "Cash",
     transactionRef: "CASH-REC-103",
-    timestamp: "2026-09-25 10:40 AM",
+    timestamp: `${todayDateStr} 10:40 AM`,
     time: "10:40 AM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -161,7 +164,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 2800,
     paymentMethod: "UPI",
     transactionRef: "UPI/7718290192",
-    timestamp: "2026-09-25 10:15 AM",
+    timestamp: `${todayDateStr} 10:15 AM`,
     time: "10:15 AM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -175,7 +178,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 1600,
     paymentMethod: "UPI",
     transactionRef: "UPI/1092837465",
-    timestamp: "2026-09-25 09:50 AM",
+    timestamp: `${todayDateStr} 09:50 AM`,
     time: "09:50 AM",
     counter: "Desk 2 (Cash Counter)",
     status: "Completed",
@@ -189,7 +192,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 750,
     paymentMethod: "Cash",
     transactionRef: "CASH-REC-102",
-    timestamp: "2026-09-25 09:20 AM",
+    timestamp: `${todayDateStr} 09:20 AM`,
     time: "09:20 AM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -203,7 +206,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 3200,
     paymentMethod: "Card",
     transactionRef: "POS/AUTH-77312",
-    timestamp: "2026-09-25 08:55 AM",
+    timestamp: `${todayDateStr} 08:55 AM`,
     time: "08:55 AM",
     counter: "Desk 2 (Cash Counter)",
     status: "Completed",
@@ -217,7 +220,7 @@ const INITIAL_TRANSACTIONS: CollectionTransaction[] = [
     amount: 1800,
     paymentMethod: "UPI",
     transactionRef: "UPI/8827364510",
-    timestamp: "2026-09-25 08:30 AM",
+    timestamp: `${todayDateStr} 08:30 AM`,
     time: "08:30 AM",
     counter: "Desk 1 (Reception)",
     status: "Completed",
@@ -382,7 +385,7 @@ const Collection = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Today, 25 Sep 2026</span>
+            <span>{getTodayLabel()}</span>
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               LIVE
@@ -688,7 +691,7 @@ const Collection = () => {
           <Table
             columns={columns}
             data={currentTransactions}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No transactions match your search criteria."
             renderRow={(tx: CollectionTransaction) => (

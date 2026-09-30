@@ -7,8 +7,10 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import "./expenseCategories.css";
@@ -203,12 +205,19 @@ export default function ExpenseCategories() {
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ExpenseCategory | null>(null);
+  const [viewingCategory, setViewingCategory] = useState<ExpenseCategory | null>(null);
+
+  const handleDeleteCategory = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this expense category?")) {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+    }
+  };
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -523,7 +532,7 @@ export default function ExpenseCategories() {
           <Table
             columns={columns}
             data={paginatedCategories}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No expense categories match your search criteria."
             renderRow={(cat: ExpenseCategory) => {
@@ -609,6 +618,14 @@ export default function ExpenseCategories() {
                     <div className="flex items-center justify-center gap-1">
                       <button
                         type="button"
+                        onClick={() => setViewingCategory(cat)}
+                        className="rounded p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
+                        title="View Category Details"
+                      >
+                        <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleOpenEditModal(cat)}
                         className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
                         title="Edit Category"
@@ -617,11 +634,11 @@ export default function ExpenseCategories() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => navigate("/expenses/list")}
-                        className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition"
-                        title="View Expenses in this Category"
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        className="rounded p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                        title="Delete Category"
                       >
-                        <ArrowForwardOutlinedIcon sx={{ fontSize: 18 }} />
+                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
                       </button>
                     </div>
                   </td>
@@ -643,164 +660,275 @@ export default function ExpenseCategories() {
         </div>
       </div>
 
-      {/* Add / Edit Category Modal */}
+      {/* Add / Edit Category Slide-over Drawer */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <CloseIcon sx={{ fontSize: 20 }} />
-            </button>
-
-            <div className="flex items-center gap-2 mb-4">
-              <span className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                <CategoryOutlinedIcon sx={{ fontSize: 22 }} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {editingCategory ? "Edit Expense Category" : "Add New Expense Category"}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Define budget constraints and assign responsibility.
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSaveCategory} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Category Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Immunoassay Reagents"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-lg bg-blue-100 p-2 text-blue-600">
+                    <CategoryOutlinedIcon sx={{ fontSize: 22 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      {editingCategory ? "Edit Expense Category" : "Add New Expense Category"}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Define budget constraints and assign responsibility
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <form id="categoryForm" onSubmit={handleSaveCategory} className="p-6 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Category Code
+                    Category Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. EXP-IMM"
-                    value={formData.code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, code: e.target.value.toUpperCase() })
-                    }
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="e.g. Immunoassay Reagents"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Department
-                  </label>
-                  <select
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="All Laboratories">All Laboratories</option>
-                    <option value="Biochemistry & Hematology">Biochemistry & Hematology</option>
-                    <option value="Safety & Sanitation">Safety & Sanitation</option>
-                    <option value="Facility Operations">Facility Operations</option>
-                    <option value="Quality & Compliance">Quality & Compliance</option>
-                    <option value="Field Phlebotomy">Field Phlebotomy</option>
-                    <option value="Front Office & IT">Front Office & IT</option>
-                    <option value="Human Resources">Human Resources</option>
-                  </select>
-                </div>
-              </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Category Code
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. EXP-IMM"
+                      value={formData.code}
+                      onChange={(e) =>
+                        setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Department
+                    </label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="All Laboratories">All Laboratories</option>
+                      <option value="Biochemistry & Hematology">Biochemistry & Hematology</option>
+                      <option value="Safety & Sanitation">Safety & Sanitation</option>
+                      <option value="Facility Operations">Facility Operations</option>
+                      <option value="Quality & Compliance">Quality & Compliance</option>
+                      <option value="Field Phlebotomy">Field Phlebotomy</option>
+                      <option value="Front Office & IT">Front Office & IT</option>
+                      <option value="Human Resources">Human Resources</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Monthly Budget Ceiling (₹) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      required
+                      placeholder="e.g. 150000"
+                      value={formData.monthlyBudget}
+                      onChange={(e) => setFormData({ ...formData, monthlyBudget: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          status: e.target.value as "Active" | "Inactive",
+                        })
+                      }
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Monthly Budget Ceiling (₹) <span className="text-rose-500">*</span>
+                    Designated Approver / Head
                   </label>
                   <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    required
-                    placeholder="e.g. 150000"
-                    value={formData.monthlyBudget}
-                    onChange={(e) => setFormData({ ...formData, monthlyBudget: e.target.value })}
+                    type="text"
+                    placeholder="e.g. Dr. Rajesh Kumar (Senior Consultant)"
+                    value={formData.leadApprover}
+                    onChange={(e) => setFormData({ ...formData, leadApprover: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Status
+                    Description / Inclusions
                   </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as "Active" | "Inactive",
-                      })
-                    }
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                  <textarea
+                    rows={3}
+                    placeholder="What items fall under this category?"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Designated Approver / Head
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dr. Rajesh Kumar (Senior Consultant)"
-                  value={formData.leadApprover}
-                  onChange={(e) => setFormData({ ...formData, leadApprover: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="categoryForm"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+              >
+                {editingCategory ? "Save Changes" : "Create Category"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Description / Inclusions
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="What items fall under this category?"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+      {/* View Category Slide-over Drawer */}
+      {viewingCategory && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-lg bg-blue-50 p-2 text-blue-600">
+                    <CategoryOutlinedIcon sx={{ fontSize: 22 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">{viewingCategory.name}</h3>
+                    <p className="text-xs text-slate-500 font-mono">{viewingCategory.code}</p>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  onClick={() => setViewingCategory(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
-                >
-                  {editingCategory ? "Save Changes" : "Create Category"}
+                  <CloseIcon sx={{ fontSize: 20 }} />
                 </button>
               </div>
-            </form>
+
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <span className="text-xs text-slate-500 font-medium">Department</span>
+                    <p className="text-sm font-semibold text-slate-800 mt-1">{viewingCategory.department}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <span className="text-xs text-slate-500 font-medium">Status</span>
+                    <p className="text-sm font-semibold mt-1">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        viewingCategory.status === "Active" ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-700"
+                      }`}>
+                        {viewingCategory.status}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <span className="text-xs text-slate-500 font-medium">Monthly Budget</span>
+                    <p className="text-sm font-bold text-slate-900 mt-1">₹ {viewingCategory.monthlyBudget.toLocaleString("en-IN")}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <span className="text-xs text-slate-500 font-medium">Spent This Month</span>
+                    <p className="text-sm font-bold text-slate-900 mt-1">₹ {viewingCategory.spentThisMonth.toLocaleString("en-IN")}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-xs text-slate-500 font-medium">Budget Utilization</span>
+                  <div className="flex items-center justify-between text-xs font-semibold mt-1 mb-1.5">
+                    <span>
+                      {((viewingCategory.spentThisMonth / (viewingCategory.monthlyBudget || 1)) * 100).toFixed(1)}% used
+                    </span>
+                    <span className="text-slate-500">
+                      ₹ {(viewingCategory.monthlyBudget - viewingCategory.spentThisMonth).toLocaleString("en-IN")} remaining
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-blue-600"
+                      style={{ width: `${Math.min(100, (viewingCategory.spentThisMonth / (viewingCategory.monthlyBudget || 1)) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-xs text-slate-500 font-medium">Lead Approver</span>
+                  <p className="text-sm font-semibold text-slate-800 mt-1">{viewingCategory.leadApprover}</p>
+                </div>
+
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Description</span>
+                  <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg leading-relaxed">{viewingCategory.description}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => {
+                  const cat = viewingCategory;
+                  setViewingCategory(null);
+                  handleOpenEditModal(cat);
+                }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+              >
+                Edit Category
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewingCategory(null)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,11 +1,8 @@
 import { useState, useMemo } from "react";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
-import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import "./staffPermissions.css";
@@ -171,7 +168,7 @@ export default function StaffPermissions() {
   const [saveToast, setSaveToast] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Filtered Permissions
   const filteredPermissions = useMemo(() => {
@@ -387,7 +384,7 @@ export default function StaffPermissions() {
           <Table
             columns={columns}
             data={paginatedPermissions}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1300px"
             emptyMessage="No permissions match your search or filter criteria."
             renderRow={(perm: PermissionRow) => {

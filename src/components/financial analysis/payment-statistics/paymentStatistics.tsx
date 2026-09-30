@@ -12,6 +12,7 @@ import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getCurrentMonthYear } from "../../../common components/dateUtils";
 
 import "./paymentStatistics.css";
 
@@ -331,7 +332,7 @@ const PaymentStatistics = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Fiscal Month: Sep 2026</span>
+            <span>Fiscal Month: {getCurrentMonthYear(new Date(), false)}</span>
           </div>
 
           <button
@@ -538,7 +539,7 @@ const PaymentStatistics = () => {
           <Table
             columns={columns}
             data={currentChannels}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No payment channels match your search criteria."
             renderRow={(item: PaymentChannelStat) => (

@@ -7,6 +7,7 @@ import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import QrCode2OutlinedIcon from "@mui/icons-material/QrCode2Outlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import { getFormattedCurrentDate, getFormattedCurrentDateTime } from "../../common components/dateUtils";
 import "./labProfile.css";
 
 export interface LabProfileConfig {
@@ -279,6 +280,20 @@ export default function LabProfile() {
   };
 
   const fullAddressString = `${profile.addressLine1}, ${profile.addressLine2 ? profile.addressLine2 + ", " : ""}${profile.city}, ${profile.state} - ${profile.pincode}, ${profile.country}`;
+  const currentFormattedDate = getFormattedCurrentDate();
+  const currentFormattedDateTime = getFormattedCurrentDateTime();
+  const sampleCollTime = `${currentFormattedDate}, 08:30 AM`;
+
+  const handlePrint = () => {
+    if (previewTab !== "sample-report") {
+      setPreviewTab("sample-report");
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    } else {
+      window.print();
+    }
+  };
 
   return (
     <div className="lab-profile-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
@@ -309,7 +324,7 @@ export default function LabProfile() {
           </button>
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={handlePrint}
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             <PrintOutlinedIcon sx={{ fontSize: 16 }} />
@@ -340,7 +355,7 @@ export default function LabProfile() {
       {/* Main Grid: Form on Left (7 cols), Live Preview on Right (5 cols) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* LEFT COLUMN: Configuration Sections (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-6 lab-profile-config-column">
           {/* Card 1: Lab Name & Brand Logo */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
@@ -907,9 +922,9 @@ export default function LabProfile() {
         </div>
 
         {/* RIGHT COLUMN: Live Interactive Report Letterhead Preview (5 cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 lab-profile-preview-column">
           <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 preview-top-toolbar">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Live Report Letterhead Preview</h3>
                 <p className="text-[11px] text-slate-500">Real-time dynamic preview of generated patient test reports.</p>
@@ -939,7 +954,7 @@ export default function LabProfile() {
             {/* Simulated A4 Report Sheet */}
             <div
               id="report-printable-sheet"
-              className="bg-white border border-slate-200 rounded-xl shadow-lg p-5 text-slate-900 font-sans transition-all overflow-hidden"
+              className="bg-white border border-slate-200 rounded-xl shadow-lg p-5 text-slate-900 font-sans transition-all"
               style={{
                 borderTop: `4px solid ${profile.headerAccentColor}`,
               }}
@@ -947,50 +962,50 @@ export default function LabProfile() {
               {/* Report Header Block */}
               {profile.headerTemplate === "centered" ? (
                 /* Centered Layout */
-                <div className="text-center pb-3 border-b border-slate-200 space-y-1">
-                  <div className="flex justify-center mb-1">
+                <div className="text-center pb-4 border-b-2 border-slate-300 space-y-1.5">
+                  <div className="flex justify-center mb-1.5">
                     {profile.logoUrl ? (
-                      <img src={profile.logoUrl} alt="Logo" className="h-12 object-contain" />
+                      <img src={profile.logoUrl} alt="Logo" className="h-14 object-contain" />
                     ) : (
                       <div
-                        className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-extrabold text-sm"
+                        className="h-12 w-12 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm"
                         style={{ backgroundColor: profile.headerAccentColor }}
                       >
                         {profile.labName.slice(0, 2).toUpperCase()}
                       </div>
                     )}
                   </div>
-                  <h4 className="font-extrabold text-base tracking-tight text-slate-900">{profile.labName}</h4>
-                  <p className="text-[10px] text-slate-500 font-medium">{profile.tagline}</p>
-                  <p className="text-[10px] text-slate-600 max-w-sm mx-auto">{fullAddressString}</p>
-                  <p className="text-[10px] text-slate-500">
+                  <h4 className="font-black text-xl tracking-tight text-slate-950">{profile.labName}</h4>
+                  <p className="text-xs text-slate-700 font-bold">{profile.tagline}</p>
+                  <p className="text-xs text-slate-800 max-w-md mx-auto font-medium">{fullAddressString}</p>
+                  <p className="text-xs text-slate-800 font-semibold">
                     Phone: {profile.phone} | Email: {profile.dispatchEmail} | Web: {profile.website}
                   </p>
                 </div>
               ) : (
                 /* Modern Split Layout (Default) */
-                <div className="pb-3 border-b border-slate-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2.5">
+                <div className="pb-4 border-b-2 border-slate-300">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
                       {profile.logoUrl ? (
-                        <img src={profile.logoUrl} alt="Logo" className="h-12 object-contain" />
+                        <img src={profile.logoUrl} alt="Logo" className="h-14 object-contain" />
                       ) : (
                         <div
-                          className="h-11 w-11 rounded-lg flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm"
+                          className="h-12 w-12 rounded-xl flex items-center justify-center text-white font-black text-base shrink-0 shadow-sm"
                           style={{ backgroundColor: profile.headerAccentColor }}
                         >
                           {profile.labName.slice(0, 2).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <h4 className="font-extrabold text-sm tracking-tight text-slate-900 leading-tight">
+                        <h4 className="font-black text-base tracking-tight text-slate-950 leading-tight">
                           {profile.labName}
                         </h4>
-                        <p className="text-[10px] text-slate-500 font-medium mt-0.5">{profile.tagline}</p>
-                        <p className="text-[10px] text-slate-600 mt-1 max-w-[240px] leading-tight">
+                        <p className="text-xs text-slate-700 font-bold mt-0.5">{profile.tagline}</p>
+                        <p className="text-xs text-slate-800 mt-1 max-w-[280px] leading-snug font-medium">
                           {fullAddressString}
                         </p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
+                        <p className="text-xs text-slate-800 font-semibold mt-0.5">
                           📞 {profile.phone} • ✉️ {profile.dispatchEmail}
                         </p>
                       </div>
@@ -998,23 +1013,23 @@ export default function LabProfile() {
 
                     {/* Accreditations on Right */}
                     <div className="text-right shrink-0">
-                      <div className="flex items-center justify-end gap-1 mb-1">
+                      <div className="flex items-center justify-end gap-1.5 mb-1">
                         {profile.showNablBadge && (
-                          <span className="rounded bg-blue-50 border border-blue-200 px-1.5 py-0.5 text-[9px] font-bold text-blue-800">
+                          <span className="rounded bg-blue-100 border border-blue-400 px-2 py-0.5 text-[11px] font-black text-blue-950">
                             NABL MC-44819
                           </span>
                         )}
                         {profile.showIsoBadge && (
-                          <span className="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800">
+                          <span className="rounded bg-emerald-100 border border-emerald-400 px-2 py-0.5 text-[11px] font-black text-emerald-950">
                             ISO 15189
                           </span>
                         )}
                       </div>
-                      <p className="text-[9px] text-slate-500 font-mono">Lic: {profile.ceaLicenseNo}</p>
-                      <p className="text-[9px] text-slate-500 font-mono">ICMR: {profile.icmrCode}</p>
+                      <p className="text-[11px] text-slate-800 font-mono font-bold">Lic: {profile.ceaLicenseNo}</p>
+                      <p className="text-[11px] text-slate-800 font-mono font-bold">ICMR: {profile.icmrCode}</p>
                       {profile.showQrCode && (
                         <div className="mt-1 flex justify-end">
-                          <QrCode2OutlinedIcon sx={{ fontSize: 28 }} className="text-slate-700" />
+                          <QrCode2OutlinedIcon sx={{ fontSize: 32 }} className="text-slate-900" />
                         </div>
                       )}
                     </div>
@@ -1024,7 +1039,7 @@ export default function LabProfile() {
 
               {/* Banner Notice */}
               <div
-                className="py-1 text-center text-[9px] font-bold uppercase tracking-wider text-white"
+                className="py-1.5 text-center text-[11px] font-black uppercase tracking-wider text-white shadow-xs"
                 style={{ backgroundColor: profile.headerAccentColor }}
               >
                 {profile.headerNotice}
@@ -1032,115 +1047,115 @@ export default function LabProfile() {
 
               {/* Patient Demographics Strip (Simulated Report Body) */}
               {previewTab === "sample-report" && (
-                <div className="mt-3 space-y-3">
-                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-[10px]">
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                <div className="mt-3.5 space-y-3.5">
+                  <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 text-xs text-slate-900">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                       <div>
-                        <span className="text-slate-400">Patient Name:</span>{" "}
-                        <strong className="text-slate-800">Mr. Rajesh Sharma</strong>
+                        <span className="text-slate-600 font-semibold">Patient Name:</span>{" "}
+                        <strong className="text-slate-950 font-black">Mr. Rajesh Sharma</strong>
                       </div>
                       <div>
-                        <span className="text-slate-400">Age / Gender:</span>{" "}
-                        <span className="font-semibold text-slate-700">42 Yrs / Male</span>
+                        <span className="text-slate-600 font-semibold">Age / Gender:</span>{" "}
+                        <span className="font-bold text-slate-950">42 Yrs / Male</span>
                       </div>
                       <div>
-                        <span className="text-slate-400">Patient ID:</span>{" "}
-                        <span className="font-mono text-slate-700">PAT-2026-8812</span>
+                        <span className="text-slate-600 font-semibold">Patient ID:</span>{" "}
+                        <span className="font-mono font-bold text-slate-950">PAT-2026-8812</span>
                       </div>
                       <div>
-                        <span className="text-slate-400">Ref Doctor:</span>{" "}
-                        <span className="text-slate-700">Dr. K. Ramanathan, MD</span>
+                        <span className="text-slate-600 font-semibold">Ref Doctor:</span>{" "}
+                        <span className="font-bold text-slate-950">Dr. K. Ramanathan, MD</span>
                       </div>
                       <div>
-                        <span className="text-slate-400">Sample Coll:</span>{" "}
-                        <span className="text-slate-700">28 Sep 2026, 08:30 AM</span>
+                        <span className="text-slate-600 font-semibold">Sample Coll:</span>{" "}
+                        <span className="font-bold text-slate-950">{sampleCollTime}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400">Report Auth:</span>{" "}
-                        <span className="text-emerald-700 font-bold">28 Sep 2026, 11:15 AM</span>
+                        <span className="text-slate-600 font-semibold">Report Auth:</span>{" "}
+                        <span className="text-emerald-800 font-black">{currentFormattedDateTime}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Sample Test Result Table */}
-                  <div className="border border-slate-200 rounded-lg overflow-hidden text-[10px]">
-                    <div className="bg-slate-100 font-bold px-2.5 py-1 text-slate-800 border-b border-slate-200 flex justify-between">
+                  <div className="border border-slate-300 rounded-lg overflow-hidden text-xs">
+                    <div className="bg-slate-200/90 font-black px-3 py-1.5 text-slate-950 border-b border-slate-300 flex justify-between">
                       <span>COMPLETE BLOOD COUNT (CBC - HEMOGRAM)</span>
-                      <span className="font-normal text-[9px] text-slate-500">Method: Flow Cytometry</span>
+                      <span className="font-bold text-[11px] text-slate-700">Method: Flow Cytometry</span>
                     </div>
 
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-500 text-[9px]">
-                          <th className="py-1 px-2.5 text-left font-semibold">Investigation</th>
-                          <th className="py-1 px-2 text-right font-semibold">Observed</th>
-                          <th className="py-1 px-2 text-center font-semibold">Ref. Interval</th>
-                          <th className="py-1 px-2.5 text-right font-semibold">Unit</th>
+                        <tr className="border-b border-slate-300 text-slate-800 text-[11px] bg-slate-100">
+                          <th className="py-2 px-3 text-left font-bold">Investigation</th>
+                          <th className="py-2 px-3 text-right font-bold">Observed</th>
+                          <th className="py-2 px-3 text-center font-bold">Ref. Interval</th>
+                          <th className="py-2 px-3 text-right font-bold">Unit</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                      <tbody className="divide-y divide-slate-200 text-slate-900">
                         <tr>
-                          <td className="py-1 px-2.5 font-medium">Hemoglobin (Hb)</td>
-                          <td className="py-1 px-2 text-right font-bold text-slate-900">14.8</td>
-                          <td className="py-1 px-2 text-center text-slate-500">13.0 - 17.0</td>
-                          <td className="py-1 px-2.5 text-right text-slate-500">g/dL</td>
+                          <td className="py-2 px-3 font-bold text-slate-950">Hemoglobin (Hb)</td>
+                          <td className="py-2 px-3 text-right font-black text-slate-950 text-sm">14.8</td>
+                          <td className="py-2 px-3 text-center text-slate-800 font-bold">13.0 - 17.0</td>
+                          <td className="py-2 px-3 text-right text-slate-800 font-bold">g/dL</td>
                         </tr>
                         <tr>
-                          <td className="py-1 px-2.5 font-medium">Total WBC Count</td>
-                          <td className="py-1 px-2 text-right font-bold text-slate-900">7,200</td>
-                          <td className="py-1 px-2 text-center text-slate-500">4,000 - 11,000</td>
-                          <td className="py-1 px-2.5 text-right text-slate-500">/cu.mm</td>
+                          <td className="py-2 px-3 font-bold text-slate-950">Total WBC Count</td>
+                          <td className="py-2 px-3 text-right font-black text-slate-950 text-sm">7,200</td>
+                          <td className="py-2 px-3 text-center text-slate-800 font-bold">4,000 - 11,000</td>
+                          <td className="py-2 px-3 text-right text-slate-800 font-bold">/cu.mm</td>
                         </tr>
                         <tr>
-                          <td className="py-1 px-2.5 font-medium">Platelet Count</td>
-                          <td className="py-1 px-2 text-right font-bold text-slate-900">2.65</td>
-                          <td className="py-1 px-2 text-center text-slate-500">1.50 - 4.50</td>
-                          <td className="py-1 px-2.5 text-right text-slate-500">Lakhs/cu.mm</td>
+                          <td className="py-2 px-3 font-bold text-slate-950">Platelet Count</td>
+                          <td className="py-2 px-3 text-right font-black text-slate-950 text-sm">2.65</td>
+                          <td className="py-2 px-3 text-center text-slate-800 font-bold">1.50 - 4.50</td>
+                          <td className="py-2 px-3 text-right text-slate-800 font-bold">Lakhs/cu.mm</td>
                         </tr>
                         <tr>
-                          <td className="py-1 px-2.5 font-medium">Packed Cell Volume (PCV)</td>
-                          <td className="py-1 px-2 text-right font-bold text-slate-900">44.2</td>
-                          <td className="py-1 px-2 text-center text-slate-500">40.0 - 50.0</td>
-                          <td className="py-1 px-2.5 text-right text-slate-500">%</td>
+                          <td className="py-2 px-3 font-bold text-slate-950">Packed Cell Volume (PCV)</td>
+                          <td className="py-2 px-3 text-right font-black text-slate-950 text-sm">44.2</td>
+                          <td className="py-2 px-3 text-center text-slate-800 font-bold">40.0 - 50.0</td>
+                          <td className="py-2 px-3 text-right text-slate-800 font-bold">%</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
 
                   {/* Doctor Signature Block */}
-                  <div className="pt-2 flex justify-between items-end border-t border-slate-200 text-[10px]">
+                  <div className="pt-3 flex justify-between items-end border-t border-slate-300 text-xs">
                     <div className="space-y-1">
-                      <div className="text-[8px] font-bold uppercase tracking-wider text-slate-400">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-600">
                         Sample ID
                       </div>
                       <Code39Barcode
                         value="SML-8812-CB"
-                        height={26}
-                        narrowWidth={1.1}
-                        wideWidthRatio={2.5}
-                        quietZone={8}
+                        height={32}
+                        narrowWidth={1.3}
+                        wideWidthRatio={2.6}
+                        quietZone={10}
                       />
-                      <p className="text-[9px] text-emerald-600 font-semibold flex items-center gap-1">
+                      <p className="text-xs text-emerald-800 font-extrabold flex items-center gap-1">
                         {profile.enableBioRadIqc ? "✓ Verified with Bio-Rad IQC" : "✓ Internal QC: Validated (Within 2SD)"}
                       </p>
                     </div>
 
                     <div className="text-right">
-                      <div className="font-serif italic font-bold text-blue-900 text-xs">Arvind Swamy</div>
-                      <p className="font-bold text-slate-900 text-[10px]">{profile.directorName}</p>
-                      <p className="text-[9px] text-slate-500">{profile.directorDesignation}</p>
+                      <div className="font-serif italic font-black text-blue-950 text-sm">Arvind Swamy</div>
+                      <p className="font-black text-slate-950 text-xs">{profile.directorName}</p>
+                      <p className="text-[11px] font-bold text-slate-700">{profile.directorDesignation}</p>
                     </div>
                   </div>
 
                   {/* Quality Footer Disclaimer */}
-                  <div className="pt-1.5 border-t border-slate-100 text-[8px] text-slate-400 leading-tight">
+                  <div className="pt-2 border-t border-slate-200 text-[10px] text-slate-700 leading-normal font-medium">
                     {profile.footerDisclaimer}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-blue-900">
+            <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-blue-900 preview-info-box">
               <strong>Report Reusability Guarantee:</strong>
               <p className="mt-0.5 text-[11px] text-blue-700 leading-relaxed">
                 When you click <strong>Save Configuration</strong>, these exact letterhead credentials, logos, and licensing codes are automatically stored in the local laboratory runtime and will be pulled by all generated report sheets.

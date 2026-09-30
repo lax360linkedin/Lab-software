@@ -10,6 +10,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import PercentOutlinedIcon from "@mui/icons-material/PercentOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getTodayLabel, getFormattedCurrentDate } from "../../../common components/dateUtils";
 
 import "./discounts.css";
 
@@ -36,12 +37,14 @@ export interface DiscountRecord {
   reason: string;
 }
 
+const todayDate = getFormattedCurrentDate();
+
 const DISCOUNT_RECORDS: DiscountRecord[] = [
   {
     id: "DSC-01",
     discountId: "DISC-2026-081",
     invoiceNumber: "BILL-2026-1042",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Meena Devi",
     patientId: "PAT-1002",
     scheme: "Senior Citizen Concession",
@@ -56,7 +59,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-02",
     discountId: "DISC-2026-082",
     invoiceNumber: "BILL-2026-1044",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Sunita Verma",
     patientId: "PID-4420",
     scheme: "Corporate Agreement",
@@ -71,7 +74,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-03",
     discountId: "DISC-2026-083",
     invoiceNumber: "BILL-2026-1045",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Vikram Malhotra",
     patientId: "PID-4417",
     scheme: "Doctor Courtesy",
@@ -86,7 +89,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-04",
     discountId: "DISC-2026-084",
     invoiceNumber: "BILL-2026-1046",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Farhana Begum",
     patientId: "PID-4418",
     scheme: "Health Camp Coupon",
@@ -101,7 +104,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-05",
     discountId: "DISC-2026-085",
     invoiceNumber: "BILL-2026-1048",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Deepa Ananth",
     patientId: "PID-4414",
     scheme: "Senior Citizen Concession",
@@ -116,7 +119,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-06",
     discountId: "DISC-2026-086",
     invoiceNumber: "BILL-2026-1050",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Kavitha Natarajan",
     patientId: "PID-4416",
     scheme: "Corporate Agreement",
@@ -131,7 +134,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-07",
     discountId: "DISC-2026-087",
     invoiceNumber: "BILL-2026-1051",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Senthil Nathan",
     patientId: "PID-4412",
     scheme: "Doctor Courtesy",
@@ -146,7 +149,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-08",
     discountId: "DISC-2026-088",
     invoiceNumber: "BILL-2026-1053",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Balamurugan P.",
     patientId: "PID-4410",
     scheme: "Health Camp Coupon",
@@ -161,7 +164,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-09",
     discountId: "DISC-2026-089",
     invoiceNumber: "BILL-2026-1054",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Subhashini R.",
     patientId: "PID-4409",
     scheme: "Staff / Dependent",
@@ -176,7 +179,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-10",
     discountId: "DISC-2026-090",
     invoiceNumber: "BILL-2026-1055",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Gajendran V.",
     patientId: "PID-4408",
     scheme: "Senior Citizen Concession",
@@ -191,7 +194,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-11",
     discountId: "DISC-2026-091",
     invoiceNumber: "BILL-2026-1056",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Radha Venkatesh",
     patientId: "PID-4407",
     scheme: "Doctor Courtesy",
@@ -206,7 +209,7 @@ const DISCOUNT_RECORDS: DiscountRecord[] = [
     id: "DSC-12",
     discountId: "DISC-2026-092",
     invoiceNumber: "BILL-2026-1057",
-    date: "25 Sep 2026",
+    date: todayDate,
     patientName: "Muruganandam K.",
     patientId: "PID-4406",
     scheme: "Health Camp Coupon",
@@ -341,7 +344,7 @@ const Discounts = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Today, 25 Sep 2026</span>
+            <span>{getTodayLabel()}</span>
           </div>
 
           <button
@@ -533,7 +536,7 @@ const Discounts = () => {
           <Table
             columns={columns}
             data={currentRecords}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No discount records match your search criteria."
             renderRow={(d: DiscountRecord) => (

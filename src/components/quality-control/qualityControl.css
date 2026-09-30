@@ -1,0 +1,35 @@
+/* Quality Control Module Styles */
+
+.qc-chart-grid {
+  background-image: linear-gradient(to right, #f1f5f9 1px, transparent 1px),
+    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.westgard-pass {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.westgard-warning {
+  background-color: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.westgard-fail {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecdd3;
+  animation: pulse-fail 2s infinite;
+}
+
+@keyframes pulse-fail {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}

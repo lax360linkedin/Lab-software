@@ -12,7 +12,10 @@ import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
+import { getFormattedCurrentDate } from "../../../common components/dateUtils";
 import "./expenseDashboard.css";
+
+const todayFormatted = getFormattedCurrentDate();
 
 interface RecentExpense {
   id: string;
@@ -71,7 +74,7 @@ const RECENT_EXPENSES: RecentExpense[] = [
     category: "Cleaning",
     vendor: "Tamilnadu Waste Management Board",
     amount: 6500,
-    date: "25 Sep 2026",
+    date: todayFormatted,
     paymentMethod: "Bank Transfer",
     status: "Pending",
     createdBy: "Uma Maheshwari",

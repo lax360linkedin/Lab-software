@@ -5,7 +5,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
@@ -13,7 +13,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import { EXPENSE_CATEGORIES } from "../add-expense/AddExpense";
+import { getFormattedCurrentDate } from "../../../common components/dateUtils";
 import "./expenseList.css";
+
+const todayFormatted = getFormattedCurrentDate();
 
 export interface ExpenseItem {
   id: string;
@@ -89,7 +92,7 @@ const INITIAL_EXPENSES_DATA: ExpenseItem[] = [
     vendor: "Tamilnadu Waste Management Board",
     invoiceNo: "TNW-SEP-12",
     paymentMethod: "Bank Transfer",
-    date: "25 Sep 2026",
+    date: todayFormatted,
     department: "Safety & Sanitation",
     amount: 6500,
     status: "Pending",
@@ -248,7 +251,7 @@ export default function ExpenseList() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Modals State
   const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
@@ -439,7 +442,7 @@ export default function ExpenseList() {
           <Table
             columns={columns}
             data={currentExpenses}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No expense records match your search or filter criteria."
             renderRow={(exp: ExpenseItem) => (
@@ -542,10 +545,10 @@ export default function ExpenseList() {
                       <AttachFileOutlinedIcon sx={{ fontSize: 17 }} />
                     </button>
 
-                    {/* Cancel */}
+                    {/* Delete / Cancel */}
                     <button
                       type="button"
-                      title="Cancel Voucher"
+                      title="Delete / Cancel Voucher"
                       onClick={() => handleCancelVoucher(exp.id)}
                       disabled={exp.status === "Cancelled"}
                       className={`rounded p-1 transition ${
@@ -554,7 +557,7 @@ export default function ExpenseList() {
                           : "text-slate-500 hover:bg-rose-50 hover:text-rose-600"
                       }`}
                     >
-                      <CancelOutlinedIcon sx={{ fontSize: 17 }} />
+                      <DeleteOutlineOutlinedIcon sx={{ fontSize: 17 }} />
                     </button>
                   </div>
                 </td>
@@ -667,111 +670,149 @@ export default function ExpenseList() {
         </div>
       )}
 
-      {/* 2. Edit Voucher Modal */}
+      {/* 2. Edit Voucher Slide-over Drawer */}
       {editingExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl space-y-4 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
-                  Edit Expense
-                </span>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {editingExpense.voucherNo}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditingExpense(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
-              >
-                <CloseIcon fontSize="small" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Expense Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editingExpense.title}
-                  onChange={(e) =>
-                    setEditingExpense({ ...editingExpense, title: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Category
-                </label>
-                <select
-                  value={editingExpense.category}
-                  onChange={(e) =>
-                    setEditingExpense({ ...editingExpense, category: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:border-blue-500 focus:outline-none"
-                >
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={editingExpense.amount}
-                  onChange={(e) =>
-                    setEditingExpense({
-                      ...editingExpense,
-                      amount: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Paid To / Vendor
-                </label>
-                <input
-                  type="text"
-                  value={editingExpense.vendor}
-                  onChange={(e) =>
-                    setEditingExpense({ ...editingExpense, vendor: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
+                    Edit Expense
+                  </span>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {editingExpense.voucherNo}
+                  </h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => setEditingExpense(null)}
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow hover:bg-blue-700"
-                >
-                  Save Changes
+                  <CloseIcon sx={{ fontSize: 20 }} />
                 </button>
               </div>
-            </form>
+
+              <form id="editExpenseForm" onSubmit={handleSaveEdit} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Expense Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingExpense.title}
+                    onChange={(e) =>
+                      setEditingExpense({ ...editingExpense, title: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editingExpense.category}
+                    onChange={(e) =>
+                      setEditingExpense({ ...editingExpense, category: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    {EXPENSE_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={editingExpense.amount}
+                    onChange={(e) =>
+                      setEditingExpense({
+                        ...editingExpense,
+                        amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Paid To / Vendor
+                  </label>
+                  <input
+                    type="text"
+                    value={editingExpense.vendor}
+                    onChange={(e) =>
+                      setEditingExpense({ ...editingExpense, vendor: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    value={editingExpense.department}
+                    onChange={(e) =>
+                      setEditingExpense({ ...editingExpense, department: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={editingExpense.status}
+                    onChange={(e) =>
+                      setEditingExpense({
+                        ...editingExpense,
+                        status: e.target.value as ExpenseItem["status"],
+                      })
+                    }
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setEditingExpense(null)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="editExpenseForm"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       )}

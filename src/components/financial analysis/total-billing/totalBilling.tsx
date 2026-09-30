@@ -10,6 +10,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getTodayLabel, getFormattedCurrentDate } from "../../../common components/dateUtils";
 
 import "./totalBilling.css";
 
@@ -33,11 +34,13 @@ export interface BillingInvoice {
   status: BillingStatus;
 }
 
+const todayDate = getFormattedCurrentDate();
+
 const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-101",
     invoiceNumber: "BILL-2026-1041",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "08:15 AM",
     patientName: "Arun Kumar",
     patientId: "PAT-1001",
@@ -53,7 +56,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-102",
     invoiceNumber: "BILL-2026-1042",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "08:30 AM",
     patientName: "Meena Devi",
     patientId: "PAT-1002",
@@ -69,7 +72,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-103",
     invoiceNumber: "BILL-2026-1043",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "08:50 AM",
     patientName: "Rajesh Kannan",
     patientId: "PID-4421",
@@ -85,7 +88,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-104",
     invoiceNumber: "BILL-2026-1044",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "09:10 AM",
     patientName: "Sunita Verma",
     patientId: "PID-4420",
@@ -101,7 +104,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-105",
     invoiceNumber: "BILL-2026-1045",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "09:35 AM",
     patientName: "Vikram Malhotra",
     patientId: "PID-4417",
@@ -117,7 +120,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-106",
     invoiceNumber: "BILL-2026-1046",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "10:00 AM",
     patientName: "Farhana Begum",
     patientId: "PID-4418",
@@ -133,7 +136,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-107",
     invoiceNumber: "BILL-2026-1047",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "10:20 AM",
     patientName: "Gopalakrishnan S.",
     patientId: "PID-4415",
@@ -149,7 +152,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-108",
     invoiceNumber: "BILL-2026-1048",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "10:45 AM",
     patientName: "Deepa Ananth",
     patientId: "PID-4414",
@@ -165,7 +168,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-109",
     invoiceNumber: "BILL-2026-1049",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "11:15 AM",
     patientName: "Mohammed Rizwan",
     patientId: "PID-4413",
@@ -181,7 +184,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-110",
     invoiceNumber: "BILL-2026-1050",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "11:40 AM",
     patientName: "Kavitha Natarajan",
     patientId: "PID-4416",
@@ -197,7 +200,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-111",
     invoiceNumber: "BILL-2026-1051",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "12:10 PM",
     patientName: "Senthil Nathan",
     patientId: "PID-4412",
@@ -213,7 +216,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-112",
     invoiceNumber: "BILL-2026-1052",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "12:35 PM",
     patientName: "Ananya Iyer",
     patientId: "PID-4411",
@@ -229,7 +232,7 @@ const BILLING_INVOICES: BillingInvoice[] = [
   {
     id: "INV-113",
     invoiceNumber: "BILL-2026-1053",
-    date: "25 Sep 2026",
+    date: todayDate,
     time: "01:00 PM",
     patientName: "Balamurugan P.",
     patientId: "PID-4410",
@@ -365,7 +368,7 @@ const TotalBilling = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Today, 25 Sep 2026</span>
+            <span>{getTodayLabel()}</span>
           </div>
 
           <button
@@ -572,7 +575,7 @@ const TotalBilling = () => {
           <Table
             columns={columns}
             data={currentInvoices}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No billing records match your search criteria."
             renderRow={(inv: BillingInvoice) => (

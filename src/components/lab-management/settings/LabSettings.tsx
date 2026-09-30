@@ -11,7 +11,10 @@ import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getFormattedCurrentDate } from "../../../common components/dateUtils";
 import "./labSettings.css";
+
+const todayDateStr = getFormattedCurrentDate();
 
 export interface AuditLogItem {
   id: string;
@@ -30,7 +33,7 @@ const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: "LOG-101",
     logCode: "AUD-2026-092",
-    timestamp: "28 Sep 2026, 04:30 PM",
+    timestamp: `${todayDateStr}, 04:30 PM`,
     action: "Updated NABL Accreditation Certificate",
     module: "Compliance & Licensing",
     performedBy: "Dr. Arvind Swamy",
@@ -42,7 +45,7 @@ const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: "LOG-102",
     logCode: "AUD-2026-091",
-    timestamp: "28 Sep 2026, 02:15 PM",
+    timestamp: `${todayDateStr}, 02:15 PM`,
     action: "Analyzer Periodic Calibration Certified",
     module: "Equipment Management",
     performedBy: "Er. Karthik Raja",
@@ -54,7 +57,7 @@ const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: "LOG-103",
     logCode: "AUD-2026-090",
-    timestamp: "28 Sep 2026, 11:45 AM",
+    timestamp: `${todayDateStr}, 11:45 AM`,
     action: "Emergency TAT Benchmark Adjusted",
     module: "Turnaround Time (TAT)",
     performedBy: "Ms. Uma Maheshwari",
@@ -752,7 +755,7 @@ export default function LabSettings() {
               <Table
                 columns={auditColumns}
                 data={paginatedLogs}
-                maxHeight="440px"
+                maxHeight="380px"
                 minWidth="1300px"
                 emptyMessage="No audit logs match your search criteria."
                 renderRow={(log: AuditLogItem) => {

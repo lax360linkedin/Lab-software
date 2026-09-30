@@ -5,12 +5,14 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CloseIcon from "@mui/icons-material/Close";
-import PowerSettingsNewOutlinedIcon from "@mui/icons-material/PowerSettingsNewOutlined";
 import MedicalServicesOutlinedIcon from "@mui/icons-material/MedicalServicesOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getFormattedCurrentDate } from "../../../common components/dateUtils";
 import "./staffUsers.css";
 
 // Section 26: Primary Roles strictly Admin, Receptionist, Lab Technician
@@ -171,7 +173,15 @@ export default function StaffUsers() {
   const [selectedStatus, setSelectedStatus] = useState("All");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [viewingStaff, setViewingStaff] = useState<StaffMember | null>(null);
+
+  const handleDeleteStaff = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this staff user?")) {
+      setStaffList((prev) => prev.filter((s) => s.id !== id));
+    }
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -279,7 +289,7 @@ export default function StaffUsers() {
         department: formData.department,
         shift: formData.shift,
         status: formData.status,
-        joinedDate: "Today",
+        joinedDate: getFormattedCurrentDate(),
         lastLogin: "Never logged in",
       };
       setStaffList((prev) => [newStaff, ...prev]);
@@ -500,7 +510,7 @@ export default function StaffUsers() {
           <Table
             columns={columns}
             data={paginatedStaff}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No staff members match the selected search or filter criteria."
             renderRow={(staff: StaffMember) => {
@@ -511,7 +521,7 @@ export default function StaffUsers() {
 
               return (
                 <>
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left">
+                  <td className="whitespace-nowrap px-4 py-3 text-left">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                         {staff.name
@@ -527,27 +537,27 @@ export default function StaffUsers() {
                     </div>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left">
+                  <td className="whitespace-nowrap px-4 py-3 text-left">
                     <div className="font-medium text-slate-800 text-sm">{staff.role}</div>
                     <div className="text-xs text-slate-400">Joined {staff.joinedDate}</div>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left">
+                  <td className="whitespace-nowrap px-4 py-3 text-left">
                     <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
                       {staff.department}
                     </span>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left">
+                  <td className="whitespace-nowrap px-4 py-3 text-left">
                     <div className="text-xs font-medium text-slate-800">{staff.email}</div>
                     <div className="text-xs text-slate-400">{staff.phone}</div>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left text-xs text-slate-600">
+                  <td className="whitespace-nowrap px-4 py-3 text-left text-xs text-slate-600">
                     {staff.shift}
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center">
+                  <td className="whitespace-nowrap px-4 py-3 text-center">
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(staff.id)}
@@ -558,12 +568,20 @@ export default function StaffUsers() {
                     </button>
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left text-xs text-slate-500 font-mono">
+                  <td className="whitespace-nowrap px-4 py-3 text-left text-xs text-slate-500 font-mono">
                     {staff.lastLogin}
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center">
+                  <td className="whitespace-nowrap px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setViewingStaff(staff)}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
+                        title="View Staff Details"
+                      >
+                        <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(staff)}
@@ -574,15 +592,11 @@ export default function StaffUsers() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleToggleStatus(staff.id)}
-                        className={`rounded-lg p-1.5 transition ${
-                          staff.status === "Active"
-                            ? "text-rose-500 hover:bg-rose-50"
-                            : "text-emerald-600 hover:bg-emerald-50"
-                        }`}
-                        title={staff.status === "Active" ? "Deactivate User" : "Activate User"}
+                        onClick={() => handleDeleteStaff(staff.id)}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                        title="Delete User"
                       >
-                        <PowerSettingsNewOutlinedIcon sx={{ fontSize: 18 }} />
+                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
                       </button>
                     </div>
                   </td>
@@ -604,33 +618,42 @@ export default function StaffUsers() {
         </div>
       </div>
 
-      {/* Add / Edit Staff Modal */}
+      {/* Add / Edit Staff Drawer (Right Side) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <CloseIcon sx={{ fontSize: 20 }} />
-            </button>
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setIsModalOpen(false)}
+          />
 
-            <div className="flex items-center gap-2 mb-4">
-              <span className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                <PersonOutlineOutlinedIcon sx={{ fontSize: 22 }} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {editingStaff ? "Edit Staff Details" : "Enroll New Staff Member"}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Assign role, department, shift timings, and contact information.
-                </p>
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <PersonOutlineOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {editingStaff ? "Edit Staff Details" : "Enroll New Staff Member"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {editingStaff ? editingStaff.staffCode : "Assign role, department & contact"}
+                  </p>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
             </div>
 
-            <form onSubmit={handleSaveStaff} className="space-y-4">
+            <form onSubmit={handleSaveStaff} className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -766,24 +789,118 @@ export default function StaffUsers() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+                  className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
                 >
                   {editingStaff ? "Save Changes" : "Enroll Staff"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* View Staff Details Drawer */}
+      {viewingStaff && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setViewingStaff(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                  {viewingStaff.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">{viewingStaff.name}</h3>
+                  <p className="text-xs text-blue-600 font-mono font-semibold">{viewingStaff.staffCode}</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setViewingStaff(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Primary Role</span>
+                  <p className="text-sm font-bold text-slate-800 mt-0.5">{viewingStaff.role}</p>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    viewingStaff.status === "Active"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {viewingStaff.status}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Department</span>
+                  <p className="text-slate-800 font-semibold mt-0.5">{viewingStaff.department}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Shift</span>
+                  <p className="text-slate-800 font-semibold mt-0.5">{viewingStaff.shift}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Email</span>
+                  <p className="text-slate-800 font-medium mt-0.5">{viewingStaff.email}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Phone</span>
+                  <p className="text-slate-800 font-medium mt-0.5">{viewingStaff.phone}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Joined Date</span>
+                  <p className="text-slate-700 mt-0.5">{viewingStaff.joinedDate}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Last Login</span>
+                  <p className="text-slate-700 font-mono mt-0.5">{viewingStaff.lastLogin}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setViewingStaff(null)}
+                className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-900 transition"
+              >
+                Close View
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,10 +1,12 @@
 @media print {
-  body * {
+  body:has(#laboratory-print-form) *:not(#laboratory-print-form):not(#laboratory-print-form *) {
     visibility: hidden !important;
   }
 
   #laboratory-print-form,
-  #laboratory-print-form * {
+  #laboratory-print-form *,
+  #report-printable-sheet,
+  #report-printable-sheet * {
     visibility: visible !important;
   }
 

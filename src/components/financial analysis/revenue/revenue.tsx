@@ -594,7 +594,7 @@ const Revenue = () => {
           <Table
             columns={columns}
             data={currentTests}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No laboratory tests match your selected criteria."
             renderRow={(item: TestRevenueItem) => {

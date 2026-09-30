@@ -9,6 +9,7 @@ import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getTodayLabel, getFormattedCurrentDate } from "../../../common components/dateUtils";
 
 import "./pendingPayments.css";
 
@@ -33,12 +34,14 @@ export interface PendingPaymentItem {
   followupStatus: FollowupAction;
 }
 
+const todayDate = getFormattedCurrentDate();
+
 const PENDING_PAYMENT_DATA: PendingPaymentItem[] = [
   {
     id: "PEND-01",
     invoiceNumber: "BILL-2026-1046",
-    billingDate: "25 Sep 2026",
-    dueDate: "25 Sep 2026",
+    billingDate: todayDate,
+    dueDate: todayDate,
     patientName: "Farhana Begum",
     patientId: "PID-4418",
     phone: "9876543214",
@@ -54,7 +57,7 @@ const PENDING_PAYMENT_DATA: PendingPaymentItem[] = [
   {
     id: "PEND-02",
     invoiceNumber: "BILL-2026-1050",
-    billingDate: "25 Sep 2026",
+    billingDate: todayDate,
     dueDate: "26 Sep 2026",
     patientName: "Kavitha Natarajan",
     patientId: "PID-4416",
@@ -71,8 +74,8 @@ const PENDING_PAYMENT_DATA: PendingPaymentItem[] = [
   {
     id: "PEND-03",
     invoiceNumber: "BILL-2026-1051",
-    billingDate: "25 Sep 2026",
-    dueDate: "25 Sep 2026",
+    billingDate: todayDate,
+    dueDate: todayDate,
     patientName: "Senthil Nathan",
     patientId: "PID-4412",
     phone: "9876543218",
@@ -358,7 +361,7 @@ const PendingPayments = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Today, 25 Sep 2026</span>
+            <span>{getTodayLabel()}</span>
           </div>
 
           <button
@@ -565,7 +568,7 @@ const PendingPayments = () => {
           <Table
             columns={columns}
             data={currentList}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No pending payment records match your search criteria."
             renderRow={(item: PendingPaymentItem) => (

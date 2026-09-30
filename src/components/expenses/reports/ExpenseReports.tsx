@@ -217,7 +217,7 @@ export default function ExpenseReports() {
   const [startDate, setStartDate] = useState("2026-09-01");
   const [endDate, setEndDate] = useState("2026-09-30");
 
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter Data
@@ -587,7 +587,7 @@ export default function ExpenseReports() {
           <Table
             columns={columns}
             data={paginatedData}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No expense records match the selected report filters."
             renderRow={(item: ExpenseReportEntry) => (

@@ -9,6 +9,7 @@ import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getCurrentMonthYear } from "../../../common components/dateUtils";
 
 import "./monthlyRevenue.css";
 
@@ -384,7 +385,7 @@ const MonthlyRevenue = () => {
                 Peak Month
               </p>
               <h3 className="mt-2 text-2xl font-bold text-slate-900">
-                Sep 2026
+                {getCurrentMonthYear(new Date(), false)}
               </h3>
               <p className="mt-2 text-xs text-emerald-600 font-medium">
                 ₹4,47,000 net collection
@@ -505,7 +506,7 @@ const MonthlyRevenue = () => {
           <Table
             columns={columns}
             data={currentData}
-            maxHeight="430px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No monthly revenue records match your search criteria."
             renderRow={(item: MonthlyRevenueItem) => (
