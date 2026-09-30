@@ -44,7 +44,10 @@ import CorrectiveActions from "../quality-control/CorrectiveActions";
 import NotificationHistory from "../notifications/NotificationHistory";
 import MessageTemplates from "../notifications/MessageTemplates";
 import NotificationSettings from "../notifications/NotificationSettings";
-
+import Tests from "../tests/Tests";
+import Doctors from "../doctors/Doctor";
+import Billing from "../../common components/billing/Billing";
+import NewBill from "../../common components/billing/NewBill";
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
@@ -57,11 +60,9 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
                     <Route path="/dashboard" element={<Dashboard />} />
-
                     <Route path="/patients" element={<PatientList />} />
                     <Route path="/patients/new-registration" element={<NewRegistration />} />
                     <Route path="/patients/history" element={<PatientHistory />} />
-
                     <Route path="/accession/sample-collection" element={<SampleCollection />} />
                     <Route path="/accession/received-samples" element={<ReceivedSamples />} />
                     <Route path="/accession/accepted-samples" element={<AcceptedSamples />} />
@@ -72,11 +73,11 @@ const AppRoutes = () => {
                     <Route path="/analysis/completed" element={<Completed />} />
                     <Route path="/financial-analysis/collections" element={<Collection />} />
                     <Route path="/financial-analysis/revenue" element={<Revenue />} />
-                    <Route path="/financial-analysis/total-billing"element={<TotalBilling />}/>
+                    <Route path="/financial-analysis/total-billing" element={<TotalBilling />} />
                     <Route path="/financial-analysis/discounts" element={<Discounts />} />
-                    <Route path="/financial-analysis/pending-payments" element={<PendingPayments />}/>
-                    <Route path="/financial-analysis/monthly-revenue" element={<MonthlyRevenue />}/>
-                    <Route path="/financial-analysis/payment-statistics"element={<PaymentStatistics />}/>
+                    <Route path="/financial-analysis/pending-payments" element={<PendingPayments />} />
+                    <Route path="/financial-analysis/monthly-revenue" element={<MonthlyRevenue />} />
+                    <Route path="/financial-analysis/payment-statistics" element={<PaymentStatistics />} />
                     <Route path="/expenses" element={<ExpenseDashboard />} />
                     <Route path="/expenses/add" element={<AddExpense />} />
                     <Route path="/expenses/list" element={<ExpenseList />} />
@@ -85,37 +86,36 @@ const AppRoutes = () => {
                     <Route path="/staff/users" element={<StaffUsers />} />
                     <Route path="/staff/roles" element={<StaffRoles />} />
                     <Route path="/staff/permissions" element={<StaffPermissions />} />
-                  <Route path="/lab-management/departments" element={<Departments />} />
-                  <Route path="/lab-management/equipment" element={<Equipment />} />
-                  <Route path="/lab-management/settings" element={<LabSettings />} />
-                   <Route path="/lab-profile" element={<LabProfile />} />
-
-                    {/* Results */}
                     <Route path="/results/enter" element={<ResultEntry />} />
                     <Route path="/results/pending-verification" element={<PendingVerification />} />
                     <Route path="/results/verified" element={<VerifiedResults />} />
-
-                    {/* Quality Control */}
                     <Route path="/quality-control/checks" element={<QCChecks />} />
                     <Route path="/quality-control/control-results" element={<ControlResults />} />
                     <Route path="/quality-control/failed" element={<FailedQC />} />
                     <Route path="/quality-control/corrective-actions" element={<CorrectiveActions />} />
-
-                    {/* Notifications */}
                     <Route path="/notifications/history" element={<NotificationHistory />} />
                     <Route path="/notifications/templates" element={<MessageTemplates />} />
                     <Route path="/notifications/settings" element={<NotificationSettings />} />
-        </Route>
+                    <Route path="/lab-management/departments" element={<Departments />} />
+                    <Route path="/lab-management/equipment" element={<Equipment />} />
+                    <Route path="/lab-management/settings" element={<LabSettings />} />
+                    <Route path="/lab-profile" element={<LabProfile />} />
+                    <Route path="/tests" element={<Tests />} />
+                    <Route path="/lab-profile" element={<LabProfile />} />
+                    <Route path="/doctors" element={<Doctors />} />
+                    <Route path="/doctors" element={<Doctors />} />
+                    <Route path="/billing" element={<Billing />} />
+                    <Route path="/billing/new" element={<NewBill />} />
+
+                </Route>
 
             </Route>
 
-            <Route
-                path="*"
-                element={
-                    <div className="p-10 text-center">
-                        ROUTE NOT FOUND: {window.location.pathname}
-                    </div>
-                }
+            <Route path="*" element={
+                <div className="p-10 text-center">
+                    ROUTE NOT FOUND: {window.location.pathname}
+                </div>
+            }
             />
         </Routes>
     );
