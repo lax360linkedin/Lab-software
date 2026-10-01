@@ -101,7 +101,7 @@ const menuItems: MenuItem[] = [
       },
       {
         label: "Pending Payments",
-        path: "/billing/pending",
+        path: "/billing/pending-payments",
       },
     ],
   },

@@ -36,8 +36,9 @@ import LabSettings from "../lab-management/settings/LabSettings";
 import LabProfile from "../lab-profile/LabProfile";
 import Tests from "../tests/Tests";
 import Doctors from "../doctors/Doctor";
-import Billing from "../../common components/billing/Billing";
 import NewBill from "../../common components/billing/NewBill";
+import Payments from "../../common components/billing/Payments";
+import BillingPendingPayments from "../../common components/billing/BillingPendingPayments";
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
@@ -84,8 +85,9 @@ const AppRoutes = () => {
                     <Route path="/lab-profile" element={<LabProfile />} />
                     <Route path="/doctors" element={<Doctors />} />
                     <Route path="/doctors" element={<Doctors />} />
-                    <Route path="/billing" element={<Billing />} />
                     <Route path="/billing/new" element={<NewBill />} />
+                    <Route path="/billing/payments" element={<Payments />} />
+                    <Route path="/billing/pending-payments" element={<BillingPendingPayments />} />
 
                 </Route>
 
