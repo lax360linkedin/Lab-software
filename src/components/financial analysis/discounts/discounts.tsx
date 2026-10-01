@@ -8,6 +8,12 @@ import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import PercentOutlinedIcon from "@mui/icons-material/PercentOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import { getTodayLabel, getFormattedCurrentDate } from "../../../common components/dateUtils";
@@ -231,24 +237,53 @@ const columns = [
   "Concession",
   "Final Payable",
   "Authorized By",
+  "Actions",
 ];
 
 const Discounts = () => {
+  const [records, setRecords] = useState<DiscountRecord[]>(DISCOUNT_RECORDS);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScheme, setSelectedScheme] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [viewingDiscount, setViewingDiscount] = useState<DiscountRecord | null>(null);
+  const [editingDiscount, setEditingDiscount] = useState<DiscountRecord | null>(null);
+  const [deletingDiscount, setDeletingDiscount] = useState<DiscountRecord | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingDiscount) return;
+    setRecords((prev) => prev.filter((r) => r.id !== deletingDiscount.id));
+    setDeletingDiscount(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDiscount) return;
+    setRecords((prev) =>
+      prev.map((r) => (r.id === editingDiscount.id ? editingDiscount : r))
+    );
+    setEditingDiscount(null);
+    showToast("Discount updated successfully");
+  };
+
   // KPI Calculations
   const totalDiscountAmount = useMemo(() => {
-    return DISCOUNT_RECORDS.reduce((sum, d) => sum + d.discountAmount, 0);
-  }, []);
+    return records.reduce((sum, d) => sum + d.discountAmount, 0);
+  }, [records]);
 
   const totalOriginalAmount = useMemo(() => {
-    return DISCOUNT_RECORDS.reduce((sum, d) => sum + d.originalAmount, 0);
-  }, []);
+    return records.reduce((sum, d) => sum + d.originalAmount, 0);
+  }, [records]);
 
-  const totalPatientsBenefited = DISCOUNT_RECORDS.length;
+  const totalPatientsBenefited = records.length;
 
   const averageDiscountValue = useMemo(() => {
     return totalPatientsBenefited > 0
@@ -273,8 +308,8 @@ const Discounts = () => {
     ];
 
     return schemes.map((sch) => {
-      const records = DISCOUNT_RECORDS.filter((r) => r.scheme === sch);
-      const totalAmount = records.reduce((acc, r) => acc + r.discountAmount, 0);
+      const schRecords = records.filter((r) => r.scheme === sch);
+      const totalAmount = schRecords.reduce((acc, r) => acc + r.discountAmount, 0);
       const percentage =
         totalDiscountAmount > 0 ? Math.round((totalAmount / totalDiscountAmount) * 100) : 0;
 
@@ -286,17 +321,17 @@ const Discounts = () => {
 
       return {
         scheme: sch,
-        count: records.length,
+        count: schRecords.length,
         totalAmount,
         percentage,
         color,
       };
     });
-  }, [totalDiscountAmount]);
+  }, [records, totalDiscountAmount]);
 
   // Filtered Records
   const filteredRecords = useMemo(() => {
-    return DISCOUNT_RECORDS.filter((item) => {
+    return records.filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -309,7 +344,7 @@ const Discounts = () => {
 
       return matchesSearch && matchesScheme;
     });
-  }, [searchTerm, selectedScheme]);
+  }, [records, searchTerm, selectedScheme]);
 
   const currentRecords = useMemo(() => {
     return filteredRecords.slice(
@@ -536,7 +571,6 @@ const Discounts = () => {
           <Table
             columns={columns}
             data={currentRecords}
-            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No discount records match your search criteria."
             renderRow={(d: DiscountRecord) => (
@@ -608,6 +642,32 @@ const Discounts = () => {
                     {d.authorizedBy}
                   </div>
                 </td>
+
+                <td className="whitespace-nowrap px-4 py-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setViewingDiscount(d)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
+                      title="View Details"
+                    >
+                      <VisibilityOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setEditingDiscount({ ...d })}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 transition"
+                      title="Edit Discount"
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingDiscount(d)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                      title="Delete Discount"
+                    >
+                      <DeleteOutlineOutlinedIcon fontSize="small" />
+                    </button>
+                  </div>
+                </td>
               </>
             )}
           />
@@ -629,8 +689,306 @@ const Discounts = () => {
           </div>
         )}
       </section>
+
+      {/* View Drawer */}
+      {viewingDiscount && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setViewingDiscount(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Discount Concession Details</h3>
+                <p className="text-xs text-gray-500">{viewingDiscount.discountId}</p>
+              </div>
+              <button onClick={() => setViewingDiscount(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Discount Scheme</span>
+                  <span className="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-700">
+                    {viewingDiscount.scheme}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Invoice Number</span>
+                  <span className="font-semibold text-slate-800">{viewingDiscount.invoiceNumber}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Date</span>
+                  <span className="text-slate-700">{viewingDiscount.date}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Patient Name</span>
+                  <span className="font-semibold text-slate-800">{viewingDiscount.patientName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Patient ID</span>
+                  <span className="font-mono text-xs text-slate-700">{viewingDiscount.patientId}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Original Bill</span>
+                  <span className="font-semibold text-slate-800">₹{viewingDiscount.originalAmount.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Discount Concession</span>
+                  <span className="font-bold text-emerald-600">-₹{viewingDiscount.discountAmount.toLocaleString("en-IN")} ({viewingDiscount.discountPercent}%)</span>
+                </div>
+                <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
+                  <span className="text-xs font-semibold text-slate-700">Final Payable</span>
+                  <span className="font-bold text-slate-900 text-base">₹{viewingDiscount.finalPayable.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-2">
+                <div className="text-xs font-medium text-slate-500">Authorized By</div>
+                <div className="font-semibold text-slate-800">{viewingDiscount.authorizedBy}</div>
+                <div className="text-xs font-medium text-slate-500 mt-2">Reason / Approval Notes</div>
+                <div className="text-xs text-slate-700">{viewingDiscount.reason}</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViewingDiscount(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Drawer */}
+      {editingDiscount && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setEditingDiscount(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Edit Discount Record</h3>
+                <p className="text-xs text-gray-500">{editingDiscount.discountId}</p>
+              </div>
+              <button onClick={() => setEditingDiscount(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="flex flex-1 flex-col justify-between overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Patient Name</label>
+                  <input
+                    type="text"
+                    value={editingDiscount.patientName}
+                    onChange={(e) => setEditingDiscount({ ...editingDiscount, patientName: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Discount Scheme</label>
+                  <select
+                    value={editingDiscount.scheme}
+                    onChange={(e) => setEditingDiscount({ ...editingDiscount, scheme: e.target.value as DiscountSchemeType })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="Senior Citizen Concession">Senior Citizen Concession</option>
+                    <option value="Health Camp Coupon">Health Camp Coupon</option>
+                    <option value="Doctor Courtesy">Doctor Courtesy</option>
+                    <option value="Corporate Agreement">Corporate Agreement</option>
+                    <option value="Staff / Dependent">Staff / Dependent</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Original Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={editingDiscount.originalAmount}
+                      onChange={(e) => {
+                        const original = Number(e.target.value) || 0;
+                        const disc = Math.round((original * editingDiscount.discountPercent) / 100);
+                        setEditingDiscount({
+                          ...editingDiscount,
+                          originalAmount: original,
+                          discountAmount: disc,
+                          finalPayable: original - disc,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Discount %</label>
+                    <input
+                      type="number"
+                      value={editingDiscount.discountPercent}
+                      onChange={(e) => {
+                        const pct = Number(e.target.value) || 0;
+                        const disc = Math.round((editingDiscount.originalAmount * pct) / 100);
+                        setEditingDiscount({
+                          ...editingDiscount,
+                          discountPercent: pct,
+                          discountAmount: disc,
+                          finalPayable: editingDiscount.originalAmount - disc,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                      max={100}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500">Discount Amount:</span>
+                    <div className="font-bold text-emerald-600">₹{editingDiscount.discountAmount.toLocaleString("en-IN")}</div>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Final Payable:</span>
+                    <div className="font-bold text-slate-800">₹{editingDiscount.finalPayable.toLocaleString("en-IN")}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Authorized By</label>
+                  <input
+                    type="text"
+                    value={editingDiscount.authorizedBy}
+                    onChange={(e) => setEditingDiscount({ ...editingDiscount, authorizedBy: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Approval Reason / Notes</label>
+                  <textarea
+                    rows={3}
+                    value={editingDiscount.reason}
+                    onChange={(e) => setEditingDiscount({ ...editingDiscount, reason: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingDiscount(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Drawer */}
+      {deletingDiscount && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setDeletingDiscount(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Delete Discount Record</h3>
+                <p className="text-xs text-gray-500">{deletingDiscount.discountId}</p>
+              </div>
+              <button onClick={() => setDeletingDiscount(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+                <WarningAmberOutlinedIcon className="mt-0.5 text-rose-600 shrink-0" />
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">Warning: Destructive Action</div>
+                  <p className="text-xs text-rose-700">
+                    Are you sure you want to delete this discount record? This will revoke the concession log from the financial audit trail.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Discount ID:</span>
+                  <span className="font-semibold text-slate-800">{deletingDiscount.discountId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Invoice:</span>
+                  <span className="font-semibold text-slate-800">{deletingDiscount.invoiceNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Patient:</span>
+                  <span className="font-semibold text-slate-800">{deletingDiscount.patientName} ({deletingDiscount.patientId})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Discount Scheme:</span>
+                  <span className="font-semibold text-blue-600">{deletingDiscount.scheme}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Discount Value:</span>
+                  <span className="font-bold text-rose-600">-₹{deletingDiscount.discountAmount.toLocaleString("en-IN")} ({deletingDiscount.discountPercent}%)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Authorized By:</span>
+                  <span className="font-medium text-slate-700">{deletingDiscount.authorizedBy}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingDiscount(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Discounts;
+

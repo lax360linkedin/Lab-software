@@ -10,6 +10,8 @@ import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import { EXPENSE_CATEGORIES } from "../add-expense/AddExpense";
@@ -256,7 +258,22 @@ export default function ExpenseList() {
   // Modals State
   const [selectedExpense, setSelectedExpense] = useState<ExpenseItem | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpenseItem | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<ExpenseItem | null>(null);
   const [attachmentPreview, setAttachmentPreview] = useState<ExpenseItem | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingExpense) {
+      setExpenses((prev) => prev.filter((item) => item.id !== deletingExpense.id));
+      setDeletingExpense(null);
+      showToast("Deleted successfully");
+    }
+  };
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((item) => {
@@ -287,16 +304,6 @@ export default function ExpenseList() {
     [filteredExpenses]
   );
 
-  // Cancel Voucher Action
-  const handleCancelVoucher = (id: string) => {
-    if (window.confirm("Are you sure you want to cancel this expense voucher?")) {
-      setExpenses((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, status: "Cancelled" as const } : item
-        )
-      );
-    }
-  };
 
   // Save Edited Voucher
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -545,17 +552,12 @@ export default function ExpenseList() {
                       <AttachFileOutlinedIcon sx={{ fontSize: 17 }} />
                     </button>
 
-                    {/* Delete / Cancel */}
+                    {/* Delete */}
                     <button
                       type="button"
-                      title="Delete / Cancel Voucher"
-                      onClick={() => handleCancelVoucher(exp.id)}
-                      disabled={exp.status === "Cancelled"}
-                      className={`rounded p-1 transition ${
-                        exp.status === "Cancelled"
-                          ? "opacity-30 cursor-not-allowed text-slate-300"
-                          : "text-slate-500 hover:bg-rose-50 hover:text-rose-600"
-                      }`}
+                      title="Delete Voucher"
+                      onClick={() => setDeletingExpense(exp)}
+                      className="rounded p-1 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     >
                       <DeleteOutlineOutlinedIcon sx={{ fontSize: 17 }} />
                     </button>
@@ -578,92 +580,97 @@ export default function ExpenseList() {
         </div>
       </div>
 
-      {/* 1. View Voucher Modal */}
+      {/* 1. View Voucher Slide-over Drawer */}
       {selectedExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl space-y-4 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
-                  Expense Voucher Details
-                </span>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {selectedExpense.voucherNo}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedExpense(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-              >
-                <CloseIcon fontSize="small" />
-              </button>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 p-4 space-y-2.5 text-xs text-slate-600">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Expense Title:</span>
-                <span className="font-semibold text-slate-800 text-right max-w-[280px]">
-                  {selectedExpense.title}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Category:</span>
-                <span className="font-semibold text-slate-800">{selectedExpense.category}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Paid To / Vendor:</span>
-                <span className="font-semibold text-slate-800">{selectedExpense.vendor}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Invoice / Ref No:</span>
-                <span className="font-mono font-semibold text-slate-800">
-                  {selectedExpense.invoiceNo}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Date:</span>
-                <span className="font-semibold text-slate-800">{selectedExpense.date}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Payment Mode:</span>
-                <span className="font-semibold text-slate-800">
-                  {selectedExpense.paymentMethod}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Created By:</span>
-                <span className="font-semibold text-blue-600">
-                  {selectedExpense.createdBy}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Status:</span>
-                <span className="font-bold text-slate-800">{selectedExpense.status}</span>
-              </div>
-              {selectedExpense.notes && (
-                <div className="pt-2 border-t border-slate-200">
-                  <span className="block text-slate-400 mb-0.5">Clinical / Account Notes:</span>
-                  <p className="text-slate-700 italic">{selectedExpense.notes}</p>
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
+                    Expense Voucher Details
+                  </span>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {selectedExpense.voucherNo}
+                  </h3>
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedExpense(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <CloseIcon fontSize="small" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="rounded-xl bg-slate-50 p-4 space-y-2.5 text-xs text-slate-600 border border-slate-200">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Expense Title:</span>
+                    <span className="font-semibold text-slate-800 text-right max-w-[240px]">
+                      {selectedExpense.title}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Category:</span>
+                    <span className="font-semibold text-slate-800">{selectedExpense.category}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Paid To / Vendor:</span>
+                    <span className="font-semibold text-slate-800">{selectedExpense.vendor}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Invoice / Ref No:</span>
+                    <span className="font-mono font-semibold text-slate-800">
+                      {selectedExpense.invoiceNo}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Date:</span>
+                    <span className="font-semibold text-slate-800">{selectedExpense.date}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Payment Mode:</span>
+                    <span className="font-semibold text-slate-800">
+                      {selectedExpense.paymentMethod}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Created By:</span>
+                    <span className="font-semibold text-blue-600">
+                      {selectedExpense.createdBy}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Status:</span>
+                    <span className="font-bold text-slate-800">{selectedExpense.status}</span>
+                  </div>
+                  {selectedExpense.notes && (
+                    <div className="pt-2 border-t border-slate-200">
+                      <span className="block text-slate-400 mb-0.5">Clinical / Account Notes:</span>
+                      <p className="text-slate-700 italic">{selectedExpense.notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+                  <span className="block text-[10px] uppercase font-bold text-blue-600">
+                    Voucher Total
+                  </span>
+                  <span className="text-2xl font-extrabold text-blue-950">
+                    ₹{selectedExpense.amount.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-              <div>
-                <span className="block text-[10px] uppercase font-bold text-slate-400">
-                  Voucher Total
-                </span>
-                <span className="text-xl font-extrabold text-slate-900">
-                  ₹{selectedExpense.amount.toLocaleString("en-IN")}
-                </span>
-              </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setSelectedExpense(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close View
+                Cancel
               </button>
             </div>
           </div>
@@ -801,16 +808,104 @@ export default function ExpenseList() {
               <button
                 type="button"
                 onClick={() => setEditingExpense(null)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 form="editExpenseForm"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+                className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
               >
-                Save Changes
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Voucher Slide-over Drawer */}
+      {deletingExpense && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Delete Voucher</h3>
+                    <p className="text-xs text-rose-600 font-medium">Confirm Permanent Action</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeletingExpense(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <WarningAmberOutlinedIcon sx={{ fontSize: 18 }} className="text-rose-600" />
+                    Are you sure you want to delete this expense voucher?
+                  </p>
+                  <p className="text-rose-600">
+                    This action will permanently delete this voucher record from the financial accounts ledger. This cannot be undone.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Voucher No</span>
+                    <span className="text-sm font-bold text-slate-900">{deletingExpense.voucherNo}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Expense Title</span>
+                    <span className="font-semibold text-slate-800">{deletingExpense.title}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
+                      <span className="font-semibold text-slate-800">{deletingExpense.category}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Paid To</span>
+                      <span className="font-semibold text-slate-800">{deletingExpense.vendor}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Voucher Total</span>
+                      <span className="font-extrabold text-slate-900 text-sm">₹{deletingExpense.amount.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Payment Mode</span>
+                      <span className="font-semibold text-slate-700">{deletingExpense.paymentMethod}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingExpense(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
               </button>
             </div>
           </div>
@@ -851,7 +946,7 @@ export default function ExpenseList() {
               <button
                 type="button"
                 onClick={() => setAttachmentPreview(null)}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Close
               </button>
@@ -861,7 +956,7 @@ export default function ExpenseList() {
                   alert(`Downloading ${attachmentPreview.attachmentName || "Receipt.pdf"}...`);
                   setAttachmentPreview(null);
                 }}
-                className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow hover:bg-blue-700"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700"
               >
                 Download Bill
               </button>
@@ -869,6 +964,15 @@ export default function ExpenseList() {
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 }
+

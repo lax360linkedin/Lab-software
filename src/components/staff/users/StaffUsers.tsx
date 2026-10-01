@@ -4,9 +4,11 @@ import AddIcon from "@mui/icons-material/Add";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import MedicalServicesOutlinedIcon from "@mui/icons-material/MedicalServicesOutlined";
@@ -176,11 +178,19 @@ export default function StaffUsers() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [viewingStaff, setViewingStaff] = useState<StaffMember | null>(null);
+  const [deletingStaff, setDeletingStaff] = useState<StaffMember | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const handleDeleteStaff = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this staff user?")) {
-      setStaffList((prev) => prev.filter((s) => s.id !== id));
-    }
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingStaff) return;
+    setStaffList((prev) => prev.filter((s) => s.id !== deletingStaff.id));
+    setDeletingStaff(null);
+    showToast("Deleted successfully");
   };
 
   // Modal State
@@ -592,7 +602,7 @@ export default function StaffUsers() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteStaff(staff.id)}
+                        onClick={() => setDeletingStaff(staff)}
                         className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                         title="Delete User"
                       >
@@ -793,13 +803,13 @@ export default function StaffUsers() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
                   {editingStaff ? "Save Changes" : "Enroll Staff"}
                 </button>
@@ -894,13 +904,89 @@ export default function StaffUsers() {
               <button
                 type="button"
                 onClick={() => setViewingStaff(null)}
-                className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-900 transition"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Close View
               </button>
             </div>
           </div>
         </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingStaff && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setDeletingStaff(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-2 text-rose-600">
+                <WarningAmberOutlinedIcon />
+                <h3 className="text-lg font-bold text-slate-900">Delete Staff Member</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingStaff(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold text-amber-900">
+                  Are you sure you want to permanently delete this staff member?
+                </p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  This user will no longer be able to log in or perform diagnostic and administrative duties.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium block">Staff Name</span>
+                  <span className="font-semibold text-slate-800">{deletingStaff.name}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Employee Code</span>
+                  <span className="font-mono font-bold text-slate-800">{deletingStaff.staffCode}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Role &amp; Department</span>
+                  <span className="font-medium text-slate-800">{deletingStaff.role} • {deletingStaff.department}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingStaff(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
       )}
     </div>
   );

@@ -10,6 +10,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
@@ -212,10 +213,23 @@ export default function ExpenseCategories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ExpenseCategory | null>(null);
   const [viewingCategory, setViewingCategory] = useState<ExpenseCategory | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<ExpenseCategory | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const handleDeleteCategory = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this expense category?")) {
-      setCategories((prev) => prev.filter((c) => c.id !== id));
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleDeleteCategory = (cat: ExpenseCategory) => {
+    setDeletingCategory(cat);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingCategory) {
+      setCategories((prev) => prev.filter((c) => c.id !== deletingCategory.id));
+      setDeletingCategory(null);
+      showToast("Deleted successfully");
     }
   };
   const [formData, setFormData] = useState({
@@ -634,7 +648,7 @@ export default function ExpenseCategories() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteCategory(cat.id)}
+                        onClick={() => handleDeleteCategory(cat)}
                         className="rounded p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                         title="Delete Category"
                       >
@@ -810,16 +824,16 @@ export default function ExpenseCategories() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 form="categoryForm"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+                className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
               >
-                {editingCategory ? "Save Changes" : "Create Category"}
+                Save
               </button>
             </div>
           </div>
@@ -912,24 +926,105 @@ export default function ExpenseCategories() {
             <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
               <button
                 type="button"
-                onClick={() => {
-                  const cat = viewingCategory;
-                  setViewingCategory(null);
-                  handleOpenEditModal(cat);
-                }}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
-              >
-                Edit Category
-              </button>
-              <button
-                type="button"
                 onClick={() => setViewingCategory(null)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close
+                Cancel
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Delete Category Slide-over Drawer */}
+      {deletingCategory && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Delete Category</h3>
+                    <p className="text-xs text-rose-600 font-medium">Confirm Permanent Action</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeletingCategory(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <WarningAmberOutlinedIcon sx={{ fontSize: 18 }} className="text-rose-600" />
+                    Are you sure you want to delete this category?
+                  </p>
+                  <p className="text-rose-600">
+                    This action will permanently delete the category record. This cannot be undone.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Category Name</span>
+                    <span className="text-sm font-bold text-slate-900">{deletingCategory.name}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Category Code</span>
+                      <span className="font-mono font-semibold text-slate-800">{deletingCategory.code}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Department</span>
+                      <span className="font-semibold text-slate-800">{deletingCategory.department}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Monthly Budget</span>
+                      <span className="font-bold text-slate-900">₹{deletingCategory.monthlyBudget.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Status</span>
+                      <span className="font-semibold text-slate-700">{deletingCategory.status}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingCategory(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
         </div>
       )}
     </div>

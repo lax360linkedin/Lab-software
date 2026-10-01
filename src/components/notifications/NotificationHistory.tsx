@@ -7,6 +7,7 @@ import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import SmsOutlinedIcon from "@mui/icons-material/SmsOutlined";
@@ -30,7 +31,7 @@ const NotificationHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Send Direct Message Modal
+  // Send Direct Message Drawer
   const [isSendOpen, setIsSendOpen] = useState(false);
   const [recipientName, setRecipientName] = useState("");
   const [recipientContact, setRecipientContact] = useState("");
@@ -40,6 +41,7 @@ const NotificationHistory: React.FC = () => {
 
   const [viewLog, setViewLog] = useState<NotificationLogItem | null>(null);
   const [editLog, setEditLog] = useState<NotificationLogItem | null>(null);
+  const [deletingLog, setDeletingLog] = useState<NotificationLogItem | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,7 +50,16 @@ const NotificationHistory: React.FC = () => {
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingLog) return;
+    const updated = logs.filter((l) => l.id !== deletingLog.id);
+    setLogs(updated);
+    saveNotifications(updated);
+    setDeletingLog(null);
+    showToast("Deleted successfully");
   };
 
   const handleSendDirect = async (e: React.FormEvent) => {
@@ -100,14 +111,6 @@ const NotificationHistory: React.FC = () => {
     showToast(`Notification successfully sent via ${selectedChannel} to ${recipientName}!`);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this notification record?")) {
-      const updated = logs.filter((l) => l.id !== id);
-      setLogs(updated);
-      saveNotifications(updated);
-      showToast("Notification log removed.");
-    }
-  };
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,7 +408,7 @@ const NotificationHistory: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setDeletingLog(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     title="Delete Notification Log"
                   >
@@ -536,13 +539,13 @@ const NotificationHistory: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsSendOpen(false)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white shadow hover:bg-indigo-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
                   Send Immediately
                 </button>
@@ -552,40 +555,77 @@ const NotificationHistory: React.FC = () => {
         </>
       )}
 
-      {/* View Message Modal */}
+      {/* View Message Right-Side Drawer */}
       {viewLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Message Receipt: {viewLog.notificationCode}</h3>
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setViewLog(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <VisibilityOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Message Delivery Receipt</h3>
+                  <p className="text-xs text-slate-500 font-mono">{viewLog.notificationCode}</p>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setViewLog(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
-                <CloseIcon />
+                <CloseIcon fontSize="small" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div><span className="text-slate-400">Recipient:</span> <span className="font-semibold text-slate-800">{viewLog.recipientName}</span></div>
-              <div><span className="text-slate-400">Contact:</span> <span className="font-mono text-slate-800">{viewLog.recipientContact}</span></div>
-              <div><span className="text-slate-400">Channel:</span> <span className="font-bold text-indigo-700">{viewLog.channel}</span></div>
-              <div><span className="text-slate-400">Event:</span> <span className="font-semibold text-slate-800">{viewLog.eventType}</span></div>
-              <div><span className="text-slate-400">Delivered At:</span> <span className="font-medium text-slate-800">{viewLog.sentDate}, {viewLog.sentTime}</span></div>
-              <div><span className="text-slate-400">Status:</span> <span className="font-bold text-emerald-700">{viewLog.deliveryStatus}</span></div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-slate-400 font-medium block">Recipient</span>
+                    <span className="font-semibold text-slate-800">{viewLog.recipientName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Contact</span>
+                    <span className="font-mono text-slate-800">{viewLog.recipientContact}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Channel</span>
+                    <span className="font-bold text-indigo-700">{viewLog.channel}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Event</span>
+                    <span className="font-semibold text-slate-800">{viewLog.eventType}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Delivered At</span>
+                    <span className="font-medium text-slate-800">{viewLog.sentDate}, {viewLog.sentTime}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Delivery Status</span>
+                    <span className="font-bold text-emerald-700">{viewLog.deliveryStatus}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Delivered Message Text</label>
+                <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 text-xs text-slate-800 whitespace-pre-line leading-relaxed">
+                  {viewLog.messagePreview}
+                </div>
+              </div>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 text-xs">
-              <span className="font-bold text-slate-700 block mb-1">Delivered Message Text:</span>
-              <p className="text-slate-800 whitespace-pre-line leading-relaxed">{viewLog.messagePreview}</p>
-            </div>
-
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
               <button
                 type="button"
                 onClick={() => setViewLog(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Close
               </button>
@@ -675,23 +715,92 @@ const NotificationHistory: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditLog(null)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white shadow hover:bg-indigo-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  Save Changes
+                  Save
                 </button>
               </div>
             </form>
           </div>
         </>
       )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingLog && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setDeletingLog(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-2 text-rose-600">
+                <WarningAmberOutlinedIcon />
+                <h3 className="text-lg font-bold text-slate-900">Delete Notification Record</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingLog(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold text-amber-900">
+                  Are you sure you want to permanently delete this notification record?
+                </p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  This action cannot be undone and will remove the delivery receipt from your audit logs.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium block">Notification ID</span>
+                  <span className="font-mono font-bold text-slate-800">{deletingLog.notificationCode}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Recipient</span>
+                  <span className="font-medium text-slate-800">{deletingLog.recipientName} ({deletingLog.recipientContact})</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Channel / Event</span>
+                  <span className="font-medium text-slate-800">{deletingLog.channel} • {deletingLog.eventType}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingLog(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default NotificationHistory;
+

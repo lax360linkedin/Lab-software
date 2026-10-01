@@ -9,6 +9,7 @@ import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
@@ -16,9 +17,9 @@ import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 import { getFormattedCurrentDate, getFormattedCurrentTime } from "../../common components/dateUtils";
 import {
+  TEST_DEFINITIONS,
   getStoredResults,
   saveResultsStore,
-  TEST_DEFINITIONS,
   type TestResultItem,
   type ResultParameterValue,
 } from "./resultsData";
@@ -28,7 +29,7 @@ const ResultEntry: React.FC = () => {
   const [results, setResults] = useState<TestResultItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("PENDING_ENTRY");
+  const [statusFilter, setStatusFilter] = useState("AWAITING_ENTRY");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -39,6 +40,7 @@ const ResultEntry: React.FC = () => {
   const [technicianNotes, setTechnicianNotes] = useState("");
   const [qcStatusSelection, setQcStatusSelection] = useState<"PASSED" | "FAILED">("PASSED");
   const [viewItem, setViewItem] = useState<TestResultItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<TestResultItem | null>(null);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -152,13 +154,13 @@ const ResultEntry: React.FC = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to remove this pending result item?")) {
-      const updated = results.filter((r) => r.id !== id);
-      setResults(updated);
-      saveResultsStore(updated);
-      showToast("Result entry record removed.");
-    }
+  const confirmDelete = () => {
+    if (!deletingItem) return;
+    const updated = results.filter((r) => r.id !== deletingItem.id);
+    setResults(updated);
+    saveResultsStore(updated);
+    setDeletingItem(null);
+    showToast("Deleted successfully");
   };
 
   // Filtered dataset
@@ -174,8 +176,8 @@ const ResultEntry: React.FC = () => {
       const matchStatus =
         statusFilter === "All"
           ? true
-          : statusFilter === "PENDING_ENTRY"
-          ? item.status === "PENDING_ENTRY" || item.status === "ENTERED"
+          : statusFilter === "AWAITING_ENTRY"
+          ? item.status === "AWAITING_ENTRY" || item.status === "ENTERED"
           : item.status === statusFilter;
 
       return matchSearch && matchDept && matchStatus;
@@ -247,7 +249,7 @@ const ResultEntry: React.FC = () => {
             </span>
           </div>
           <p className="mt-3 text-3xl font-bold text-slate-900">
-            {results.filter((r) => r.status === "PENDING_ENTRY").length}
+            {results.filter((r) => r.status === "AWAITING_ENTRY").length}
           </p>
           <p className="mt-1 text-xs text-amber-600 font-medium">Awaiting technician parameter entry</p>
         </div>
@@ -336,9 +338,9 @@ const ResultEntry: React.FC = () => {
               }}
               className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 outline-none focus:border-blue-500"
             >
-              <option value="PENDING_ENTRY">Pending & Entered Only</option>
+              <option value="AWAITING_ENTRY">Pending & Entered Only</option>
               <option value="All">All Statuses</option>
-              <option value="PENDING_ENTRY">Pending Entry</option>
+              <option value="AWAITING_ENTRY">Awaiting Entry</option>
               <option value="ENTERED">Draft Entered</option>
               <option value="PENDING_VERIFICATION">Pending Verification</option>
               <option value="QC_FAILED">QC Failed</option>
@@ -398,9 +400,9 @@ const ResultEntry: React.FC = () => {
 
               {/* Status */}
               <td className="whitespace-nowrap px-4 py-3.5 text-left">
-                {item.status === "PENDING_ENTRY" && (
+                {item.status === "AWAITING_ENTRY" && (
                   <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
-                    Pending Entry
+                    Awaiting Entry
                   </span>
                 )}
                 {item.status === "ENTERED" && (
@@ -441,14 +443,14 @@ const ResultEntry: React.FC = () => {
                     type="button"
                     onClick={() => handleOpenEntry(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
-                    title={item.status === "PENDING_ENTRY" ? "Enter Result Values" : "Edit Entered Results"}
+                    title={item.status === "AWAITING_ENTRY" ? "Enter Result Values" : "Edit Entered Results"}
                   >
                     <EditOutlinedIcon sx={{ fontSize: 18 }} />
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setDeletingItem(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     title="Delete Entry"
                   >
@@ -486,18 +488,13 @@ const ResultEntry: React.FC = () => {
           <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                  <AssignmentTurnedInOutlinedIcon sx={{ fontSize: 22 }} />
-                </span>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    {activeItem.status === "PENDING_ENTRY" ? "Enter Test Results" : "Modify Test Results"}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Patient: {activeItem.patientName} ({activeItem.patientId}) • Sample: {activeItem.sampleId}
-                  </p>
-                </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {activeItem.status === "AWAITING_ENTRY" ? "Enter Test Results" : "Modify Test Results"}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Patient: {activeItem.patientName} ({activeItem.patientId}) • Sample: {activeItem.sampleId}
+                </p>
               </div>
 
               <button
@@ -654,109 +651,198 @@ const ResultEntry: React.FC = () => {
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
               <button
                 type="button"
                 onClick={() => setIsEntryOpen(false)}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Cancel
               </button>
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleSaveResult(false)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-blue-600 bg-white px-4 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50"
-                >
-                  <SaveOutlinedIcon fontSize="small" />
-                  Save Draft
-                </button>
+              <button
+                type="button"
+                onClick={() => handleSaveResult(false)}
+                className="inline-flex items-center gap-2 rounded-xl border border-blue-600 bg-white px-5 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-50 shadow-sm transition"
+              >
+                <SaveOutlinedIcon fontSize="small" />
+                Save Draft
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleSaveResult(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700"
-                >
-                  <CheckCircleOutlineOutlinedIcon fontSize="small" />
-                  Submit for QC &amp; Verification
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleSaveResult(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                <CheckCircleOutlineOutlinedIcon fontSize="small" />
+                Save &amp; Submit
+              </button>
             </div>
           </div>
         </>
       )}
 
-      {/* View Details Modal */}
+      {/* View Details Right-Side Drawer */}
       {viewItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900">
-                Test Result Details: {viewItem.sampleId}
-              </h3>
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setViewItem(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Result Details: {viewItem.sampleId}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {viewItem.patientName} • {viewItem.testName}
+                </p>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setViewItem(null)}
-                className="text-slate-400 hover:text-slate-600"
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
-                <CloseIcon />
+                <CloseIcon fontSize="small" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div><span className="text-slate-400">Patient:</span> <span className="font-semibold text-slate-800">{viewItem.patientName}</span></div>
-              <div><span className="text-slate-400">Sample ID:</span> <span className="font-semibold text-slate-800 font-mono">{viewItem.sampleId}</span></div>
-              <div><span className="text-slate-400">Test:</span> <span className="font-semibold text-slate-800">{viewItem.testName}</span></div>
-              <div><span className="text-slate-400">Analyzer:</span> <span className="font-semibold text-slate-800">{viewItem.analyzer}</span></div>
-              <div><span className="text-slate-400">Technician:</span> <span className="font-semibold text-slate-800">{viewItem.technician}</span></div>
-              <div><span className="text-slate-400">Status:</span> <span className="font-semibold text-blue-600">{viewItem.status}</span></div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4 border border-slate-200">
+                <div><span className="text-slate-400">Patient:</span> <span className="font-semibold text-slate-800">{viewItem.patientName}</span></div>
+                <div><span className="text-slate-400">Sample ID:</span> <span className="font-semibold text-slate-800 font-mono">{viewItem.sampleId}</span></div>
+                <div><span className="text-slate-400">Test:</span> <span className="font-semibold text-slate-800">{viewItem.testName}</span></div>
+                <div><span className="text-slate-400">Analyzer:</span> <span className="font-semibold text-slate-800">{viewItem.analyzer}</span></div>
+                <div><span className="text-slate-400">Technician:</span> <span className="font-semibold text-slate-800">{viewItem.technician}</span></div>
+                <div><span className="text-slate-400">Status:</span> <span className="font-semibold text-blue-600">{viewItem.status}</span></div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-700 mb-2">Parameter Measurements</h4>
+                {viewItem.parameters && viewItem.parameters.length > 0 ? (
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
+                        <tr>
+                          <th className="px-3 py-2">Parameter</th>
+                          <th className="px-3 py-2">Value</th>
+                          <th className="px-3 py-2">Unit</th>
+                          <th className="px-3 py-2">Ref Range</th>
+                          <th className="px-3 py-2 text-center">Flag</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {viewItem.parameters.map((p) => (
+                          <tr key={p.code}>
+                            <td className="px-3 py-2 font-medium">{p.name}</td>
+                            <td className="px-3 py-2 font-bold">{p.value}</td>
+                            <td className="px-3 py-2 text-slate-500">{p.unit}</td>
+                            <td className="px-3 py-2 text-slate-500">{p.referenceRange}</td>
+                            <td className="px-3 py-2 text-center">
+                              <span className={`flag-pill results-badge-${p.flag.toLowerCase()}`}>
+                                {p.flag}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No parameters entered yet.</p>
+                )}
+              </div>
             </div>
 
-            {viewItem.parameters && viewItem.parameters.length > 0 ? (
-              <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-xl">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-100 text-slate-600">
-                    <tr>
-                      <th className="px-3 py-2">Parameter</th>
-                      <th className="px-3 py-2">Value</th>
-                      <th className="px-3 py-2">Unit</th>
-                      <th className="px-3 py-2">Ref Range</th>
-                      <th className="px-3 py-2">Flag</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {viewItem.parameters.map((p) => (
-                      <tr key={p.code}>
-                        <td className="px-3 py-1.5 font-medium">{p.name}</td>
-                        <td className="px-3 py-1.5 font-bold">{p.value}</td>
-                        <td className="px-3 py-1.5 text-slate-500">{p.unit}</td>
-                        <td className="px-3 py-1.5 text-slate-500">{p.referenceRange}</td>
-                        <td className="px-3 py-1.5">
-                          <span className={`flag-pill results-badge-${p.flag.toLowerCase()}`}>
-                            {p.flag}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500 italic">No parameters entered yet.</p>
-            )}
-
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setViewItem(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close
+                Cancel
               </button>
             </div>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingItem && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setDeletingItem(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Delete Result Entry</h3>
+                <p className="text-xs text-slate-500">Confirm deletion</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <WarningAmberOutlinedIcon className="text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-rose-800">
+                  <p className="font-semibold text-sm mb-1">Are you sure you want to delete this result entry?</p>
+                  <p>This action cannot be undone. Any recorded values will be discarded.</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Sample ID:</span>
+                  <span className="font-mono font-bold text-slate-900">{deletingItem.sampleId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Patient:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.patientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Test:</span>
+                  <span className="text-slate-700">{deletingItem.testName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Analyzer:</span>
+                  <span className="text-slate-700">{deletingItem.analyzer}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

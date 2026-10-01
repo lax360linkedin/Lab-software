@@ -35,6 +35,9 @@ export interface MessageTemplateItem {
   availableTags: string[];
   isActive: boolean;
   lastUpdated: string;
+  targetAudience: string;
+  sentCount: number;
+  recentRecipients: string[];
 }
 
 export interface NotificationGatewaySetting {
@@ -159,6 +162,9 @@ export const INITIAL_TEMPLATES: MessageTemplateItem[] = [
     availableTags: ["{{patient_name}}", "{{patient_id}}", "{{lab_name}}", "{{sample_id}}", "{{date}}"],
     isActive: true,
     lastUpdated: getFormattedCurrentDate(),
+    targetAudience: "Registered Patients (New Admissions)",
+    sentCount: 342,
+    recentRecipients: ["Raj Kumar (PAT-1007)", "Anita Sharma (PAT-1008)", "Suresh Babu (PAT-1010)"],
   },
   {
     id: "TMPL-02",
@@ -171,6 +177,9 @@ export const INITIAL_TEMPLATES: MessageTemplateItem[] = [
     availableTags: ["{{patient_name}}", "{{test_name}}", "{{report_url}}", "{{lab_name}}", "{{doctor_name}}", "{{verified_date}}"],
     isActive: true,
     lastUpdated: getFormattedCurrentDate(),
+    targetAudience: "Patients with Completed & Signed Results",
+    sentCount: 518,
+    recentRecipients: ["Dr. Govindaraj (RES-008)", "Lakshmi Narayanan (RES-009)", "Arun Kumar (RES-006)"],
   },
   {
     id: "TMPL-03",
@@ -183,6 +192,9 @@ export const INITIAL_TEMPLATES: MessageTemplateItem[] = [
     availableTags: ["{{patient_name}}", "{{amount_due}}", "{{invoice_no}}", "{{payment_link}}", "{{lab_phone}}"],
     isActive: true,
     lastUpdated: getFormattedCurrentDate(),
+    targetAudience: "Patients with Outstanding Invoice Balances",
+    sentCount: 129,
+    recentRecipients: ["Priya Raman (+91 98405 67890)", "Kavitha R (+91 98402 22334)"],
   },
   {
     id: "TMPL-04",
@@ -195,6 +207,9 @@ export const INITIAL_TEMPLATES: MessageTemplateItem[] = [
     availableTags: ["{{patient_name}}", "{{patient_id}}", "{{test_name}}", "{{parameter_name}}", "{{measured_value}}", "{{unit}}", "{{reference_range}}"],
     isActive: true,
     lastUpdated: getFormattedCurrentDate(),
+    targetAudience: "Pathologists & Primary Care Doctors",
+    sentCount: 24,
+    recentRecipients: ["Dr. Ananya Swaminathan, MD", "Dr. K. Ravindran"],
   },
   {
     id: "TMPL-05",
@@ -207,6 +222,9 @@ export const INITIAL_TEMPLATES: MessageTemplateItem[] = [
     availableTags: ["{{doctor_name}}", "{{patient_name}}", "{{test_name}}", "{{lab_name}}", "{{report_url}}"],
     isActive: true,
     lastUpdated: getFormattedCurrentDate(),
+    targetAudience: "External Referring Clinics & Consultants",
+    sentCount: 186,
+    recentRecipients: ["Dr. K. Ravindran", "Dr. S. Sundararajan", "Apollo Specialty Clinic"],
   },
 ];
 

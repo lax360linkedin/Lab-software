@@ -37,7 +37,7 @@ export interface TestResultItem {
   completedDate: string;
   completedTime: string;
   status:
-    | "PENDING_ENTRY"
+    | "AWAITING_ENTRY"
     | "ENTERED"
     | "QC_PENDING"
     | "QC_PASSED"
@@ -142,7 +142,7 @@ export const INITIAL_RESULTS_STORE: TestResultItem[] = [
     technician: "Suresh Kumar",
     completedDate: getFormattedCurrentDate(),
     completedTime: getFormattedCurrentTime(),
-    status: "PENDING_ENTRY",
+    status: "AWAITING_ENTRY",
     qcStatus: "PENDING",
     parameters: [],
     notes: "Analysis completed on Sysmex XN-1000. Ready for technician entry.",
@@ -164,7 +164,7 @@ export const INITIAL_RESULTS_STORE: TestResultItem[] = [
     technician: "Karthik S",
     completedDate: getFormattedCurrentDate(),
     completedTime: "10:15 AM",
-    status: "PENDING_ENTRY",
+    status: "AWAITING_ENTRY",
     qcStatus: "PENDING",
     parameters: [],
     notes: "Serum clear, non-lipemic.",
@@ -186,7 +186,7 @@ export const INITIAL_RESULTS_STORE: TestResultItem[] = [
     technician: "Priya M",
     completedDate: getFormattedCurrentDate(),
     completedTime: "10:30 AM",
-    status: "PENDING_ENTRY",
+    status: "AWAITING_ENTRY",
     qcStatus: "PENDING",
     parameters: [],
   },
@@ -207,7 +207,7 @@ export const INITIAL_RESULTS_STORE: TestResultItem[] = [
     technician: "Meena Devi",
     completedDate: getFormattedCurrentDate(),
     completedTime: "11:00 AM",
-    status: "PENDING_ENTRY",
+    status: "AWAITING_ENTRY",
     qcStatus: "PENDING",
     parameters: [],
   },
@@ -228,7 +228,7 @@ export const INITIAL_RESULTS_STORE: TestResultItem[] = [
     technician: "Arun Raj",
     completedDate: getFormattedCurrentDate(),
     completedTime: "11:15 AM",
-    status: "PENDING_ENTRY",
+    status: "AWAITING_ENTRY",
     qcStatus: "PENDING",
     parameters: [],
   },

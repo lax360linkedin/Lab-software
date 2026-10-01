@@ -6,6 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
@@ -46,6 +47,7 @@ const CorrectiveActions: React.FC = () => {
 
   const [viewItem, setViewItem] = useState<CorrectiveActionRecord | null>(null);
   const [editItem, setEditItem] = useState<CorrectiveActionRecord | null>(null);
+  const [deletingItem, setDeletingItem] = useState<CorrectiveActionRecord | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,14 +87,14 @@ const CorrectiveActions: React.FC = () => {
     setCapaList(updatedCapa);
     saveCAPA(updatedCapa);
 
-    // If re-analysis authorized, release patient samples in Results store back to PENDING_ENTRY!
+    // If re-analysis authorized, release patient samples in Results store back to AWAITING_ENTRY!
     if (authorizeReanalysis) {
       const results = getStoredResults();
       const updatedResults = results.map((r) => {
         if (r.status === "QC_FAILED") {
           return {
             ...r,
-            status: "PENDING_ENTRY" as const,
+            status: "AWAITING_ENTRY" as const,
             qcStatus: "PASSED" as const,
             notes: `${r.notes || ""} | Released following CAPA ${newRecord.capaNumber}. Re-analysis authorized.`,
           };
@@ -161,13 +163,13 @@ const CorrectiveActions: React.FC = () => {
     );
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to remove this CAPA record?")) {
-      const updated = capaList.filter((c) => c.id !== id);
-      setCapaList(updated);
-      saveCAPA(updated);
-      showToast("CAPA record deleted.");
-    }
+  const confirmDelete = () => {
+    if (!deletingItem) return;
+    const updated = capaList.filter((c) => c.id !== deletingItem.id);
+    setCapaList(updated);
+    saveCAPA(updated);
+    setDeletingItem(null);
+    showToast("Deleted successfully");
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -354,7 +356,7 @@ const CorrectiveActions: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setDeletingItem(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     title="Delete CAPA Record"
                   >
@@ -506,7 +508,7 @@ const CorrectiveActions: React.FC = () => {
                     <span>Authorize Sample Release &amp; Re-analysis</span>
                   </label>
                   <p className="text-[11px] text-emerald-700 ml-6">
-                    Automatically unlocks affected sample batches from &lsquo;QC_FAILED&rsquo; back into &lsquo;PENDING_ENTRY&rsquo; so technicians can enter verified analytical results.
+                    Automatically unlocks affected sample batches from &lsquo;QC_FAILED&rsquo; back into &lsquo;AWAITING_ENTRY&rsquo; so technicians can enter verified analytical results.
                   </p>
                 </div>
               </div>
@@ -515,15 +517,15 @@ const CorrectiveActions: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-teal-600 px-5 py-2 font-semibold text-white shadow hover:bg-teal-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  Approve CAPA &amp; Release
+                  Save CAPA &amp; Release
                 </button>
               </div>
             </form>
@@ -531,42 +533,96 @@ const CorrectiveActions: React.FC = () => {
         </>
       )}
 
-      {/* View CAPA Modal */}
+      {/* View CAPA Right-Side Drawer */}
       {viewItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900">CAPA File: {viewItem.capaNumber}</h3>
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setViewItem(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
+                  <VisibilityOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">CAPA File: {viewItem.capaNumber}</h3>
+                  <p className="text-xs text-slate-500">{viewItem.testName} • {viewItem.analyzerName}</p>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setViewItem(null)}
-                className="text-slate-400 hover:text-slate-600"
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
-                <CloseIcon />
+                <CloseIcon fontSize="small" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div><span className="text-slate-400">Analyzer:</span> <span className="font-semibold text-slate-800">{viewItem.analyzerName}</span></div>
-              <div><span className="text-slate-400">Test:</span> <span className="font-semibold text-slate-800">{viewItem.testName}</span></div>
-              <div><span className="text-slate-400">Root Cause:</span> <span className="font-bold text-slate-900">{viewItem.rootCauseCategory}</span></div>
-              <div><span className="text-slate-400">Repeat QC:</span> <span className="font-bold text-emerald-700">{viewItem.repeatRunValue} ({viewItem.repeatRunStatus})</span></div>
-              <div className="col-span-2"><span className="text-slate-400">Root Cause Details:</span> <p className="text-slate-700 mt-0.5">{viewItem.rootCauseDetails}</p></div>
-              <div className="col-span-2"><span className="text-slate-400">Action Taken:</span> <p className="text-slate-700 mt-0.5">{viewItem.actionTaken}</p></div>
-              <div className="col-span-2"><span className="text-slate-400">Released Batches:</span> <span className="font-mono text-slate-800">{viewItem.releasedSampleIds.join(", ")}</span></div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Analyzer:</span>
+                  <span className="font-semibold text-slate-800">{viewItem.analyzerName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Test:</span>
+                  <span className="font-semibold text-slate-800">{viewItem.testName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Root Cause Category:</span>
+                  <span className="font-bold text-slate-900">{viewItem.rootCauseCategory}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Repeat QC Result:</span>
+                  <span className="font-bold text-emerald-700">{viewItem.repeatRunValue} ({viewItem.repeatRunStatus})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Investigated By:</span>
+                  <span className="font-medium text-slate-800">{viewItem.investigatedBy}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Date &amp; Time:</span>
+                  <span className="text-slate-700">{viewItem.actionDate} {viewItem.actionTime}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Identified Issue</label>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-800">{viewItem.identifiedIssue}</p>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Root Cause Details</label>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-800">{viewItem.rootCauseDetails}</p>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Action Taken</label>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-800">{viewItem.actionTaken}</p>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Released Batches</label>
+                <span className="font-mono text-slate-800 font-semibold">{viewItem.releasedSampleIds.join(", ")}</span>
+              </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setViewItem(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close
+                Cancel
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Edit CAPA Right-Side Drawer */}
@@ -636,18 +692,97 @@ const CorrectiveActions: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditItem(null)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-teal-600 px-5 py-2 font-semibold text-white shadow hover:bg-teal-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  Save Changes
+                  Save
                 </button>
               </div>
             </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingItem && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setDeletingItem(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                  <DeleteOutlineOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Delete CAPA Record</h3>
+                  <p className="text-xs text-slate-500">Confirm deletion</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <WarningAmberOutlinedIcon className="text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-rose-800">
+                  <p className="font-semibold text-sm mb-1">Are you sure you want to delete this CAPA record?</p>
+                  <p>This action cannot be undone. Any associated release tags will remain in audit logs.</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">CAPA Number:</span>
+                  <span className="font-mono font-bold text-slate-900">{deletingItem.capaNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Test Name:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.testName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Analyzer:</span>
+                  <span className="text-slate-700">{deletingItem.analyzerName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Root Cause:</span>
+                  <span className="text-slate-700">{deletingItem.rootCauseCategory}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -656,3 +791,4 @@ const CorrectiveActions: React.FC = () => {
 };
 
 export default CorrectiveActions;
+

@@ -3,6 +3,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -1337,10 +1338,19 @@ export default function Equipment() {
   // Department Card View State (Image 2 style)
   const [activeDepartmentCard, setActiveDepartmentCard] = useState<string | null>(null);
 
-  const handleDeleteEquipment = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this equipment item?")) {
-      setEquipmentList((prev) => prev.filter((e) => e.id !== id));
-    }
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [deletingEquipment, setDeletingEquipment] = useState<EquipmentItem | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 4000);
+  };
+
+  const confirmDelete = () => {
+    if (!deletingEquipment) return;
+    setEquipmentList((prev) => prev.filter((e) => e.id !== deletingEquipment.id));
+    setDeletingEquipment(null);
+    showToast("Deleted successfully");
   };
 
   // Modals
@@ -1659,6 +1669,14 @@ export default function Equipment() {
 
   return (
     <div className="equipment-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       {!activeDepartmentCard ? (
         <>
           {/* Top Header matching reference image: Title on left, Search & Filter on right */}
@@ -2050,7 +2068,7 @@ export default function Equipment() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDeleteEquipment(eq.id)}
+                        onClick={() => setDeletingEquipment(eq)}
                         className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                         title="Delete Equipment"
                       >
@@ -2148,48 +2166,57 @@ export default function Equipment() {
         </div>
       )}
 
-      {/* View Equipment Details Modal */}
+      {/* View Equipment Details Right-Side Drawer */}
       {viewingEquipment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setViewingEquipment(null)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <CloseIcon sx={{ fontSize: 20 }} />
-            </button>
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setViewingEquipment(null)}
+          />
 
-            <div className="flex items-center gap-3 mb-4">
-              <span className="rounded-xl bg-purple-50 p-3 text-purple-600">
-                <BiotechOutlinedIcon sx={{ fontSize: 26 }} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">{viewingEquipment.name}</h3>
-                <span className="font-mono text-xs text-purple-600 font-semibold">{viewingEquipment.assetCode}</span>
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                  <BiotechOutlinedIcon sx={{ fontSize: 24 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">{viewingEquipment.name}</h3>
+                  <span className="font-mono text-xs text-purple-600 font-semibold">{viewingEquipment.assetCode}</span>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setViewingEquipment(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
             </div>
 
-            <div className="space-y-3 border-t border-slate-100 pt-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Department</span>
-                  <p className="font-semibold text-slate-800 text-sm mt-0.5">{viewingEquipment.department}</p>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Department:</span>
+                  <span className="font-semibold text-slate-800">{viewingEquipment.department}</span>
                 </div>
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Manufacturer</span>
-                  <p className="font-semibold text-slate-800 text-sm mt-0.5">{viewingEquipment.manufacturer}</p>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Manufacturer:</span>
+                  <span className="font-semibold text-slate-800">{viewingEquipment.manufacturer}</span>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Serial Number</span>
-                  <p className="font-mono text-slate-700 mt-0.5 font-bold">{viewingEquipment.serialNumber}</p>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Model:</span>
+                  <span className="text-slate-700">{viewingEquipment.model}</span>
                 </div>
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Temperature Zone</span>
-                  <p className="text-slate-700 mt-0.5">{viewingEquipment.temperatureZone}</p>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Serial Number:</span>
+                  <span className="font-mono font-bold text-slate-800">{viewingEquipment.serialNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Temperature Zone:</span>
+                  <span className="text-slate-700">{viewingEquipment.temperatureZone}</span>
                 </div>
               </div>
 
@@ -2208,31 +2235,33 @@ export default function Equipment() {
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 uppercase text-[10px] font-semibold">Maintenance Contract (AMC)</span>
-                <p className="text-slate-800 font-semibold mt-0.5">{viewingEquipment.amcProvider}</p>
-                <p className="text-slate-500 text-[11px] mt-0.5">Contract Expiry: {viewingEquipment.amcExpiryDate}</p>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                <span className="text-slate-500 uppercase text-[10px] font-semibold">Maintenance Contract (AMC)</span>
+                <p className="text-slate-800 font-semibold">{viewingEquipment.amcProvider}</p>
+                <p className="text-slate-500 text-[11px]">Contract Expiry: {viewingEquipment.amcExpiryDate}</p>
               </div>
 
               <div>
-                <span className="text-slate-400 uppercase text-[10px] font-semibold">Operational Specs & Calibration Logs</span>
-                <p className="text-slate-600 mt-1 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Operational Specs &amp; Calibration Logs
+                </label>
+                <p className="text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
                   {viewingEquipment.notes || "Equipment fully validated according to CLSI & ISO 15189 specifications."}
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setViewingEquipment(null)}
-                className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-900 transition"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close Profile
+                Cancel
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Add / Edit Equipment Drawer (Right Side) */}
@@ -2272,203 +2301,284 @@ export default function Equipment() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveEquipment} className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Asset / Machine Code <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. EQ-2026-011"
-                    value={formData.assetCode}
-                    onChange={(e) => setFormData({ ...formData, assetCode: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
+            <form onSubmit={handleSaveEquipment} className="flex-1 flex flex-col justify-between overflow-y-auto">
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Asset / Machine Code <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. EQ-2026-011"
+                      value={formData.assetCode}
+                      onChange={(e) => setFormData({ ...formData, assetCode: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Equipment / Analyzer Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Sysmex XN-1000"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Manufacturer / Brand <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Sysmex Corporation"
+                      value={formData.manufacturer}
+                      onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Department
+                    </label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    >
+                      <option value="Clinical Biochemistry">Clinical Biochemistry</option>
+                      <option value="Hematology & Coagulation">Hematology & Coagulation</option>
+                      <option value="Microbiology & Serology">Microbiology & Serology</option>
+                      <option value="Immunology & Hormones">Immunology & Hormones</option>
+                      <option value="Clinical Pathology & Urine Routine">Clinical Pathology & Urine Routine</option>
+                      <option value="Accession & Central Phlebotomy">Accession & Central Phlebotomy</option>
+                      <option value="Histopathology & Cytology">Histopathology & Cytology</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Serial Number
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SN-SYS-9901"
+                      value={formData.serialNumber}
+                      onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Temperature Zone
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 20°C - 25°C"
+                      value={formData.temperatureZone}
+                      onChange={(e) => setFormData({ ...formData, temperatureZone: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Last Calibration
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.lastCalibrationDate}
+                      onChange={(e) => setFormData({ ...formData, lastCalibrationDate: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Next Due Date
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.nextCalibrationDate}
+                      onChange={(e) => setFormData({ ...formData, nextCalibrationDate: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Operating Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          status: e.target.value as EquipmentItem["status"],
+                        })
+                      }
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    >
+                      <option value="Operational">Operational</option>
+                      <option value="Calibration Due">Calibration Due</option>
+                      <option value="Under Maintenance">Under Maintenance</option>
+                      <option value="Offline">Offline</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      AMC Service Provider
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Roche Direct Care"
+                      value={formData.amcProvider}
+                      onChange={(e) => setFormData({ ...formData, amcProvider: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      AMC Expiry Date
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.amcExpiryDate}
+                      onChange={(e) => setFormData({ ...formData, amcExpiryDate: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Equipment / Analyzer Name <span className="text-rose-500">*</span>
+                    Technical Specifications &amp; Notes
                   </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Sysmex XN-1000"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  <textarea
+                    rows={2}
+                    placeholder="Throughput, calibrators used, interface cable (RS232/LAN)..."
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Manufacturer / Brand <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Sysmex Corporation"
-                    value={formData.manufacturer}
-                    onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Department
-                  </label>
-                  <select
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  >
-                    <option value="Clinical Biochemistry">Clinical Biochemistry</option>
-                    <option value="Hematology & Coagulation">Hematology & Coagulation</option>
-                    <option value="Microbiology & Serology">Microbiology & Serology</option>
-                    <option value="Immunology & Hormones">Immunology & Hormones</option>
-                    <option value="Clinical Pathology & Urine Routine">Clinical Pathology & Urine Routine</option>
-                    <option value="Accession & Central Phlebotomy">Accession & Central Phlebotomy</option>
-                    <option value="Histopathology & Cytology">Histopathology & Cytology</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Serial Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. SN-SYS-9901"
-                    value={formData.serialNumber}
-                    onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Temperature Zone
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 20°C - 25°C"
-                    value={formData.temperatureZone}
-                    onChange={(e) => setFormData({ ...formData, temperatureZone: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Last Calibration
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.lastCalibrationDate}
-                    onChange={(e) => setFormData({ ...formData, lastCalibrationDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Next Due Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.nextCalibrationDate}
-                    onChange={(e) => setFormData({ ...formData, nextCalibrationDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Operating Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as EquipmentItem["status"],
-                      })
-                    }
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  >
-                    <option value="Operational">Operational</option>
-                    <option value="Calibration Due">Calibration Due</option>
-                    <option value="Under Maintenance">Under Maintenance</option>
-                    <option value="Offline">Offline</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    AMC Service Provider
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Roche Direct Care"
-                    value={formData.amcProvider}
-                    onChange={(e) => setFormData({ ...formData, amcProvider: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    AMC Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.amcExpiryDate}
-                    onChange={(e) => setFormData({ ...formData, amcExpiryDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Technical Specifications & Notes
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Throughput, calibrators used, interface cable (RS232/LAN)..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
                 <button
                   type="button"
                   onClick={() => setIsAddEditModalOpen(false)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-purple-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  {editingEquipment ? "Save Changes" : "Register Equipment"}
+                  Save
                 </button>
               </div>
             </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingEquipment && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setDeletingEquipment(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                  <DeleteOutlineOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Delete Equipment</h3>
+                  <p className="text-xs text-slate-500">Confirm deletion</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDeletingEquipment(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <WarningAmberOutlinedIcon className="text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-rose-800">
+                  <p className="font-semibold text-sm mb-1">Are you sure you want to delete this equipment?</p>
+                  <p>This action cannot be undone. All linked calibration history and service schedules will be removed.</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Asset Code:</span>
+                  <span className="font-mono font-bold text-slate-900">{deletingEquipment.assetCode}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Equipment Name:</span>
+                  <span className="font-semibold text-slate-800">{deletingEquipment.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Department:</span>
+                  <span className="text-slate-700">{deletingEquipment.department}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Manufacturer:</span>
+                  <span className="text-slate-700">{deletingEquipment.manufacturer}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingEquipment(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
           </div>
         </>
       )}

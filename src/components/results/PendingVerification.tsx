@@ -5,7 +5,9 @@ import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
 import Table from "../../common components/Table";
@@ -31,7 +33,10 @@ const PendingVerification: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [reviewItem, setReviewItem] = useState<TestResultItem | null>(null);
+  const [editItem, setEditItem] = useState<TestResultItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<TestResultItem | null>(null);
   const [verifierRemarks, setVerifierRemarks] = useState("");
+  const [isReadyToSign, setIsReadyToSign] = useState(false);
   const verifierName = "Dr. Ananya Swaminathan, MD Pathologist";
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -105,13 +110,23 @@ const PendingVerification: React.FC = () => {
     showToast(`Result ${item.sampleId} verified & signed successfully! Report Ready notification sent.`);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to reject or remove this result?")) {
-      const updated = results.filter((r) => r.id !== id);
-      setResults(updated);
-      saveResultsStore(updated);
-      showToast("Result removed from verification queue.");
-    }
+  const confirmDelete = () => {
+    if (!deletingItem) return;
+    const updated = results.filter((r) => r.id !== deletingItem.id);
+    setResults(updated);
+    saveResultsStore(updated);
+    setDeletingItem(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editItem) return;
+    const updated = results.map((r) => (r.id === editItem.id ? editItem : r));
+    setResults(updated);
+    saveResultsStore(updated);
+    setEditItem(null);
+    showToast("Result updated successfully");
   };
 
   // Only items waiting for verification
@@ -302,36 +317,33 @@ const PendingVerification: React.FC = () => {
 
               {/* Verification Status */}
               <td className="whitespace-nowrap px-4 py-3.5 text-left">
-                <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
-                  Ready to Sign
-                </span>
+                <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">Awaiting Sign-off</span>
               </td>
 
-              {/* Actions: View / Review Modal, Edit, Delete */}
+              {/* Actions: View, Edit, Delete */}
               <td className="whitespace-nowrap px-4 py-3.5 text-center">
                 <div className="flex items-center justify-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setReviewItem(item)}
-                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium text-xs border border-emerald-200 transition"
-                    title="Review and Sign-off"
-                  >
-                    <VerifiedUserOutlinedIcon sx={{ fontSize: 15 }} />
-                    Verify
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setReviewItem(item)}
-                    className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
-                    title="View Full Parameters"
+                    onClick={() => { setReviewItem(item); setIsReadyToSign(false); }}
+                    className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-emerald-600 transition"
+                    title="View & Verify Details"
                   >
                     <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setEditItem(item)}
+                    className="rounded-lg p-1.5 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                    title="Edit Result"
+                  >
+                    <EditOutlinedIcon sx={{ fontSize: 18 }} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeletingItem(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     title="Reject / Remove"
                   >
@@ -369,16 +381,11 @@ const PendingVerification: React.FC = () => {
           <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <VerifiedUserOutlinedIcon sx={{ fontSize: 22 }} />
-                </span>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Result Verification & Sign-off</h3>
-                  <p className="text-xs text-slate-500">
-                    Patient: {reviewItem.patientName} • Sample: {reviewItem.sampleId}
-                  </p>
-                </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Result Verification & Sign-off</h3>
+                <p className="text-xs text-slate-500">
+                  Patient: {reviewItem.patientName} • Sample: {reviewItem.sampleId}
+                </p>
               </div>
               <button
                 type="button"
@@ -495,18 +502,200 @@ const PendingVerification: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setReviewItem(null)}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close Without Signing
+                Cancel
               </button>
+
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={isReadyToSign}
+                  onChange={(e) => setIsReadyToSign(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                Ready to Sign
+              </label>
 
               <button
                 type="button"
                 onClick={() => handleVerify(reviewItem)}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 transition"
+                disabled={!isReadyToSign}
+                className={`inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition ${
+                  isReadyToSign ? "bg-[#29384d] hover:bg-[#1e293b]" : "bg-slate-300 cursor-not-allowed"
+                }`}
               >
                 <DoneAllOutlinedIcon fontSize="small" />
                 Authorize &amp; Verify Result
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Result Right-Side Drawer */}
+      {editItem && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setEditItem(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Edit Result: {editItem.sampleId}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {editItem.patientName} • {editItem.testName}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setEditItem(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="flex-1 flex flex-col justify-between overflow-y-auto">
+              <div className="p-6 space-y-4 text-xs">
+                <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-xs space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Patient:</span>
+                    <span className="font-semibold text-slate-800">{editItem.patientName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Test:</span>
+                    <span className="font-semibold text-slate-800">{editItem.testName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Department:</span>
+                    <span className="text-slate-700">{editItem.department}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Status:</span>
+                    <span className="font-medium text-amber-600">{editItem.status}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Verification Status:</span>
+                    <span className="font-medium text-emerald-600">Pending</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Technician</label>
+                  <input
+                    type="text"
+                    value={editItem.technician}
+                    onChange={(e) => setEditItem({ ...editItem, technician: e.target.value })}
+                    className="w-full h-10 rounded-xl border border-slate-300 px-3 text-slate-800 font-medium outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Technician Notes</label>
+                  <textarea
+                    rows={4}
+                    value={editItem.notes || ""}
+                    onChange={(e) => setEditItem({ ...editItem, notes: e.target.value })}
+                    className="w-full rounded-xl border border-slate-300 p-3 text-slate-800 outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setEditItem(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingItem && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setDeletingItem(null)}
+          />
+
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Reject / Delete Result</h3>
+                <p className="text-xs text-slate-500">Confirm deletion</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <WarningAmberOutlinedIcon className="text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-rose-800">
+                  <p className="font-semibold text-sm mb-1">Are you sure you want to delete this result?</p>
+                  <p>This action will remove the sample result from verification and notify the lab supervisor.</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Sample ID:</span>
+                  <span className="font-mono font-bold text-slate-900">{deletingItem.sampleId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Patient:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.patientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Test:</span>
+                  <span className="text-slate-700">{deletingItem.testName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Department:</span>
+                  <span className="text-slate-700">{deletingItem.department}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
               </button>
             </div>
           </div>
@@ -517,3 +706,8 @@ const PendingVerification: React.FC = () => {
 };
 
 export default PendingVerification;
+
+
+
+
+

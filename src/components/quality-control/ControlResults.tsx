@@ -6,6 +6,7 @@ import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutli
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
@@ -22,17 +23,23 @@ const ControlResults: React.FC = () => {
   const [selectedLotForChart, setSelectedLotForChart] = useState<QCControlLot>(INITIAL_QC_LOTS[0]);
   const [viewLot, setViewLot] = useState<QCControlLot | null>(null);
   const [editLot, setEditLot] = useState<QCControlLot | null>(null);
+  const [deletingLot, setDeletingLot] = useState<QCControlLot | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
+    setTimeout(() => setToastMsg(null), 3500);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to retire this control lot?")) {
-      setLots(lots.filter((l) => l.id !== id));
-      showToast("Control lot retired from active registry.");
+  const handleDelete = (lot: QCControlLot) => {
+    setDeletingLot(lot);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingLot) {
+      setLots((prev) => prev.filter((l) => l.id !== deletingLot.id));
+      setDeletingLot(null);
+      showToast("Deleted successfully");
     }
   };
 
@@ -343,7 +350,7 @@ const ControlResults: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDelete(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     title="Delete / Retire Lot"
                   >
@@ -368,38 +375,50 @@ const ControlResults: React.FC = () => {
         </div>
       </div>
 
-      {/* View Lot Modal */}
+      {/* View Lot Right-Side Drawer */}
       {viewLot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Control Lot: {viewLot.lotNumber}</h3>
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
+                    <VisibilityOutlinedIcon sx={{ fontSize: 22 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Control Lot Details</h3>
+                    <p className="text-xs text-slate-500">{viewLot.lotNumber} • {viewLot.controlName}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewLot(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <CloseIcon fontSize="small" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Control Name</span> <span className="font-semibold text-slate-800">{viewLot.controlName}</span></div>
+                  <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Manufacturer</span> <span className="font-semibold text-slate-800">{viewLot.manufacturer}</span></div>
+                  <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Department</span> <span className="font-semibold text-slate-800">{viewLot.department}</span></div>
+                  <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Expiry Date</span> <span className="font-mono font-semibold text-slate-800">{viewLot.expiryDate}</span></div>
+                  <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Open Stability</span> <span className="text-slate-700">{viewLot.openStability}</span></div>
+                  <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Mean CV%</span> <span className="font-bold text-teal-700">{viewLot.meanCv}</span></div>
+                  <div className="col-span-2"><span className="text-slate-400 block text-[10px] uppercase font-bold">Covered Tests</span> <span className="text-slate-800 font-medium">{viewLot.testsCovered.join(", ")}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setViewLot(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                <CloseIcon />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div><span className="text-slate-400">Control Name:</span> <span className="font-semibold text-slate-800">{viewLot.controlName}</span></div>
-              <div><span className="text-slate-400">Manufacturer:</span> <span className="font-semibold text-slate-800">{viewLot.manufacturer}</span></div>
-              <div><span className="text-slate-400">Department:</span> <span className="font-semibold text-slate-800">{viewLot.department}</span></div>
-              <div><span className="text-slate-400">Expiry Date:</span> <span className="font-mono font-semibold text-slate-800">{viewLot.expiryDate}</span></div>
-              <div><span className="text-slate-400">Open Stability:</span> <span className="text-slate-700">{viewLot.openStability}</span></div>
-              <div><span className="text-slate-400">Mean CV%:</span> <span className="font-bold text-teal-700">{viewLot.meanCv}</span></div>
-              <div className="col-span-2"><span className="text-slate-400">Covered Tests:</span> <span className="text-slate-800 font-medium">{viewLot.testsCovered.join(", ")}</span></div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setViewLot(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-              >
-                Close
+                Cancel
               </button>
             </div>
           </div>
@@ -486,20 +505,106 @@ const ControlResults: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditLot(null)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-teal-600 px-5 py-2 font-semibold text-white shadow hover:bg-teal-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  Save Changes
+                  Save
                 </button>
               </div>
             </form>
           </div>
         </>
+      )}
+
+      {/* Delete Lot Right-Side Drawer */}
+      {deletingLot && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Retire Control Lot</h3>
+                    <p className="text-xs text-rose-600 font-medium">Confirm Permanent Action</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeletingLot(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <WarningAmberOutlinedIcon sx={{ fontSize: 18 }} className="text-rose-600" />
+                    Are you sure you want to retire this control lot?
+                  </p>
+                  <p className="text-rose-600">
+                    This action will permanently retire this control lot from the active analyzer calibration registry.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Lot Number</span>
+                    <span className="text-sm font-bold text-slate-900">{deletingLot.lotNumber}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Control Name</span>
+                    <span className="font-semibold text-slate-800">{deletingLot.controlName}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Manufacturer</span>
+                      <span className="font-semibold text-slate-800">{deletingLot.manufacturer}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Department</span>
+                      <span className="font-semibold text-slate-800">{deletingLot.department}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingLot(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
       )}
     </div>
   );

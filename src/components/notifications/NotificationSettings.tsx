@@ -8,6 +8,7 @@ import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
@@ -30,18 +31,19 @@ const NotificationSettings: React.FC = () => {
 
   const [editGateway, setEditGateway] = useState<NotificationGatewaySetting | null>(null);
   const [viewGateway, setViewGateway] = useState<NotificationGatewaySetting | null>(null);
+  const [deletingGateway, setDeletingGateway] = useState<NotificationGatewaySetting | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
+    setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to remove this gateway configuration?")) {
-      setGateways(gateways.filter((g) => g.id !== id));
-      showToast("Gateway configuration removed.");
-    }
+  const handleConfirmDelete = () => {
+    if (!deletingGateway) return;
+    setGateways(gateways.filter((g) => g.id !== deletingGateway.id));
+    setDeletingGateway(null);
+    showToast("Deleted successfully");
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -271,7 +273,7 @@ const NotificationSettings: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setDeletingGateway(item)}
                     className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                     title="Delete Gateway"
                   >
@@ -296,35 +298,52 @@ const NotificationSettings: React.FC = () => {
         </div>
       </div>
 
-      {/* View Gateway Modal */}
+      {/* View Gateway Right-Side Drawer */}
       {viewGateway && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Gateway Details: {viewGateway.name}</h3>
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setViewGateway(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <VisibilityOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">{viewGateway.name}</h3>
+                  <p className="text-xs text-slate-500">{viewGateway.provider} ({viewGateway.channel})</p>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setViewGateway(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
-                <CloseIcon />
+                <CloseIcon fontSize="small" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div><span className="text-slate-400">Provider:</span> <span className="font-semibold text-slate-800">{viewGateway.provider}</span></div>
-              <div><span className="text-slate-400">Channel:</span> <span className="font-bold text-indigo-700">{viewGateway.channel}</span></div>
-              <div><span className="text-slate-400">Sender ID:</span> <span className="font-mono font-bold">{viewGateway.senderId || "-"}</span></div>
-              <div><span className="text-slate-400">Account ID:</span> <span className="font-mono">{viewGateway.accountSidOrUser}</span></div>
-              <div><span className="text-slate-400">Daily Quota:</span> <span className="font-bold">{viewGateway.dailyQuota} msgs/day</span></div>
-              <div><span className="text-slate-400">Status:</span> <span className="font-bold text-emerald-700">{viewGateway.status}</span></div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><span className="text-slate-400 font-medium block">Provider</span> <span className="font-semibold text-slate-800">{viewGateway.provider}</span></div>
+                  <div><span className="text-slate-400 font-medium block">Channel</span> <span className="font-bold text-indigo-700">{viewGateway.channel}</span></div>
+                  <div><span className="text-slate-400 font-medium block">Sender ID</span> <span className="font-mono font-bold text-slate-800">{viewGateway.senderId || "-"}</span></div>
+                  <div><span className="text-slate-400 font-medium block">Account ID</span> <span className="font-mono text-slate-800">{viewGateway.accountSidOrUser}</span></div>
+                  <div><span className="text-slate-400 font-medium block">Daily Quota</span> <span className="font-bold text-slate-800">{viewGateway.dailyQuota} msgs/day</span></div>
+                  <div><span className="text-slate-400 font-medium block">Status</span> <span className="font-bold text-emerald-700">{viewGateway.status}</span></div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
               <button
                 type="button"
                 onClick={() => setViewGateway(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Close
               </button>
@@ -419,13 +438,13 @@ const NotificationSettings: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditGateway(null)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white shadow hover:bg-indigo-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
                   Save Gateway
                 </button>
@@ -433,6 +452,70 @@ const NotificationSettings: React.FC = () => {
             </form>
           </div>
         </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingGateway && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setDeletingGateway(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-2 text-rose-600">
+                <WarningAmberOutlinedIcon />
+                <h3 className="text-lg font-bold text-slate-900">Delete Gateway</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingGateway(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold text-amber-900">
+                  Are you sure you want to permanently remove this gateway configuration?
+                </p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  Automated dispatch channels routed through this provider will be disabled.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium block">Gateway Name</span>
+                  <span className="font-semibold text-slate-800">{deletingGateway.name}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Provider</span>
+                  <span className="font-medium text-slate-800">{deletingGateway.provider} ({deletingGateway.channel})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingGateway(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
