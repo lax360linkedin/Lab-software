@@ -1,11 +1,8 @@
 import { useState, useMemo } from "react";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
-import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import "./staffPermissions.css";
@@ -171,7 +168,7 @@ export default function StaffPermissions() {
   const [saveToast, setSaveToast] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Filtered Permissions
   const filteredPermissions = useMemo(() => {
@@ -247,6 +244,13 @@ export default function StaffPermissions() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
+            onClick={() => window.history.back()}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
             onClick={handleResetDefaults}
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
@@ -256,7 +260,7 @@ export default function StaffPermissions() {
           <button
             type="button"
             onClick={handleSaveMatrix}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-purple-700"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-5 py-2 text-xs font-semibold text-white shadow-sm transition"
           >
             <SaveOutlinedIcon sx={{ fontSize: 18 }} />
             <span>Save Permissions</span>
@@ -387,7 +391,7 @@ export default function StaffPermissions() {
           <Table
             columns={columns}
             data={paginatedPermissions}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1300px"
             emptyMessage="No permissions match your search or filter criteria."
             renderRow={(perm: PermissionRow) => {
@@ -485,6 +489,24 @@ export default function StaffPermissions() {
             setCurrentPage={setCurrentPage}
           />
         </div>
+      </div>
+
+      {/* Bottom Action Bar */}
+      <div className="flex items-center justify-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleSaveMatrix}
+          className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+        >
+          Save Permissions
+        </button>
       </div>
     </div>
   );

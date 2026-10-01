@@ -8,6 +8,12 @@ import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
 import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 
@@ -165,9 +171,11 @@ const columns = [
   "Total Revenue",
   "Revenue Share",
   "Demand",
+  "Actions",
 ];
 
 const Revenue = () => {
+  const [tests, setTests] = useState<TestRevenueItem[]>(TEST_REVENUE_DATA);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState<string>("All");
   const [sortBy, setSortBy] = useState<"revenue" | "tests" | "price" | "name">("revenue");
@@ -175,14 +183,41 @@ const Revenue = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [viewingTest, setViewingTest] = useState<TestRevenueItem | null>(null);
+  const [editingTest, setEditingTest] = useState<TestRevenueItem | null>(null);
+  const [deletingTest, setDeletingTest] = useState<TestRevenueItem | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingTest) return;
+    setTests((prev) => prev.filter((item) => item.id !== deletingTest.id));
+    setDeletingTest(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTest) return;
+    setTests((prev) =>
+      prev.map((item) => (item.id === editingTest.id ? editingTest : item))
+    );
+    setEditingTest(null);
+    showToast("Test revenue record updated successfully");
+  };
+
   // Overall Totals
   const overallTotalRevenue = useMemo(() => {
-    return TEST_REVENUE_DATA.reduce((sum, item) => sum + item.totalRevenue, 0);
-  }, []);
+    return tests.reduce((sum, item) => sum + item.totalRevenue, 0);
+  }, [tests]);
 
   const overallTotalTests = useMemo(() => {
-    return TEST_REVENUE_DATA.reduce((sum, item) => sum + item.testsPerformed, 0);
-  }, []);
+    return tests.reduce((sum, item) => sum + item.testsPerformed, 0);
+  }, [tests]);
 
   const overallAvgPrice = useMemo(() => {
     return overallTotalTests > 0
@@ -192,8 +227,8 @@ const Revenue = () => {
 
   // Top Revenue Generating Test
   const topTest = useMemo(() => {
-    return [...TEST_REVENUE_DATA].sort((a, b) => b.totalRevenue - a.totalRevenue)[0];
-  }, []);
+    return [...tests].sort((a, b) => b.totalRevenue - a.totalRevenue)[0];
+  }, [tests]);
 
   // Department Breakdown
   const departmentBreakdown = useMemo<DepartmentRevenueSummary[]>(() => {
@@ -206,7 +241,7 @@ const Revenue = () => {
     ];
 
     return depts.map((dept) => {
-      const items = TEST_REVENUE_DATA.filter((i) => i.department === dept);
+      const items = tests.filter((i) => i.department === dept);
       const totalRev = items.reduce((acc, i) => acc + i.totalRevenue, 0);
       const totalCount = items.reduce((acc, i) => acc + i.testsPerformed, 0);
       const percentage =
@@ -240,11 +275,11 @@ const Revenue = () => {
         barColor,
       };
     });
-  }, [overallTotalRevenue]);
+  }, [tests, overallTotalRevenue]);
 
   // Filtered and Sorted Tests
   const filteredAndSortedTests = useMemo(() => {
-    const result = TEST_REVENUE_DATA.filter((test) => {
+    const result = tests.filter((test) => {
       const matchesSearch =
         test.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         test.testCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -269,7 +304,7 @@ const Revenue = () => {
     });
 
     return result;
-  }, [searchTerm, selectedDept, sortBy]);
+  }, [tests, searchTerm, selectedDept, sortBy]);
 
   const currentTests = useMemo(() => {
     return filteredAndSortedTests.slice(
@@ -280,10 +315,10 @@ const Revenue = () => {
 
   // Top 5 Tests for Visual Ranking
   const topFiveTests = useMemo(() => {
-    return [...TEST_REVENUE_DATA]
+    return [...tests]
       .sort((a, b) => b.totalRevenue - a.totalRevenue)
       .slice(0, 5);
-  }, []);
+  }, [tests]);
 
   return (
     <div className="revenue-page space-y-6">
@@ -594,7 +629,6 @@ const Revenue = () => {
           <Table
             columns={columns}
             data={currentTests}
-            maxHeight="430px"
             minWidth="1200px"
             emptyMessage="No laboratory tests match your selected criteria."
             renderRow={(item: TestRevenueItem) => {
@@ -675,6 +709,32 @@ const Revenue = () => {
                       {item.demandStatus}
                     </span>
                   </td>
+
+                  <td className="whitespace-nowrap px-4 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => setViewingTest(item)}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
+                        title="View Details"
+                      >
+                        <VisibilityOutlinedIcon fontSize="small" />
+                      </button>
+                      <button
+                        onClick={() => setEditingTest({ ...item })}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 transition"
+                        title="Edit Test"
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingTest(item)}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                        title="Delete Record"
+                      >
+                        <DeleteOutlineOutlinedIcon fontSize="small" />
+                      </button>
+                    </div>
+                  </td>
                 </>
               );
             }}
@@ -697,8 +757,266 @@ const Revenue = () => {
           </div>
         )}
       </section>
+
+      {/* View Drawer */}
+      {viewingTest && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setViewingTest(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Test Revenue Details</h3>
+                <p className="text-xs text-gray-500">{viewingTest.testName} ({viewingTest.testCode})</p>
+              </div>
+              <button onClick={() => setViewingTest(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Test Code</span>
+                  <span className="font-mono text-xs font-bold text-blue-600">{viewingTest.testCode}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Department</span>
+                  <span className="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-700">
+                    {viewingTest.department}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Demand Category</span>
+                  <span className="rounded-full bg-slate-200 px-3 py-0.5 text-xs font-semibold text-slate-700">
+                    {viewingTest.demandStatus}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Unit Price</span>
+                  <span className="font-semibold text-slate-800">₹{viewingTest.unitPrice.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Tests Performed</span>
+                  <span className="font-bold text-slate-900">{viewingTest.testsPerformed.toLocaleString("en-IN")} investigations</span>
+                </div>
+                <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
+                  <span className="text-xs font-semibold text-slate-700">Total Revenue Generated</span>
+                  <span className="font-bold text-slate-900 text-base">₹{viewingTest.totalRevenue.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViewingTest(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Drawer */}
+      {editingTest && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setEditingTest(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Edit Test Revenue Record</h3>
+                <p className="text-xs text-gray-500">{editingTest.testCode} • {editingTest.testName}</p>
+              </div>
+              <button onClick={() => setEditingTest(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="flex flex-1 flex-col justify-between overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Investigation Name</label>
+                  <input
+                    type="text"
+                    value={editingTest.testName}
+                    onChange={(e) => setEditingTest({ ...editingTest, testName: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Department</label>
+                  <select
+                    value={editingTest.department}
+                    onChange={(e) => setEditingTest({ ...editingTest, department: e.target.value as any })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="Biochemistry">Biochemistry</option>
+                    <option value="Endocrinology">Endocrinology</option>
+                    <option value="Hematology">Hematology</option>
+                    <option value="Clinical Pathology">Clinical Pathology</option>
+                    <option value="Microbiology">Microbiology</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Unit Price (₹)</label>
+                    <input
+                      type="number"
+                      value={editingTest.unitPrice}
+                      onChange={(e) => {
+                        const price = Number(e.target.value) || 0;
+                        setEditingTest({
+                          ...editingTest,
+                          unitPrice: price,
+                          totalRevenue: price * editingTest.testsPerformed,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Tests Done</label>
+                    <input
+                      type="number"
+                      value={editingTest.testsPerformed}
+                      onChange={(e) => {
+                        const count = Number(e.target.value) || 0;
+                        setEditingTest({
+                          ...editingTest,
+                          testsPerformed: count,
+                          totalRevenue: editingTest.unitPrice * count,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+                  <span className="text-slate-500">Calculated Revenue:</span>
+                  <div className="font-bold text-slate-900 text-sm">₹{editingTest.totalRevenue.toLocaleString("en-IN")}</div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Demand Status</label>
+                  <select
+                    value={editingTest.demandStatus}
+                    onChange={(e) => setEditingTest({ ...editingTest, demandStatus: e.target.value as any })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="High Volume">High Volume</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Standard">Standard</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingTest(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Drawer */}
+      {deletingTest && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setDeletingTest(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Delete Test Revenue Record</h3>
+                <p className="text-xs text-gray-500">{deletingTest.testCode} • {deletingTest.testName}</p>
+              </div>
+              <button onClick={() => setDeletingTest(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+                <WarningAmberOutlinedIcon className="mt-0.5 text-rose-600 shrink-0" />
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">Warning: Destructive Action</div>
+                  <p className="text-xs text-rose-700">
+                    Are you sure you want to delete this test revenue record? This will remove the test's contribution from the department analytics and revenue totals.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Test Code:</span>
+                  <span className="font-semibold text-slate-800">{deletingTest.testCode}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Test Name:</span>
+                  <span className="font-semibold text-slate-800">{deletingTest.testName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Department:</span>
+                  <span className="font-semibold text-blue-600">{deletingTest.department}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Tests Performed:</span>
+                  <span className="font-semibold text-slate-800">{deletingTest.testsPerformed}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Total Revenue:</span>
+                  <span className="font-bold text-rose-600">₹{deletingTest.totalRevenue.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingTest(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Revenue;
+

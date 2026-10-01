@@ -9,9 +9,17 @@ import SearchIcon from "@mui/icons-material/Search";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getFormattedCurrentDate } from "../../../common components/dateUtils";
 import "./labSettings.css";
+
+const todayDateStr = getFormattedCurrentDate();
 
 export interface AuditLogItem {
   id: string;
@@ -30,7 +38,7 @@ const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: "LOG-101",
     logCode: "AUD-2026-092",
-    timestamp: "28 Sep 2026, 04:30 PM",
+    timestamp: `${todayDateStr}, 04:30 PM`,
     action: "Updated NABL Accreditation Certificate",
     module: "Compliance & Licensing",
     performedBy: "Dr. Arvind Swamy",
@@ -42,7 +50,7 @@ const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: "LOG-102",
     logCode: "AUD-2026-091",
-    timestamp: "28 Sep 2026, 02:15 PM",
+    timestamp: `${todayDateStr}, 02:15 PM`,
     action: "Analyzer Periodic Calibration Certified",
     module: "Equipment Management",
     performedBy: "Er. Karthik Raja",
@@ -54,7 +62,7 @@ const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: "LOG-103",
     logCode: "AUD-2026-090",
-    timestamp: "28 Sep 2026, 11:45 AM",
+    timestamp: `${todayDateStr}, 11:45 AM`,
     action: "Emergency TAT Benchmark Adjusted",
     module: "Turnaround Time (TAT)",
     performedBy: "Ms. Uma Maheshwari",
@@ -167,11 +175,39 @@ export default function LabSettings() {
   });
 
   // Audit Logs State
-  const [auditLogs] = useState<AuditLogItem[]>(INITIAL_AUDIT_LOGS);
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(INITIAL_AUDIT_LOGS);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedModule, setSelectedModule] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Drawer & Toast States for Audit Log actions
+  const [viewLog, setViewLog] = useState<AuditLogItem | null>(null);
+  const [editLog, setEditLog] = useState<AuditLogItem | null>(null);
+  const [deletingLog, setDeletingLog] = useState<AuditLogItem | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingLog) return;
+    setAuditLogs((prev) => prev.filter((item) => item.id !== deletingLog.id));
+    setDeletingLog(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editLog) return;
+    setAuditLogs((prev) =>
+      prev.map((item) => (item.id === editLog.id ? editLog : item))
+    );
+    setEditLog(null);
+    showToast("Audit log updated successfully");
+  };
 
   const filteredLogs = useMemo(() => {
     return auditLogs.filter((log) => {
@@ -224,6 +260,7 @@ export default function LabSettings() {
     "Security Tier",
     "Workstation IP",
     "Audit Details",
+    "Actions",
   ];
 
   return (
@@ -485,10 +522,17 @@ export default function LabSettings() {
               />
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 shadow transition"
+                className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
               >
                 Save Profile Changes
               </button>
@@ -682,10 +726,17 @@ export default function LabSettings() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 shadow transition"
+                className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
               >
                 Save Management Functions
               </button>
@@ -752,7 +803,7 @@ export default function LabSettings() {
               <Table
                 columns={auditColumns}
                 data={paginatedLogs}
-                maxHeight="440px"
+                maxHeight="380px"
                 minWidth="1300px"
                 emptyMessage="No audit logs match your search criteria."
                 renderRow={(log: AuditLogItem) => {
@@ -807,6 +858,36 @@ export default function LabSettings() {
                       <td className="px-4 py-3.5 text-left min-w-[280px]">
                         <p className="text-xs text-slate-600">{log.details}</p>
                       </td>
+
+                      {/* 8. Actions */}
+                      <td className="whitespace-nowrap px-4 py-3.5 text-center min-w-[120px]">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            title="View Details"
+                            onClick={() => setViewLog(log)}
+                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition"
+                          >
+                            <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
+                          </button>
+                          <button
+                            type="button"
+                            title="Edit Log"
+                            onClick={() => setEditLog({ ...log })}
+                            className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50 transition"
+                          >
+                            <EditOutlinedIcon sx={{ fontSize: 18 }} />
+                          </button>
+                          <button
+                            type="button"
+                            title="Delete Log"
+                            onClick={() => setDeletingLog(log)}
+                            className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50 transition"
+                          >
+                            <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
+                          </button>
+                        </div>
+                      </td>
                     </>
                   );
                 }}
@@ -822,6 +903,289 @@ export default function LabSettings() {
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* VIEW RIGHT DRAWER */}
+      {viewLog && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setViewLog(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Audit Log Details</h3>
+                <p className="text-xs text-slate-500 font-mono mt-0.5">{viewLog.logCode}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewLog(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 font-medium block">Timestamp</span>
+                    <span className="font-semibold text-slate-800">{viewLog.timestamp}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Security Tier</span>
+                    <span className="font-semibold text-slate-800">{viewLog.securityLevel}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Module</span>
+                    <span className="font-semibold text-slate-800">{viewLog.module}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">IP Address</span>
+                    <span className="font-mono text-slate-800">{viewLog.ipAddress}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Performed By</span>
+                    <span className="font-semibold text-slate-800">{viewLog.performedBy}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium block">Role</span>
+                    <span className="font-semibold text-slate-800">{viewLog.role}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-500 block mb-1">Administrative Action</label>
+                <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-800">
+                  {viewLog.action}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-500 block mb-1">Detailed Description</label>
+                <div className="rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700 min-h-[100px]">
+                  {viewLog.details}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViewLog(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT RIGHT DRAWER */}
+      {editLog && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setEditLog(null)}
+          />
+          <form
+            onSubmit={handleSaveEdit}
+            className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Edit Audit Record</h3>
+                <p className="text-xs text-slate-500 font-mono mt-0.5">{editLog.logCode}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditLog(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Administrative Action</label>
+                <input
+                  type="text"
+                  required
+                  value={editLog.action}
+                  onChange={(e) => setEditLog({ ...editLog, action: e.target.value })}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Module</label>
+                  <select
+                    value={editLog.module}
+                    onChange={(e) => setEditLog({ ...editLog, module: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="Compliance & Licensing">Compliance & Licensing</option>
+                    <option value="Equipment Management">Equipment Management</option>
+                    <option value="Turnaround Time (TAT)">Turnaround Time (TAT)</option>
+                    <option value="Staff / User Management">Staff / User Management</option>
+                    <option value="Storage & Cold Chain">Storage & Cold Chain</option>
+                    <option value="Departments">Departments</option>
+                    <option value="System Maintenance">System Maintenance</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Security Level</label>
+                  <select
+                    value={editLog.securityLevel}
+                    onChange={(e) =>
+                      setEditLog({
+                        ...editLog,
+                        securityLevel: e.target.value as "Critical" | "Standard" | "Informational",
+                      })
+                    }
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="Critical">Critical</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Informational">Informational</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Performed By</label>
+                  <input
+                    type="text"
+                    required
+                    value={editLog.performedBy}
+                    onChange={(e) => setEditLog({ ...editLog, performedBy: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Role</label>
+                  <input
+                    type="text"
+                    required
+                    value={editLog.role}
+                    onChange={(e) => setEditLog({ ...editLog, role: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Audit Details</label>
+                <textarea
+                  rows={4}
+                  required
+                  value={editLog.details}
+                  onChange={(e) => setEditLog({ ...editLog, details: e.target.value })}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setEditLog(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION RIGHT DRAWER */}
+      {deletingLog && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setDeletingLog(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-2 text-rose-600">
+                <WarningAmberOutlinedIcon />
+                <h3 className="text-lg font-bold text-slate-900">Delete Audit Log</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingLog(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold text-amber-900">
+                  Are you sure you want to permanently delete this audit log record?
+                </p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  This action cannot be undone and will remove the item from the session history.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium block">Log Code</span>
+                  <span className="font-mono font-bold text-slate-800">{deletingLog.logCode}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Action</span>
+                  <span className="font-medium text-slate-800">{deletingLog.action}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Performed By</span>
+                  <span className="font-medium text-slate-800">{deletingLog.performedBy} ({deletingLog.role})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingLog(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
             </div>
           </div>
         </div>

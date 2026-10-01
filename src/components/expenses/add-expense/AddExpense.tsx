@@ -372,16 +372,16 @@ export default function AddExpense() {
             <div className="pt-2 flex flex-col gap-2">
               <button
                 type="submit"
-                className="w-full rounded-xl bg-blue-600 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700"
+                className="w-full rounded-xl bg-[#29384d] hover:bg-[#1e293b] py-2.5 text-sm font-semibold text-white shadow-sm transition"
               >
-                Save Expense Voucher
+                Save
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/expenses")}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                className="w-full rounded-xl border border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Discard & Return
+                Cancel
               </button>
             </div>
           </div>

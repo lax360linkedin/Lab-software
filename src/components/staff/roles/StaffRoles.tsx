@@ -7,8 +7,12 @@ import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettin
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import "./staffRoles.css";
@@ -68,7 +72,23 @@ export default function StaffRoles() {
   const [selectedTier, setSelectedTier] = useState("All");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [viewingRole, setViewingRole] = useState<LabRole | null>(null);
+  const [deletingRole, setDeletingRole] = useState<LabRole | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingRole) return;
+    setRoles((prev) => prev.filter((r) => r.id !== deletingRole.id));
+    setDeletingRole(null);
+    showToast("Deleted successfully");
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -324,7 +344,7 @@ export default function StaffRoles() {
           <Table
             columns={columns}
             data={paginatedRoles}
-            maxHeight="440px"
+            maxHeight="380px"
             minWidth="1200px"
             emptyMessage="No roles match your search criteria."
             renderRow={(role: LabRole) => {
@@ -399,6 +419,14 @@ export default function StaffRoles() {
                     <div className="flex items-center justify-center gap-1">
                       <button
                         type="button"
+                        onClick={() => setViewingRole(role)}
+                        className="rounded p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
+                        title="View Role Details"
+                      >
+                        <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleOpenEditModal(role)}
                         className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
                         title="Edit Role Details"
@@ -407,11 +435,16 @@ export default function StaffRoles() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => navigate("/staff/permissions")}
-                        className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition"
-                        title="Configure Matrix Permissions"
+                        onClick={() => setDeletingRole(role)}
+                        disabled={role.isSystemRole}
+                        className={`rounded p-1.5 transition ${
+                          role.isSystemRole
+                            ? "text-slate-300 cursor-not-allowed"
+                            : "text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                        }`}
+                        title={role.isSystemRole ? "System role cannot be deleted" : "Delete Role"}
                       >
-                        <ArrowForwardOutlinedIcon sx={{ fontSize: 18 }} />
+                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
                       </button>
                     </div>
                   </td>
@@ -433,129 +466,313 @@ export default function StaffRoles() {
         </div>
       </div>
 
-      {/* Add / Edit Role Modal */}
+      {/* Add / Edit Role Slide-over Drawer */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <CloseIcon sx={{ fontSize: 20 }} />
-            </button>
-
-            <div className="flex items-center gap-2 mb-4">
-              <span className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                <SecurityOutlinedIcon sx={{ fontSize: 22 }} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {editingRole ? "Edit Role Configuration" : "Create New Access Role"}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Configure access tier boundaries and default operational privileges.
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSaveRole} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Role Title <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Assistant Pathologist"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-lg bg-blue-100 p-2 text-blue-600">
+                    <SecurityOutlinedIcon sx={{ fontSize: 22 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      {editingRole ? "Edit Role Configuration" : "Create New Access Role"}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Configure access tier boundaries and permissions
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <form id="roleForm" onSubmit={handleSaveRole} className="p-6 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    System Identifier Code
+                    Role Title <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. ROLE_ASST_PATH"
-                    value={formData.code}
+                    placeholder="e.g. Assistant Pathologist"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      System Identifier Code
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. ROLE_ASST_PATH"
+                      value={formData.code}
+                      onChange={(e) =>
+                        setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Access Tier
+                    </label>
+                    <select
+                      value={formData.accessTier}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          accessTier: e.target.value as LabRole["accessTier"],
+                        })
+                      }
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="Tier 1 (Full Access)">Tier 1 (Full Access)</option>
+                      <option value="Tier 2 (Clinical & QA)">Tier 2 (Clinical & QA)</option>
+                      <option value="Tier 3 (Operational)">Tier 3 (Operational)</option>
+                      <option value="Tier 4 (Front Desk)">Tier 4 (Front Desk)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
                     onChange={(e) =>
-                      setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                      setFormData({
+                        ...formData,
+                        status: e.target.value as "Active" | "Inactive",
+                      })
                     }
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Core Privileges (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Test Run, Result Verification, Sample Accept"
+                    value={formData.keyPrivileges}
+                    onChange={(e) => setFormData({ ...formData, keyPrivileges: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Access Tier
+                    Description & Scope
                   </label>
-                  <select
-                    value={formData.accessTier}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        accessTier: e.target.value as LabRole["accessTier"],
-                      })
-                    }
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="Tier 1 (Full Access)">Tier 1 (Full Access)</option>
-                    <option value="Tier 2 (Clinical & QA)">Tier 2 (Clinical & QA)</option>
-                    <option value="Tier 3 (Operational)">Tier 3 (Operational)</option>
-                    <option value="Tier 4 (Front Desk)">Tier 4 (Front Desk)</option>
-                  </select>
+                  <textarea
+                    rows={3}
+                    placeholder="Summarize key clinical or operational duties..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Core Privileges (comma-separated)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Test Run, Result Verification, Sample Accept"
-                  value={formData.keyPrivileges}
-                  onChange={(e) => setFormData({ ...formData, keyPrivileges: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="roleForm"
+                className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                {editingRole ? "Save Changes" : "Create Role"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Description & Scope
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Summarize key clinical or operational duties..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+      {/* View Role Slide-over Drawer */}
+      {viewingRole && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-lg bg-blue-50 p-2 text-blue-600">
+                    <SecurityOutlinedIcon sx={{ fontSize: 22 }} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">{viewingRole.name}</h3>
+                    <p className="text-xs text-slate-500">{viewingRole.code}</p>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  onClick={() => setViewingRole(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
-                >
-                  {editingRole ? "Save Changes" : "Create Role"}
+                  <CloseIcon sx={{ fontSize: 20 }} />
                 </button>
               </div>
-            </form>
+
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <span className="text-xs text-slate-500 font-medium">Access Tier</span>
+                    <p className="text-sm font-semibold text-slate-800 mt-1">{viewingRole.accessTier}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <span className="text-xs text-slate-500 font-medium">Status</span>
+                    <p className="text-sm font-semibold mt-1">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        viewingRole.status === "Active" ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-700"
+                      }`}>
+                        {viewingRole.status}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-xs text-slate-500 font-medium">Active Assigned Staff</span>
+                  <p className="text-sm font-bold text-slate-900 mt-1">{viewingRole.assignedUsersCount} users</p>
+                </div>
+
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Description</span>
+                  <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg leading-relaxed">{viewingRole.description}</p>
+                </div>
+
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Key Privileges</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {viewingRole.keyPrivileges.map((p, idx) => (
+                      <span key={idx} className="rounded-md bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 text-xs font-medium">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {viewingRole.isSystemRole && (
+                  <div className="rounded-lg bg-rose-50 border border-rose-200 p-3">
+                    <span className="text-xs font-semibold text-rose-700">System Role Protected</span>
+                    <p className="text-xs text-rose-600 mt-0.5">This role is core to the laboratory operations workflow and cannot be deleted.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setViewingRole(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingRole && (
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setDeletingRole(null)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <div className="flex items-center gap-2 text-rose-600">
+                <WarningAmberOutlinedIcon />
+                <h3 className="text-lg font-bold text-slate-900">Delete Staff Role</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingRole(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold text-amber-900">
+                  Are you sure you want to permanently delete this role?
+                </p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  Active staff members assigned to this role will need their permissions reassigned.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium block">Role Title</span>
+                  <span className="font-semibold text-slate-800">{deletingRole.name}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Role Code</span>
+                  <span className="font-mono font-bold text-slate-800">{deletingRole.code}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium block">Access Tier</span>
+                  <span className="font-medium text-slate-800">{deletingRole.accessTier}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingRole(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
         </div>
       )}
     </div>

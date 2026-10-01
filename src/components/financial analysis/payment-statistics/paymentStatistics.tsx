@@ -10,8 +10,14 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getCurrentMonthYear } from "../../../common components/dateUtils";
 
 import "./paymentStatistics.css";
 
@@ -200,23 +206,52 @@ const columns = [
   "Avg Ticket",
   "Success Rate",
   "Settlement Status",
+  "Actions",
 ];
 
 const PaymentStatistics = () => {
+  const [channels, setChannels] = useState<PaymentChannelStat[]>(PAYMENT_STATS_DATA);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [viewingChannel, setViewingChannel] = useState<PaymentChannelStat | null>(null);
+  const [editingChannel, setEditingChannel] = useState<PaymentChannelStat | null>(null);
+  const [deletingChannel, setDeletingChannel] = useState<PaymentChannelStat | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingChannel) return;
+    setChannels((prev) => prev.filter((item) => item.id !== deletingChannel.id));
+    setDeletingChannel(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingChannel) return;
+    setChannels((prev) =>
+      prev.map((item) => (item.id === editingChannel.id ? editingChannel : item))
+    );
+    setEditingChannel(null);
+    showToast("Payment channel updated successfully");
+  };
+
   // KPI calculations
   const totalVolumeOverall = useMemo(() => {
-    return PAYMENT_STATS_DATA.reduce((sum, item) => sum + item.totalVolume, 0);
-  }, []);
+    return channels.reduce((sum, item) => sum + item.totalVolume, 0);
+  }, [channels]);
 
   const totalTransactionsOverall = useMemo(() => {
-    return PAYMENT_STATS_DATA.reduce((sum, item) => sum + item.transactionCount, 0);
-  }, []);
+    return channels.reduce((sum, item) => sum + item.transactionCount, 0);
+  }, [channels]);
 
   const overallAvgTicket = useMemo(() => {
     return totalTransactionsOverall > 0
@@ -225,10 +260,10 @@ const PaymentStatistics = () => {
   }, [totalVolumeOverall, totalTransactionsOverall]);
 
   const digitalVolume = useMemo(() => {
-    return PAYMENT_STATS_DATA
+    return channels
       .filter((item) => item.category !== "Cash")
       .reduce((sum, item) => sum + item.totalVolume, 0);
-  }, []);
+  }, [channels]);
 
   const digitalShareRate = useMemo(() => {
     return totalVolumeOverall > 0
@@ -240,7 +275,7 @@ const PaymentStatistics = () => {
   const categorySummary = useMemo(() => {
     const cats: ChannelCategory[] = ["UPI", "Card", "Cash", "Online PG", "TPA Insurance"];
     return cats.map((cat) => {
-      const items = PAYMENT_STATS_DATA.filter((i) => i.category === cat);
+      const items = channels.filter((i) => i.category === cat);
       const totalAmount = items.reduce((sum, i) => sum + i.totalVolume, 0);
       const totalTxns = items.reduce((sum, i) => sum + i.transactionCount, 0);
       const percentage =
@@ -260,11 +295,11 @@ const PaymentStatistics = () => {
         color,
       };
     });
-  }, [totalVolumeOverall]);
+  }, [channels, totalVolumeOverall]);
 
   // Filtered List
   const filteredChannels = useMemo(() => {
-    return PAYMENT_STATS_DATA.filter((item) => {
+    return channels.filter((item) => {
       const matchesSearch =
         item.channelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -279,7 +314,7 @@ const PaymentStatistics = () => {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [channels, searchTerm, selectedCategory, selectedStatus]);
 
   const currentChannels = useMemo(() => {
     return filteredChannels.slice(
@@ -331,7 +366,7 @@ const PaymentStatistics = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Fiscal Month: Sep 2026</span>
+            <span>Fiscal Month: {getCurrentMonthYear(new Date(), false)}</span>
           </div>
 
           <button
@@ -538,7 +573,6 @@ const PaymentStatistics = () => {
           <Table
             columns={columns}
             data={currentChannels}
-            maxHeight="430px"
             minWidth="1200px"
             emptyMessage="No payment channels match your search criteria."
             renderRow={(item: PaymentChannelStat) => (
@@ -612,6 +646,32 @@ const PaymentStatistics = () => {
                     {item.status}
                   </span>
                 </td>
+
+                <td className="whitespace-nowrap px-4 py-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setViewingChannel(item)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
+                      title="View Details"
+                    >
+                      <VisibilityOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setEditingChannel({ ...item })}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 transition"
+                      title="Edit Channel"
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingChannel(item)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                      title="Delete Channel"
+                    >
+                      <DeleteOutlineOutlinedIcon fontSize="small" />
+                    </button>
+                  </div>
+                </td>
               </>
             )}
           />
@@ -633,8 +693,321 @@ const PaymentStatistics = () => {
           </div>
         )}
       </section>
+
+      {/* View Drawer */}
+      {viewingChannel && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setViewingChannel(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Payment Channel Details</h3>
+                <p className="text-xs text-gray-500">{viewingChannel.channelName} • {viewingChannel.terminalId}</p>
+              </div>
+              <button onClick={() => setViewingChannel(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Provider</span>
+                  <span className="font-semibold text-slate-800">{viewingChannel.provider}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Terminal ID</span>
+                  <span className="font-mono text-xs text-blue-600 font-semibold">{viewingChannel.terminalId}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Category</span>
+                  <span className="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-700">
+                    {viewingChannel.category}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Settlement Status</span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700">
+                    {viewingChannel.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Transactions Count</span>
+                  <span className="font-bold text-slate-900">{viewingChannel.transactionCount.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Avg Ticket Size</span>
+                  <span className="font-semibold text-slate-800">₹{viewingChannel.avgTicketSize.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Success Rate</span>
+                  <span className="font-bold text-emerald-600">{viewingChannel.successRate}%</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Total Volume Settled</span>
+                  <span className="font-bold text-slate-900 text-base">₹{viewingChannel.totalVolume.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Volume Share</span>
+                  <span className="font-semibold text-blue-600">{viewingChannel.sharePercent}%</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViewingChannel(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Drawer */}
+      {editingChannel && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setEditingChannel(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Edit Payment Channel</h3>
+                <p className="text-xs text-gray-500">{editingChannel.channelName}</p>
+              </div>
+              <button onClick={() => setEditingChannel(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="flex flex-1 flex-col justify-between overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Channel Name</label>
+                  <input
+                    type="text"
+                    value={editingChannel.channelName}
+                    onChange={(e) => setEditingChannel({ ...editingChannel, channelName: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Provider</label>
+                    <input
+                      type="text"
+                      value={editingChannel.provider}
+                      onChange={(e) => setEditingChannel({ ...editingChannel, provider: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Terminal ID</label>
+                    <input
+                      type="text"
+                      value={editingChannel.terminalId}
+                      onChange={(e) => setEditingChannel({ ...editingChannel, terminalId: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Category</label>
+                  <select
+                    value={editingChannel.category}
+                    onChange={(e) => setEditingChannel({ ...editingChannel, category: e.target.value as ChannelCategory })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="UPI">UPI</option>
+                    <option value="Card">Card</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Online PG">Online PG</option>
+                    <option value="TPA Insurance">TPA Insurance</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Transactions Count</label>
+                    <input
+                      type="number"
+                      value={editingChannel.transactionCount}
+                      onChange={(e) => {
+                        const count = Number(e.target.value) || 0;
+                        const avg = count > 0 ? Math.round(editingChannel.totalVolume / count) : 0;
+                        setEditingChannel({
+                          ...editingChannel,
+                          transactionCount: count,
+                          avgTicketSize: avg,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Total Volume (₹)</label>
+                    <input
+                      type="number"
+                      value={editingChannel.totalVolume}
+                      onChange={(e) => {
+                        const vol = Number(e.target.value) || 0;
+                        const avg = editingChannel.transactionCount > 0 ? Math.round(vol / editingChannel.transactionCount) : 0;
+                        setEditingChannel({
+                          ...editingChannel,
+                          totalVolume: vol,
+                          avgTicketSize: avg,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+                  <span className="text-slate-500">Calculated Avg Ticket Size:</span>
+                  <div className="font-bold text-slate-800 text-sm">₹{editingChannel.avgTicketSize.toLocaleString("en-IN")}</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Success Rate (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingChannel.successRate}
+                      onChange={(e) => setEditingChannel({ ...editingChannel, successRate: Number(e.target.value) || 0 })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                      max={100}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Settlement Status</label>
+                    <select
+                      value={editingChannel.status}
+                      onChange={(e) => setEditingChannel({ ...editingChannel, status: e.target.value as SettlementStatus })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="Reconciled">Reconciled</option>
+                      <option value="Settled">Settled</option>
+                      <option value="Pending Settlement">Pending Settlement</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingChannel(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Drawer */}
+      {deletingChannel && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setDeletingChannel(null)} />
+          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Delete Payment Channel</h3>
+                <p className="text-xs text-gray-500">{deletingChannel.channelName}</p>
+              </div>
+              <button onClick={() => setDeletingChannel(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+                <WarningAmberOutlinedIcon className="mt-0.5 text-rose-600 shrink-0" />
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">Warning: Destructive Action</div>
+                  <p className="text-xs text-rose-700">
+                    Are you sure you want to delete this payment channel? This will remove terminal tracking and collection records from statistics.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Channel Name:</span>
+                  <span className="font-semibold text-slate-800">{deletingChannel.channelName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Provider & Terminal:</span>
+                  <span className="font-semibold text-slate-800">{deletingChannel.provider} ({deletingChannel.terminalId})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Category:</span>
+                  <span className="font-semibold text-blue-600">{deletingChannel.category}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Total Volume:</span>
+                  <span className="font-bold text-rose-600">₹{deletingChannel.totalVolume.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Status:</span>
+                  <span className="font-medium text-slate-700">{deletingChannel.status}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingChannel(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default PaymentStatistics;
+

@@ -34,6 +34,16 @@ import Departments from "../lab-management/departments/Departments";
 import Equipment from "../lab-management/equipment/Equipment";
 import LabSettings from "../lab-management/settings/LabSettings";
 import LabProfile from "../lab-profile/LabProfile";
+import ResultEntry from "../results/ResultEntry";
+import PendingVerification from "../results/PendingVerification";
+import VerifiedResults from "../results/VerifiedResults";
+import QCChecks from "../quality-control/QCChecks";
+import ControlResults from "../quality-control/ControlResults";
+import FailedQC from "../quality-control/FailedQC";
+import CorrectiveActions from "../quality-control/CorrectiveActions";
+import NotificationHistory from "../notifications/NotificationHistory";
+import MessageTemplates from "../notifications/MessageTemplates";
+import NotificationSettings from "../notifications/NotificationSettings";
 import Tests from "../tests/Tests";
 import Doctors from "../doctors/Doctor";
 import Billing from "../../common components/billing/Billing";
@@ -76,6 +86,16 @@ const AppRoutes = () => {
                     <Route path="/staff/users" element={<StaffUsers />} />
                     <Route path="/staff/roles" element={<StaffRoles />} />
                     <Route path="/staff/permissions" element={<StaffPermissions />} />
+                    <Route path="/results/enter" element={<ResultEntry />} />
+                    <Route path="/results/pending-verification" element={<PendingVerification />} />
+                    <Route path="/results/verified" element={<VerifiedResults />} />
+                    <Route path="/quality-control/checks" element={<QCChecks />} />
+                    <Route path="/quality-control/control-results" element={<ControlResults />} />
+                    <Route path="/quality-control/failed" element={<FailedQC />} />
+                    <Route path="/quality-control/corrective-actions" element={<CorrectiveActions />} />
+                    <Route path="/notifications/history" element={<NotificationHistory />} />
+                    <Route path="/notifications/templates" element={<MessageTemplates />} />
+                    <Route path="/notifications/settings" element={<NotificationSettings />} />
                     <Route path="/lab-management/departments" element={<Departments />} />
                     <Route path="/lab-management/equipment" element={<Equipment />} />
                     <Route path="/lab-management/settings" element={<LabSettings />} />
