@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, useRef, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -9,13 +9,25 @@ import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import CheckIcon from "@mui/icons-material/Check";
 import "./signup.css";
 import LegalModal, { type LegalTab } from "../../common components/LegalModal";
+import { useAuth } from "../auth/useAuth";
+import type { User, UserRole } from "../auth/authTypes";
+
+export const roleOptions: { label: string; value: UserRole }[] = [
+  { label: "Admin", value: "admin" },
+  { label: "Lab Technician", value: "lab_technician" },
+  { label: "Receptionist", value: "receptionist" },
+];
 
 interface FormData {
   labName: string;
   adminName: string;
   email: string;
+  role: UserRole | "";
   phone: string;
   address: string;
   password: string;
@@ -26,6 +38,7 @@ interface FormErrors {
   labName?: string;
   adminName?: string;
   email?: string;
+  role?: string;
   phone?: string;
   address?: string;
   password?: string;
@@ -37,6 +50,7 @@ const initialForm: FormData = {
   labName: "",
   adminName: "",
   email: "",
+  role: "",
   phone: "",
   address: "",
   password: "",
@@ -45,14 +59,33 @@ const initialForm: FormData = {
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<FormData>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isRoleOpen, setIsRoleOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [activeLegalTab, setActiveLegalTab] = useState<LegalTab>("terms");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        roleDropdownRef.current &&
+        !roleDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsRoleOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -87,6 +120,10 @@ const Signup = () => {
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
     ) {
       newErrors.email = "Enter a valid email address.";
+    }
+
+    if (!formData.role) {
+      newErrors.role = "Role is required.";
     }
 
     if (!formData.phone.trim()) {
@@ -142,6 +179,7 @@ const Signup = () => {
             labName: formData.labName,
             adminName: formData.adminName,
             email: formData.email,
+            role: formData.role,
             phone: formData.phone,
             address: formData.address,
             password: formData.password,
@@ -169,7 +207,32 @@ const Signup = () => {
       // Don't store the password in localStorage.
       localStorage.removeItem("lab_signup_data");
 
-      navigate("/login");
+      const userRole = formData.role as UserRole;
+      const user: User = {
+        userId: data?.user?.userId || "user-" + Date.now(),
+        labId: data?.user?.labId || "lab-1",
+        labName: formData.labName,
+        name: formData.adminName,
+        email: formData.email,
+        role: userRole,
+      };
+      login(user);
+      if (data?.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+      }
+      if (data?.tokenType) {
+        localStorage.setItem("tokenType", data.tokenType);
+      }
+
+      if (userRole === "admin") {
+        navigate("/dashboard/admin");
+      } else if (userRole === "lab_technician") {
+        navigate("/dashboard/technician");
+      } else if (userRole === "receptionist") {
+        navigate("/dashboard/receptionist");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.error("Signup API error:", error);
 
@@ -456,7 +519,7 @@ const Signup = () => {
                     )}
                   </div>
 
-                  <div className="form-field full-width">
+                  <div className="form-field">
                     <label htmlFor="email">
                       Email Address
                       <span>*</span>
@@ -480,6 +543,86 @@ const Signup = () => {
 
                     {errors.email && (
                       <p className="field-error">{errors.email}</p>
+                    )}
+                  </div>
+
+                  <div className="form-field" ref={roleDropdownRef}>
+                    <label id="role-label" htmlFor="role-select">
+                      Role
+                      <span>*</span>
+                    </label>
+
+                    <div className="relative">
+                      <button
+                        id="role-select"
+                        type="button"
+                        aria-haspopup="listbox"
+                        aria-expanded={isRoleOpen}
+                        aria-labelledby="role-label"
+                        onClick={() => setIsRoleOpen((previous) => !previous)}
+                        className={`input-wrapper w-full cursor-pointer text-left justify-between ${
+                          errors.role ? "input-error" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <BadgeOutlinedIcon />
+                          <span
+                            className={`truncate text-sm ${
+                              formData.role ? "text-slate-800" : "text-slate-400"
+                            }`}
+                          >
+                            {formData.role
+                              ? roleOptions.find((opt) => opt.value === formData.role)?.label
+                              : "Select role"}
+                          </span>
+                        </div>
+
+                        <KeyboardArrowDownIcon
+                          className={`text-slate-400 transition-transform duration-200 ${
+                            isRoleOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {isRoleOpen && (
+                        <div
+                          role="listbox"
+                          className="signup-role-dropdown"
+                        >
+                          {roleOptions.map((option) => (
+                            <div
+                              key={option.value}
+                              role="option"
+                              aria-selected={formData.role === option.value}
+                              onClick={() => {
+                                setFormData((previous) => ({
+                                  ...previous,
+                                  role: option.value,
+                                }));
+                                setErrors((previous) => ({
+                                  ...previous,
+                                  role: undefined,
+                                }));
+                                setIsRoleOpen(false);
+                              }}
+                              className={`signup-role-option ${
+                                formData.role === option.value
+                                  ? "signup-role-option-selected"
+                                  : ""
+                              }`}
+                            >
+                              <span>{option.label}</span>
+                              {formData.role === option.value && (
+                                <CheckIcon className="text-base text-blue-600" />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {errors.role && (
+                      <p className="field-error">{errors.role}</p>
                     )}
                   </div>
 

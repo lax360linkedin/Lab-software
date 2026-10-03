@@ -152,30 +152,6 @@ export const INITIAL_QC_RUNS: QCRunRecord[] = [
     notes: "SGPT/ALT slightly elevated past +2SD. Monitored for systematic drift.",
   },
   {
-    id: "QC-RUN-904",
-    runNumber: "QC-2026-0904",
-    testName: "Blood Glucose (Hexokinase)",
-    department: "Biochemistry",
-    analyzerId: "EQ-BIO-02",
-    analyzerName: "Cobas c311",
-    controlName: "Roche PreciControl ClinChem Multi 1",
-    controlLevel: "Level 1 (Normal)",
-    lotNumber: "LOT-ROC-1190",
-    expiryDate: "10 Jan 2027",
-    technician: "Meena Devi",
-    runDate: getFormattedCurrentDate(),
-    runTime: "08:15 AM",
-    targetMean: 95.0,
-    targetSD: 2.0,
-    measuredValue: 102.2,
-    zScore: 3.6,
-    unit: "mg/dL",
-    westgardRule: "1-3s (Rejection)",
-    status: "Failed",
-    affectedBatch: "BATCH-GLU-2609A",
-    notes: "Exceeded +3SD limit. Run rejected immediately. Sample analysis halted.",
-  },
-  {
     id: "QC-RUN-905",
     runNumber: "QC-2026-0905",
     testName: "Lipid Profile (Cholesterol)",
@@ -356,7 +332,41 @@ export const getStoredQCRuns = (): QCRunRecord[] => {
       localStorage.setItem(QC_RUNS_KEY, JSON.stringify(INITIAL_QC_RUNS));
       return INITIAL_QC_RUNS;
     }
-    return JSON.parse(raw);
+    const parsed: QCRunRecord[] = JSON.parse(raw);
+    const failedRuns = parsed.filter((r) => r.status === "Failed");
+    if (failedRuns.length > 0) {
+      const storedFailed = getStoredFailedQC();
+      const newFailed: QCFailedItem[] = [];
+      failedRuns.forEach((fr) => {
+        if (!storedFailed.some((f) => f.qcRunId === fr.id)) {
+          newFailed.push({
+            id: `FAIL-${fr.id}`,
+            qcRunId: fr.id,
+            testName: fr.testName,
+            analyzerName: fr.analyzerName,
+            controlLot: fr.lotNumber,
+            measuredValue: fr.measuredValue,
+            targetMean: fr.targetMean,
+            zScore: fr.zScore,
+            violationRule: `${fr.westgardRule} (Exceeded limit - auto-routed)`,
+            failedDate: fr.runDate,
+            failedTime: fr.runTime,
+            technician: fr.technician,
+            affectedSamplesCount: 3,
+            affectedSampleIds: ["SMP-HOLD-01", "SMP-HOLD-02", "SMP-HOLD-03"],
+            status: "Action Required",
+            severity: "Critical",
+          });
+        }
+      });
+      if (newFailed.length > 0) {
+        saveFailedQC([...newFailed, ...storedFailed]);
+      }
+      const passedAndWarning = parsed.filter((r) => r.status === "Passed" || r.status === "Warning");
+      localStorage.setItem(QC_RUNS_KEY, JSON.stringify(passedAndWarning));
+      return passedAndWarning;
+    }
+    return parsed.filter((r) => r.status === "Passed" || r.status === "Warning");
   } catch {
     return INITIAL_QC_RUNS;
   }

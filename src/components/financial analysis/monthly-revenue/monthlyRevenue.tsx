@@ -652,7 +652,10 @@ const MonthlyRevenue = () => {
       {viewingItem && (
         <>
           <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setViewingItem(null)} />
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Monthly Revenue Details</h3>
@@ -727,7 +730,10 @@ const MonthlyRevenue = () => {
       {editingItem && (
         <>
           <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setEditingItem(null)} />
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Edit Monthly Record</h3>
@@ -882,7 +888,10 @@ const MonthlyRevenue = () => {
       {deletingItem && (
         <>
           <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setDeletingItem(null)} />
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Delete Monthly Record</h3>

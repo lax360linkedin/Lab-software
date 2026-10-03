@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import BuildCircleOutlinedIcon from "@mui/icons-material/BuildCircleOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
@@ -28,6 +29,7 @@ import {
 import "./qualityControl.css";
 
 const CorrectiveActions: React.FC = () => {
+  const navigate = useNavigate();
   const [capaList, setCapaList] = useState<CorrectiveActionRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,6 +61,117 @@ const CorrectiveActions: React.FC = () => {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
+  const releaseSamplesToResults = (record: CorrectiveActionRecord) => {
+    const results = getStoredResults();
+    const existingSampleIds = new Set(results.map((r) => r.sampleId));
+
+    // Release existing held samples
+    const updatedResults = results.map((r) => {
+      const isTarget =
+        record.releasedSampleIds?.includes(r.sampleId) ||
+        r.status === "QC_FAILED" ||
+        (r.testName === record.testName && r.status === "AWAITING_ENTRY");
+
+      if (isTarget) {
+        return {
+          ...r,
+          status: "AWAITING_ENTRY" as const,
+          qcStatus: "PASSED" as const,
+          notes: `${r.notes || ""} | Released following CAPA ${record.capaNumber}. Process finished, ready for results.`,
+        };
+      }
+      return r;
+    });
+
+    // If any sample in releasedSampleIds is not in resultsStore yet, create an entry so it shows in Results
+    const newItems: typeof results = [];
+    if (record.releasedSampleIds && record.releasedSampleIds.length > 0) {
+      record.releasedSampleIds.forEach((smpId, idx) => {
+        if (!existingSampleIds.has(smpId)) {
+          newItems.push({
+            id: `RES-CAPA-${Date.now()}-${idx}`,
+            sampleId: smpId,
+            accessionId: `ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+            patientId: `PAT-${Math.floor(1000 + Math.random() * 9000)}`,
+            patientName: `Patient (${smpId})`,
+            age: 45,
+            gender: "Male",
+            phone: "+91 98401 00000",
+            testId: "TST-CAPA",
+            testName: record.testName,
+            department: "Biochemistry",
+            sampleType: "Blood Specimen",
+            analyzer: record.analyzerName,
+            technician: record.investigatedBy,
+            completedDate: getFormattedCurrentDate(),
+            completedTime: getFormattedCurrentTime(),
+            status: "AWAITING_ENTRY",
+            qcStatus: "PASSED",
+            qcRunId: record.qcRunId,
+            parameters: [],
+            notes: `Released following CAPA ${record.capaNumber}. Process finished, ready for results.`,
+          });
+        }
+      });
+    }
+
+    saveResultsStore([...newItems, ...updatedResults]);
+
+    // Resolve in Failed QC
+    const failed = getStoredFailedQC();
+    const updatedFailed = failed.filter((f) => f.id !== record.failedQcId && f.qcRunId !== record.qcRunId);
+    saveFailedQC(updatedFailed);
+
+    // Log passed repeat run in QC Checks
+    const runs = getStoredQCRuns();
+    const repeatRun: QCRunRecord = {
+      id: `QC-REPEAT-${Date.now()}`,
+      runNumber: `QC-2026-R${Math.floor(100 + Math.random() * 900)}`,
+      testName: record.testName,
+      department: "Biochemistry",
+      analyzerId: "EQ-BIO-02",
+      analyzerName: record.analyzerName,
+      controlName: "Roche PreciControl Multi 1 (Post-CAPA Repeat)",
+      controlLevel: "Level 1 (Normal)",
+      lotNumber: "LOT-ROC-1190",
+      expiryDate: "10 Jan 2027",
+      technician: record.investigatedBy,
+      runDate: getFormattedCurrentDate(),
+      runTime: getFormattedCurrentTime(),
+      targetMean: record.repeatRunValue,
+      targetSD: 1.0,
+      measuredValue: record.repeatRunValue,
+      zScore: 0.1,
+      unit: "mg/dL",
+      westgardRule: "1-SD (Normal)",
+      status: "Passed",
+      notes: `Post-CAPA verification run for ${record.capaNumber}. Recalibration verified.`,
+    };
+    saveQCRuns([repeatRun, ...runs.filter((r) => r.status === "Passed" || r.status === "Warning")]);
+  };
+
+  const handleFinishProcess = (record: CorrectiveActionRecord) => {
+    const finishedRecord: CorrectiveActionRecord = {
+      ...record,
+      reanalysisAuthorized: true,
+      approvalStatus: "Approved & Released",
+      repeatRunStatus: "Passed",
+      actionDate: getFormattedCurrentDate(),
+      actionTime: getFormattedCurrentTime(),
+    };
+
+    const updated = capaList.map((c) => (c.id === record.id ? finishedRecord : c));
+    setCapaList(updated);
+    saveCAPA(updated);
+
+    releaseSamplesToResults(finishedRecord);
+
+    showToast(`Process finished for ${record.capaNumber}! Samples released. Moving to Results...`);
+    setTimeout(() => {
+      navigate("/results/enter");
+    }, 600);
+  };
+
   const handleCreateCapa = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -87,56 +200,9 @@ const CorrectiveActions: React.FC = () => {
     setCapaList(updatedCapa);
     saveCAPA(updatedCapa);
 
-    // If re-analysis authorized, release patient samples in Results store back to AWAITING_ENTRY!
+    // If re-analysis authorized, release patient samples to Results store
     if (authorizeReanalysis) {
-      const results = getStoredResults();
-      const updatedResults = results.map((r) => {
-        if (r.status === "QC_FAILED") {
-          return {
-            ...r,
-            status: "AWAITING_ENTRY" as const,
-            qcStatus: "PASSED" as const,
-            notes: `${r.notes || ""} | Released following CAPA ${newRecord.capaNumber}. Re-analysis authorized.`,
-          };
-        }
-        return r;
-      });
-      saveResultsStore(updatedResults);
-
-      // Resolve the incident in Failed QC
-      const failed = getStoredFailedQC();
-      const updatedFailed = failed.map((f) => ({
-        ...f,
-        status: "Resolved" as const,
-      }));
-      saveFailedQC(updatedFailed);
-
-      // Log a passed repeat QC run
-      const runs = getStoredQCRuns();
-      const repeatRun: QCRunRecord = {
-        id: `QC-REPEAT-${Date.now()}`,
-        runNumber: `QC-2026-R${Math.floor(100 + Math.random() * 900)}`,
-        testName,
-        department: "Biochemistry",
-        analyzerId: "EQ-BIO-02",
-        analyzerName: selectedAnalyzer,
-        controlName: "Roche PreciControl Multi 1 (Post-CAPA Repeat)",
-        controlLevel: "Level 1 (Normal)",
-        lotNumber: "LOT-ROC-1190",
-        expiryDate: "10 Jan 2027",
-        technician: investigatorName,
-        runDate: getFormattedCurrentDate(),
-        runTime: getFormattedCurrentTime(),
-        targetMean: 95.0,
-        targetSD: 2.0,
-        measuredValue: Number(repeatRunValue),
-        zScore: 0.2,
-        unit: "mg/dL",
-        westgardRule: "1-SD (Normal)",
-        status: "Passed",
-        notes: `Post-CAPA verification run for ${newRecord.capaNumber}. Recalibration verified.`,
-      };
-      saveQCRuns([repeatRun, ...runs]);
+      releaseSamplesToResults(newRecord);
     }
 
     // Call backend API asynchronously
@@ -159,8 +225,11 @@ const CorrectiveActions: React.FC = () => {
 
     setIsModalOpen(false);
     showToast(
-      `CAPA ${newRecord.capaNumber} logged! Repeat QC verified. Patient samples unlocked for re-analysis & result entry.`
+      `CAPA ${newRecord.capaNumber} logged! Process finished and samples released. Moving to Results...`
     );
+    setTimeout(() => {
+      navigate("/results/enter");
+    }, 600);
   };
 
   const confirmDelete = () => {
@@ -175,6 +244,13 @@ const CorrectiveActions: React.FC = () => {
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editItem) return;
+
+    if (editItem.reanalysisAuthorized) {
+      handleFinishProcess(editItem);
+      setEditItem(null);
+      return;
+    }
+
     const updated = capaList.map((c) => (c.id === editItem.id ? editItem : c));
     setCapaList(updated);
     saveCAPA(updated);
@@ -333,9 +409,30 @@ const CorrectiveActions: React.FC = () => {
                 <div className="text-[11px] text-slate-400">{item.actionDate}</div>
               </td>
 
-              {/* Actions: View, Edit, Delete */}
+              {/* Actions: View, Edit, Delete, Finish/Results */}
               <td className="whitespace-nowrap px-4 py-3.5 text-center">
                 <div className="flex items-center justify-center gap-1.5">
+                  {item.reanalysisAuthorized ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate("/results/enter")}
+                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs border border-blue-200 transition"
+                      title="View in Results"
+                    >
+                      Results &rarr;
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleFinishProcess(item)}
+                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs border border-emerald-300 shadow-sm transition"
+                      title="Finish CAPA Process and Release to Results"
+                    >
+                      <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 14 }} />
+                      Finish &rarr; Results
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => setViewItem(item)}
@@ -389,7 +486,10 @@ const CorrectiveActions: React.FC = () => {
             onClick={() => setIsModalOpen(false)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -541,7 +641,10 @@ const CorrectiveActions: React.FC = () => {
             onClick={() => setViewItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -633,7 +736,10 @@ const CorrectiveActions: React.FC = () => {
             onClick={() => setEditItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -680,11 +786,26 @@ const CorrectiveActions: React.FC = () => {
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Action Taken Description</label>
                   <textarea
-                    rows={6}
+                    rows={4}
                     value={editItem.actionTaken}
                     onChange={(e) => setEditItem({ ...editItem, actionTaken: e.target.value })}
                     className="w-full rounded-xl border border-slate-300 p-3 text-slate-800 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                   />
+                </div>
+
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 space-y-1.5">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-emerald-900 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={editItem.reanalysisAuthorized}
+                      onChange={(e) => setEditItem({ ...editItem, reanalysisAuthorized: e.target.checked })}
+                      className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span>Finish Process &amp; Release to Results</span>
+                  </label>
+                  <p className="text-[11px] text-emerald-700 ml-6">
+                    Authorizes patient sample re-analysis, clears QC holds, and moves directly to Results.
+                  </p>
                 </div>
               </div>
 
@@ -700,7 +821,7 @@ const CorrectiveActions: React.FC = () => {
                   type="submit"
                   className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  Save
+                  {editItem.reanalysisAuthorized ? "Finish Process & Release" : "Save CAPA"}
                 </button>
               </div>
             </form>
@@ -716,7 +837,10 @@ const CorrectiveActions: React.FC = () => {
             onClick={() => setDeletingItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">

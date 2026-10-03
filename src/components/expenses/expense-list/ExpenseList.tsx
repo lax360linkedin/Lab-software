@@ -582,8 +582,14 @@ export default function ExpenseList() {
 
       {/* 1. View Voucher Slide-over Drawer */}
       {selectedExpense && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setSelectedExpense(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div>
@@ -679,8 +685,14 @@ export default function ExpenseList() {
 
       {/* 2. Edit Voucher Slide-over Drawer */}
       {editingExpense && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setEditingExpense(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div>
@@ -826,8 +838,14 @@ export default function ExpenseList() {
 
       {/* Delete Voucher Slide-over Drawer */}
       {deletingExpense && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setDeletingExpense(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -914,8 +932,14 @@ export default function ExpenseList() {
 
       {/* 3. Attachment Preview Modal */}
       {attachmentPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl space-y-4 animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+          onClick={() => setAttachmentPreview(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl space-y-4 animate-in fade-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <AttachFileOutlinedIcon className="text-blue-600" />

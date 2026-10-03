@@ -377,8 +377,14 @@ const ControlResults: React.FC = () => {
 
       {/* View Lot Right-Side Drawer */}
       {viewLot && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setViewLot(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -433,7 +439,10 @@ const ControlResults: React.FC = () => {
             onClick={() => setEditLot(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -523,8 +532,14 @@ const ControlResults: React.FC = () => {
 
       {/* Delete Lot Right-Side Drawer */}
       {deletingLot && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setDeletingLot(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
                 <div className="flex items-center gap-2">

@@ -29,7 +29,7 @@ const ResultEntry: React.FC = () => {
   const [results, setResults] = useState<TestResultItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("AWAITING_ENTRY");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -338,7 +338,6 @@ const ResultEntry: React.FC = () => {
               }}
               className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 outline-none focus:border-blue-500"
             >
-              <option value="AWAITING_ENTRY">Pending & Entered Only</option>
               <option value="All">All Statuses</option>
               <option value="AWAITING_ENTRY">Awaiting Entry</option>
               <option value="ENTERED">Draft Entered</option>
@@ -485,7 +484,10 @@ const ResultEntry: React.FC = () => {
           />
 
           {/* Right-Side Drawer */}
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Drawer Header */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div>
@@ -690,7 +692,10 @@ const ResultEntry: React.FC = () => {
             onClick={() => setViewItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900">
@@ -779,7 +784,10 @@ const ResultEntry: React.FC = () => {
             onClick={() => setDeletingItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Delete Result Entry</h3>

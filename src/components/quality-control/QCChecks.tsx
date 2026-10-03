@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
@@ -24,6 +25,7 @@ import {
 import "./qualityControl.css";
 
 const QCChecks: React.FC = () => {
+  const navigate = useNavigate();
   const [qcRuns, setQcRuns] = useState<QCRunRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -55,7 +57,8 @@ const QCChecks: React.FC = () => {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setQcRuns(getStoredQCRuns());
+    const runs = getStoredQCRuns();
+    setQcRuns(runs.filter((r) => r.status === "Passed" || r.status === "Warning"));
   }, []);
 
   const showToast = (msg: string) => {
@@ -118,11 +121,7 @@ const QCChecks: React.FC = () => {
       notes: notes || "Daily pre-analytical calibration check.",
     };
 
-    const updatedList = [newRun, ...qcRuns];
-    setQcRuns(updatedList);
-    saveQCRuns(updatedList);
-
-    // If failed, automatically create a triage item in Failed QC!
+    // If failed, automatically create a triage item in Failed QC and DO NOT keep in QC Checks!
     if (evaluation.status === "Failed") {
       const currentFailed = getStoredFailedQC();
       const failedItem: QCFailedItem = {
@@ -134,7 +133,7 @@ const QCChecks: React.FC = () => {
         measuredValue: newRun.measuredValue,
         targetMean: newRun.targetMean,
         zScore: newRun.zScore,
-        violationRule: `1-3s (Z-score: ${newRun.zScore} SD exceeds ±3.0 limit)`,
+        violationRule: `${newRun.westgardRule} (Z-score: ${newRun.zScore} SD exceeds ±3.0 limit)`,
         failedDate: getFormattedCurrentDate(),
         failedTime: getFormattedCurrentTime(),
         technician: newRun.technician,
@@ -144,6 +143,10 @@ const QCChecks: React.FC = () => {
         severity: "Critical",
       };
       saveFailedQC([failedItem, ...currentFailed]);
+    } else {
+      const updatedList = [newRun, ...qcRuns];
+      setQcRuns(updatedList);
+      saveQCRuns(updatedList);
     }
 
     // Call backend API asynchronously
@@ -172,7 +175,7 @@ const QCChecks: React.FC = () => {
         ? "Daily QC Run Recorded: PASSED (Analyzer cleared for verification)"
         : evaluation.status === "Warning"
         ? "Daily QC Run Recorded: WARNING (1-2s rule - monitor run)"
-        : "Daily QC Run Recorded: FAILED (1-3s rule - routed to Failed QC for CAPA)"
+        : "Daily QC Run Recorded: FAILED (1-3s rule - routed directly to Failed QC)"
     );
   };
 
@@ -195,11 +198,53 @@ const QCChecks: React.FC = () => {
     if (!editRun) return;
 
     const evaluation = evaluateWestgard(editRun.measuredValue, editRun.targetMean, editRun.targetSD);
+    const finalStatus =
+      editRun.status === "Failed" || evaluation.status === "Failed"
+        ? "Failed"
+        : editRun.status || evaluation.status;
+    const finalRule =
+      finalStatus === "Failed"
+        ? "1-3s (Rejection)"
+        : finalStatus === "Warning"
+        ? "1-2s (Warning)"
+        : "1-SD (Normal)";
+
+    // If edited into Failed status (either manually or via calculation), remove from QC Checks and route to Failed QC
+    if (finalStatus === "Failed") {
+      const currentFailed = getStoredFailedQC();
+      const failedItem: QCFailedItem = {
+        id: `FAIL-${Date.now()}`,
+        qcRunId: editRun.id,
+        testName: editRun.testName,
+        analyzerName: editRun.analyzerName,
+        controlLot: editRun.lotNumber,
+        measuredValue: Number(editRun.measuredValue),
+        targetMean: Number(editRun.targetMean),
+        zScore: evaluation.zScore,
+        violationRule: `${finalRule} (Z-score: ${evaluation.zScore} SD)`,
+        failedDate: getFormattedCurrentDate(),
+        failedTime: getFormattedCurrentTime(),
+        technician: editRun.technician,
+        affectedSamplesCount: 3,
+        affectedSampleIds: ["SMP-HOLD-01", "SMP-HOLD-02", "SMP-HOLD-03"],
+        status: "Action Required",
+        severity: "Critical",
+      };
+      saveFailedQC([failedItem, ...currentFailed]);
+
+      const updated = qcRuns.filter((r) => r.id !== editRun.id);
+      setQcRuns(updated);
+      saveQCRuns(updated);
+      setEditRun(null);
+      showToast("QC Run status updated to FAILED - Record removed from QC Checks and routed to Failed QC.");
+      return;
+    }
+
     const updatedRun: QCRunRecord = {
       ...editRun,
       zScore: evaluation.zScore,
-      westgardRule: evaluation.rule,
-      status: evaluation.status,
+      westgardRule: finalRule,
+      status: finalStatus as "Passed" | "Warning",
     };
 
     const updated = qcRuns.map((r) => (r.id === editRun.id ? updatedRun : r));
@@ -211,6 +256,9 @@ const QCChecks: React.FC = () => {
 
   const filteredRuns = useMemo(() => {
     return qcRuns.filter((item) => {
+      // In QC Checks, only Pass and Warning are shown
+      if (item.status !== "Passed" && item.status !== "Warning") return false;
+
       const matchSearch =
         item.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.analyzerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -316,7 +364,10 @@ const QCChecks: React.FC = () => {
           <p className="mt-1 text-xs text-amber-600 font-medium">Exceeds 2SD, monitored closely</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div
+          onClick={() => navigate("/quality-control/failed")}
+          className="rounded-2xl border border-rose-200 bg-rose-50/50 p-5 shadow-sm cursor-pointer hover:bg-rose-50 hover:border-rose-300 transition"
+        >
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">QC Failed (Out of Control)</p>
             <span className="rounded-xl bg-rose-50 p-2 text-rose-600">
@@ -324,9 +375,12 @@ const QCChecks: React.FC = () => {
             </span>
           </div>
           <p className="mt-3 text-3xl font-bold text-rose-700">
-            {qcRuns.filter((r) => r.status === "Failed").length}
+            {getStoredFailedQC().length}
           </p>
-          <p className="mt-1 text-xs text-rose-600 font-medium">1-3s rejection, sample hold active</p>
+          <p className="mt-1 text-xs text-rose-600 font-medium flex items-center justify-between">
+            <span>Routed to Failed QC</span>
+            <span className="underline font-bold">View in Failed QC &rarr;</span>
+          </p>
         </div>
       </div>
 
@@ -374,10 +428,9 @@ const QCChecks: React.FC = () => {
               }}
               className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-700 outline-none focus:border-teal-500"
             >
-              <option value="All">All QC Statuses</option>
+              <option value="All">All QC Statuses (Pass &amp; Warning)</option>
               <option value="Passed">Passed (Normal)</option>
               <option value="Warning">Warning (1-2s)</option>
-              <option value="Failed">Failed (1-3s Rejection)</option>
             </select>
           </div>
         </div>
@@ -526,7 +579,10 @@ const QCChecks: React.FC = () => {
             onClick={() => setIsNewRunOpen(false)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -691,8 +747,14 @@ const QCChecks: React.FC = () => {
 
       {/* View Run Right-Side Drawer */}
       {viewRun && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setViewRun(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -755,7 +817,10 @@ const QCChecks: React.FC = () => {
             onClick={() => setEditRun(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -814,6 +879,29 @@ const QCChecks: React.FC = () => {
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
+                    QC Evaluation Status
+                  </label>
+                  <select
+                    value={editRun.status}
+                    onChange={(e) =>
+                      setEditRun({
+                        ...editRun,
+                        status: e.target.value as "Passed" | "Warning" | "Failed",
+                      })
+                    }
+                    className="w-full h-10 rounded-xl border border-slate-300 px-3 font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                  >
+                    <option value="Passed">Passed (Normal - Within 1-2 SD)</option>
+                    <option value="Warning">Warning (1-2s Alert - Monitor Run)</option>
+                    <option value="Failed">Failed (1-3s Rejection &rarr; Routes to Failed QC)</option>
+                  </select>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Selecting &lsquo;Failed&rsquo; will immediately remove this record from QC Checks and route it to Failed QC for sample hold &amp; CAPA.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
                     Technician Remarks / Observations
                   </label>
                   <textarea
@@ -848,8 +936,14 @@ const QCChecks: React.FC = () => {
 
       {/* Delete Run Right-Side Drawer */}
       {deletingRun && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setDeletingRun(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
                 <div className="flex items-center gap-2">
