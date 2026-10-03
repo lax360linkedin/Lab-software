@@ -279,6 +279,22 @@
   font-weight: 500;
 }
 
+/* =========================================
+   ROLE CUSTOM DROPDOWN
+========================================= */
+
+.signup-role-dropdown {
+  @apply absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl;
+}
+
+.signup-role-option {
+  @apply flex cursor-pointer items-center justify-between px-3.5 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-600;
+}
+
+.signup-role-option-selected {
+  @apply bg-blue-50/70 font-semibold text-blue-600;
+}
+
 .password-toggle {
   @apply flex-shrink-0 cursor-pointer rounded border-0 bg-transparent p-1 text-slate-400 transition-colors hover:text-slate-600;
 }

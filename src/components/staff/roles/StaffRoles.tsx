@@ -468,8 +468,14 @@ export default function StaffRoles() {
 
       {/* Add / Edit Role Slide-over Drawer */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -617,8 +623,14 @@ export default function StaffRoles() {
 
       {/* View Role Slide-over Drawer */}
       {viewingRole && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setViewingRole(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -707,7 +719,10 @@ export default function StaffRoles() {
             className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
             onClick={() => setDeletingRole(null)}
           />
-          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div className="flex items-center gap-2 text-rose-600">
                 <WarningAmberOutlinedIcon />

@@ -676,8 +676,14 @@ export default function ExpenseCategories() {
 
       {/* Add / Edit Category Slide-over Drawer */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -842,8 +848,14 @@ export default function ExpenseCategories() {
 
       {/* View Category Slide-over Drawer */}
       {viewingCategory && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setViewingCategory(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -938,8 +950,14 @@ export default function ExpenseCategories() {
 
       {/* Delete Category Slide-over Drawer */}
       {deletingCategory && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+        <div
+          className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-sm flex justify-end"
+          onClick={() => setDeletingCategory(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
               <div className="flex items-center justify-between border-b border-rose-100 bg-rose-50/50 px-6 py-4">
                 <div className="flex items-center gap-2">

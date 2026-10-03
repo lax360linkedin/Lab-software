@@ -11,10 +11,14 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
+import { getFormattedCurrentDate, getFormattedCurrentTime } from "../../common components/dateUtils";
 import {
   getStoredFailedQC,
   saveFailedQC,
+  getStoredCAPA,
+  saveCAPA,
   type QCFailedItem,
+  type CorrectiveActionRecord,
 } from "./qcData";
 import "./qualityControl.css";
 
@@ -27,6 +31,8 @@ const FailedQC: React.FC = () => {
 
   const [viewItem, setViewItem] = useState<QCFailedItem | null>(null);
   const [editItem, setEditItem] = useState<QCFailedItem | null>(null);
+  const [editRootCause, setEditRootCause] = useState<CorrectiveActionRecord["rootCauseCategory"]>("Calibration Drift");
+  const [editActionTaken, setEditActionTaken] = useState("Analyzer inspection & recalibration completed.");
   const [deletingItem, setDeletingItem] = useState<QCFailedItem | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -48,9 +54,58 @@ const FailedQC: React.FC = () => {
     showToast("Deleted successfully");
   };
 
+  // Correct status and move to Corrective Actions (CAPA)
+  const handleCorrectAndMove = (
+    item: QCFailedItem,
+    rootCauseCategory?: CorrectiveActionRecord["rootCauseCategory"],
+    actionNotes?: string
+  ) => {
+    const newCapa: CorrectiveActionRecord = {
+      id: `CAPA-${Date.now()}`,
+      capaNumber: `CAPA-2026-0${Math.floor(10 + Math.random() * 90)}`,
+      failedQcId: item.id,
+      qcRunId: item.qcRunId,
+      analyzerName: item.analyzerName,
+      testName: item.testName,
+      identifiedIssue: item.violationRule,
+      rootCauseCategory: rootCauseCategory || "Calibration Drift",
+      rootCauseDetails: `Corrected incident ${item.id} from Failed QC. Target mean: ${item.targetMean}, Measured: ${item.measuredValue} (Deviation: ${item.zScore} SD).`,
+      actionTaken: actionNotes || "Analyzer recalibration performed. Corrective action in progress.",
+      repeatRunValue: Number(item.targetMean),
+      repeatRunStatus: "Retest Required",
+      reanalysisAuthorized: false,
+      releasedSampleIds: item.affectedSampleIds && item.affectedSampleIds.length > 0 ? item.affectedSampleIds : ["SMP-HOLD-01"],
+      investigatedBy: item.technician || "Quality Manager",
+      actionDate: getFormattedCurrentDate(),
+      actionTime: getFormattedCurrentTime(),
+      approvalStatus: "Pending Review",
+    };
+
+    const currentCapa = getStoredCAPA();
+    saveCAPA([newCapa, ...currentCapa]);
+
+    const updated = failedList.filter((f) => f.id !== item.id);
+    setFailedList(updated);
+    saveFailedQC(updated);
+
+    if (editItem) setEditItem(null);
+
+    showToast(`Status corrected! Incident ${item.id} moved to Corrective Actions (${newCapa.capaNumber}).`);
+    setTimeout(() => {
+      navigate("/quality-control/corrective-actions");
+    }, 600);
+  };
+
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editItem) return;
+
+    if (editItem.status !== "Action Required") {
+      // Status was corrected! Move to Corrective Actions
+      handleCorrectAndMove(editItem, editRootCause, editActionTaken);
+      return;
+    }
+
     const updated = failedList.map((f) => (f.id === editItem.id ? editItem : f));
     setFailedList(updated);
     saveFailedQC(updated);
@@ -220,12 +275,12 @@ const FailedQC: React.FC = () => {
                 <div className="flex items-center justify-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => navigate("/quality-control/corrective-actions")}
-                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold text-xs border border-rose-200 transition"
-                    title="Initiate CAPA"
+                    onClick={() => handleCorrectAndMove(item)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-xs border border-emerald-300 shadow-sm transition"
+                    title="Correct status and move to Corrective Actions (CAPA)"
                   >
                     <BuildCircleOutlinedIcon sx={{ fontSize: 14 }} />
-                    CAPA
+                    Correct &rarr; CAPA
                   </button>
 
                   <button
@@ -281,7 +336,10 @@ const FailedQC: React.FC = () => {
             onClick={() => setViewItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
@@ -367,7 +425,10 @@ const FailedQC: React.FC = () => {
             onClick={() => setEditItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
@@ -416,13 +477,47 @@ const FailedQC: React.FC = () => {
                   <select
                     value={editItem.status}
                     onChange={(e) => setEditItem({ ...editItem, status: e.target.value as any })}
-                    className="w-full h-10 rounded-xl border border-slate-300 px-3 text-slate-800 font-semibold outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                    className="w-full h-10 rounded-xl border border-slate-300 px-3 text-slate-800 font-semibold outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                   >
-                    <option value="Action Required">Action Required</option>
-                    <option value="Under Investigation">Under Investigation</option>
-                    <option value="Resolved">Resolved</option>
+                    <option value="Action Required">Action Required (Keep in Failed QC)</option>
+                    <option value="Under Investigation">Under Investigation (Move to Corrective Actions)</option>
+                    <option value="Resolved">Resolved / Corrected (Move to Corrective Actions)</option>
                   </select>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Correcting status will automatically route this incident to Corrective Actions (CAPA) for recalibration and repeat QC.
+                  </p>
                 </div>
+
+                {editItem.status !== "Action Required" && (
+                  <>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Root Cause Category</label>
+                      <select
+                        value={editRootCause}
+                        onChange={(e) => setEditRootCause(e.target.value as any)}
+                        className="w-full h-10 rounded-xl border border-slate-300 px-3 font-semibold text-slate-800 outline-none focus:border-teal-500"
+                      >
+                        <option value="Calibration Drift">Calibration Drift</option>
+                        <option value="Reagent Deterioration">Reagent Deterioration</option>
+                        <option value="Optical / Lamp Error">Optical / Lamp Error</option>
+                        <option value="Temperature Fluctuation">Temperature Fluctuation</option>
+                        <option value="Pipette Calibration">Pipette Calibration</option>
+                        <option value="Mechanical Alignment">Mechanical Alignment</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Corrective Action Details</label>
+                      <textarea
+                        rows={2}
+                        value={editActionTaken}
+                        onChange={(e) => setEditActionTaken(e.target.value)}
+                        placeholder="Action taken to correct this issue..."
+                        className="w-full rounded-xl border border-slate-300 p-2.5 font-medium text-slate-800 outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
@@ -437,7 +532,7 @@ const FailedQC: React.FC = () => {
                   type="submit"
                   className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  Save
+                  {editItem.status !== "Action Required" ? "Correct & Move to Corrective" : "Save"}
                 </button>
               </div>
             </form>
@@ -453,7 +548,10 @@ const FailedQC: React.FC = () => {
             onClick={() => setDeletingItem(null)}
           />
 
-          <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">

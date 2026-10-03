@@ -923,7 +923,10 @@ export default function LabSettings() {
             className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
             onClick={() => setViewLog(null)}
           />
-          <div className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Audit Log Details</h3>
@@ -1006,6 +1009,7 @@ export default function LabSettings() {
           <form
             onSubmit={handleSaveEdit}
             className="relative z-10 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div>
@@ -1130,7 +1134,10 @@ export default function LabSettings() {
             className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
             onClick={() => setDeletingLog(null)}
           />
-          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+          <div
+            className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div className="flex items-center gap-2 text-rose-600">
                 <WarningAmberOutlinedIcon />
