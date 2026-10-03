@@ -7,9 +7,11 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import PowerSettingsNewOutlinedIcon from "@mui/icons-material/PowerSettingsNewOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import "./departments.css";
@@ -151,7 +153,22 @@ export default function Departments() {
   const [selectedShift, setSelectedShift] = useState("All");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [deletingDept, setDeletingDept] = useState<DepartmentItem | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 4000);
+  };
+
+  const confirmDelete = () => {
+    if (!deletingDept) return;
+    setDepartments((prev) => prev.filter((d) => d.id !== deletingDept.id));
+    setDeletingDept(null);
+    showToast("Deleted successfully");
+  };
 
   // Modal State
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -311,7 +328,6 @@ export default function Departments() {
     "Department & Code",
     "Section Head / In-Charge",
     "Location & Floor",
-    "Operational Shift",
     "Linked Equipment",
     "Allocated Staff",
     "TAT Target",
@@ -321,6 +337,14 @@ export default function Departments() {
 
   return (
     <div className="departments-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -472,8 +496,8 @@ export default function Departments() {
           <Table
             columns={columns}
             data={paginatedDepartments}
-            maxHeight="440px"
-            minWidth="1300px"
+            maxHeight="380px"
+            minWidth="1200px"
             emptyMessage="No departments match your search or filter criteria."
             renderRow={(dept: DepartmentItem) => {
               let statusBadge = "bg-emerald-100 text-emerald-700 hover:bg-emerald-200";
@@ -486,7 +510,7 @@ export default function Departments() {
               return (
                 <>
                   {/* 1. Department & Code */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left min-w-[220px]">
+                  <td className="whitespace-nowrap px-4 py-3 text-left min-w-[220px]">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-xs font-bold text-blue-700 border border-blue-100">
                         {dept.code.slice(5, 8)}
@@ -499,54 +523,41 @@ export default function Departments() {
                   </td>
 
                   {/* 2. Head / In-Charge */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left min-w-[190px]">
+                  <td className="whitespace-nowrap px-4 py-3 text-left min-w-[190px]">
                     <div className="font-medium text-slate-800 text-sm">{dept.headOfDept}</div>
                     <div className="text-xs text-slate-400">{dept.intercom}</div>
                   </td>
 
                   {/* 3. Location */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left min-w-[200px]">
+                  <td className="whitespace-nowrap px-4 py-3 text-left min-w-[200px]">
                     <span className="text-xs text-slate-700 font-medium">
                       {dept.location}
                     </span>
                   </td>
 
-                  {/* 4. Shift */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-left min-w-[170px]">
-                    <span
-                      className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${
-                        dept.shift.includes("24/7")
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {dept.shift}
-                    </span>
-                  </td>
-
-                  {/* 5. Linked Equipment */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center min-w-[130px]">
+                  {/* 4. Linked Equipment */}
+                  <td className="whitespace-nowrap px-4 py-3 text-center min-w-[130px]">
                     <span className="inline-flex items-center justify-center rounded-full bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700">
                       {dept.equipmentCount} Units
                     </span>
                   </td>
 
-                  {/* 6. Allocated Staff */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center min-w-[120px]">
+                  {/* 5. Allocated Staff */}
+                  <td className="whitespace-nowrap px-4 py-3 text-center min-w-[120px]">
                     <span className="inline-flex items-center justify-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
                       {dept.activeStaffCount} Staff
                     </span>
                   </td>
 
-                  {/* 7. TAT Benchmark */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center min-w-[130px]">
+                  {/* 6. TAT Benchmark */}
+                  <td className="whitespace-nowrap px-4 py-3 text-center min-w-[130px]">
                     <span className="font-semibold text-xs text-slate-700">
                       {dept.tatBenchmark}
                     </span>
                   </td>
 
-                  {/* 8. Status */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center min-w-[140px]">
+                  {/* 7. Status */}
+                  <td className="whitespace-nowrap px-4 py-3 text-center min-w-[140px]">
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(dept.id)}
@@ -557,8 +568,8 @@ export default function Departments() {
                     </button>
                   </td>
 
-                  {/* 9. Actions */}
-                  <td className="whitespace-nowrap px-4 py-3.5 text-center min-w-[120px]">
+                  {/* 8. Actions */}
+                  <td className="whitespace-nowrap px-4 py-3 text-center min-w-[120px]">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
                         type="button"
@@ -578,15 +589,11 @@ export default function Departments() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleToggleStatus(dept.id)}
-                        className={`rounded-lg p-1.5 transition ${
-                          dept.status === "Active"
-                            ? "text-rose-500 hover:bg-rose-50"
-                            : "text-emerald-600 hover:bg-emerald-50"
-                        }`}
-                        title={dept.status === "Active" ? "Deactivate" : "Activate"}
+                        onClick={() => setDeletingDept(dept)}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                        title="Delete Department"
                       >
-                        <PowerSettingsNewOutlinedIcon sx={{ fontSize: 18 }} />
+                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
                       </button>
                     </div>
                   </td>
@@ -608,52 +615,60 @@ export default function Departments() {
         </div>
       </div>
 
-      {/* View Department Details Modal */}
+      {/* View Department Details Right-Side Drawer */}
       {viewingDept && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setViewingDept(null)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <CloseIcon sx={{ fontSize: 20 }} />
-            </button>
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setViewingDept(null)}
+          />
 
-            <div className="flex items-center gap-3 mb-4">
-              <span className="rounded-xl bg-blue-50 p-3 text-blue-600">
-                <BusinessOutlinedIcon sx={{ fontSize: 24 }} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">{viewingDept.name}</h3>
-                <span className="font-mono text-xs text-blue-600 font-semibold">{viewingDept.code}</span>
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <VisibilityOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">{viewingDept.name}</h3>
+                  <span className="font-mono text-xs text-blue-600 font-semibold">{viewingDept.code}</span>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setViewingDept(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
             </div>
 
-            <div className="space-y-3 border-t border-slate-100 pt-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Head of Section</span>
-                  <p className="font-semibold text-slate-800 text-sm mt-0.5">{viewingDept.headOfDept}</p>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Head of Section:</span>
+                  <span className="font-semibold text-slate-800">{viewingDept.headOfDept}</span>
                 </div>
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Intercom Line</span>
-                  <p className="font-semibold text-slate-800 text-sm mt-0.5">{viewingDept.intercom}</p>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Intercom Line:</span>
+                  <span className="font-semibold text-slate-800">{viewingDept.intercom}</span>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Floor Location</span>
-                  <p className="text-slate-700 mt-0.5">{viewingDept.location}</p>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Floor Location:</span>
+                  <span className="text-slate-700">{viewingDept.location}</span>
                 </div>
-                <div>
-                  <span className="text-slate-400 uppercase text-[10px] font-semibold">Shift Schedule</span>
-                  <p className="text-slate-700 mt-0.5">{viewingDept.shift}</p>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Operating Shift:</span>
+                  <span className="text-slate-700">{viewingDept.shift}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className="grid grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                   <span className="text-slate-400 uppercase text-[10px]">Equipment</span>
                   <p className="font-bold text-purple-700 text-base">{viewingDept.equipmentCount} Units</p>
@@ -669,226 +684,326 @@ export default function Departments() {
               </div>
 
               <div>
-                <span className="text-slate-400 uppercase text-[10px] font-semibold">Scope of Operations</span>
-                <p className="text-slate-600 mt-1 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Scope of Operations
+                </label>
+                <p className="text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
                   {viewingDept.description}
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setViewingDept(null)}
-                className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-900 transition"
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                Close View
+                Cancel
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
-      {/* Add / Edit Department Modal */}
+      {/* Add / Edit Department Drawer (Right Side) */}
       {isAddEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setIsAddEditModalOpen(false)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            >
-              <CloseIcon sx={{ fontSize: 20 }} />
-            </button>
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setIsAddEditModalOpen(false)}
+          />
 
-            <div className="flex items-center gap-2 mb-4">
-              <span className="rounded-lg bg-blue-100 p-2 text-blue-600">
-                <BusinessOutlinedIcon sx={{ fontSize: 22 }} />
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {editingDept ? "Edit Department Details" : "Create New Department"}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Manage clinical divisions, location mapping, and TAT benchmarks.
-                </p>
+          {/* Drawer */}
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <BusinessOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {editingDept ? "Edit Department Details" : "Create New Department"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Manage clinical divisions, location mapping, and TAT benchmarks.
+                  </p>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsAddEditModalOpen(false)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
             </div>
 
-            <form onSubmit={handleSaveDepartment} className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Department Code <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. DEPT-BIO"
-                    value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+            <form onSubmit={handleSaveDepartment} className="flex-1 flex flex-col justify-between overflow-y-auto">
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Department Code <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. DEPT-BIO"
+                      value={formData.code}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Department Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Clinical Biochemistry"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Head of Department (HOD)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dr. Meenakshi Sundaram"
+                      value={formData.headOfDept}
+                      onChange={(e) => setFormData({ ...formData, headOfDept: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Location & Room No
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Block A, Room 102"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Operating Shift
+                    </label>
+                    <select
+                      value={formData.shift}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shift: e.target.value as DepartmentItem["shift"],
+                        })
+                      }
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="24/7 Round-the-clock">24/7 Round-the-clock</option>
+                      <option value="Morning (07:00 - 15:00)">Morning (07:00 - 15:00)</option>
+                      <option value="General (09:00 - 17:00)">General (09:00 - 17:00)</option>
+                      <option value="Evening (14:00 - 22:00)">Evening (14:00 - 22:00)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Intercom Line
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ext: 102"
+                      value={formData.intercom}
+                      onChange={(e) => setFormData({ ...formData, intercom: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Turnaround Time (TAT)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2 - 3 Hours"
+                      value={formData.tatBenchmark}
+                      onChange={(e) => setFormData({ ...formData, tatBenchmark: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Equipment Units Count
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.equipmentCount}
+                      onChange={(e) => setFormData({ ...formData, equipmentCount: Number(e.target.value) })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          status: e.target.value as DepartmentItem["status"],
+                        })
+                      }
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Under Maintenance">Under Maintenance</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Department Name <span className="text-rose-500">*</span>
+                    Description / Test Scope
                   </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Clinical Biochemistry"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  <textarea
+                    rows={3}
+                    placeholder="Specify key analyzers, routine tests, or specimen types processed..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Head of Department (HOD)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Dr. Meenakshi Sundaram"
-                    value={formData.headOfDept}
-                    onChange={(e) => setFormData({ ...formData, headOfDept: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Location & Room No
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Block A, Room 102"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Operating Shift
-                  </label>
-                  <select
-                    value={formData.shift}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        shift: e.target.value as DepartmentItem["shift"],
-                      })
-                    }
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="24/7 Round-the-clock">24/7 Round-the-clock</option>
-                    <option value="Morning (07:00 - 15:00)">Morning (07:00 - 15:00)</option>
-                    <option value="General (09:00 - 17:00)">General (09:00 - 17:00)</option>
-                    <option value="Evening (14:00 - 22:00)">Evening (14:00 - 22:00)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Intercom Line
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ext: 102"
-                    value={formData.intercom}
-                    onChange={(e) => setFormData({ ...formData, intercom: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Turnaround Time (TAT)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 2 - 3 Hours"
-                    value={formData.tatBenchmark}
-                    onChange={(e) => setFormData({ ...formData, tatBenchmark: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Equipment Units Count
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.equipmentCount}
-                    onChange={(e) => setFormData({ ...formData, equipmentCount: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as DepartmentItem["status"],
-                      })
-                    }
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Under Maintenance">Under Maintenance</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Description / Test Scope
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Specify key analyzers, routine tests, or specimen types processed..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
                 <button
                   type="button"
                   onClick={() => setIsAddEditModalOpen(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 transition"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
                 >
-                  {editingDept ? "Save Changes" : "Create Department"}
+                  Save
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Right-Side Drawer */}
+      {deletingDept && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
+            onClick={() => setDeletingDept(null)}
+          />
+
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                  <DeleteOutlineOutlinedIcon sx={{ fontSize: 22 }} />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Delete Department</h3>
+                  <p className="text-xs text-slate-500">Confirm deletion</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDeletingDept(null)}
+                title="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <WarningAmberOutlinedIcon className="text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-rose-800">
+                  <p className="font-semibold text-sm mb-1">Are you sure you want to delete this department?</p>
+                  <p>This action cannot be undone. Linked analyzers and staff allocations will be affected.</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Department Name:</span>
+                  <span className="font-bold text-slate-900">{deletingDept.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Code:</span>
+                  <span className="font-mono text-slate-700">{deletingDept.code}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">HOD:</span>
+                  <span className="text-slate-700">{deletingDept.headOfDept}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Equipment Linked:</span>
+                  <span className="text-slate-700">{deletingDept.equipmentCount} Units</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingDept(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

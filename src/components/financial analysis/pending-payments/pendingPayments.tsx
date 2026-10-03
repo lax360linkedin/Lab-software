@@ -7,8 +7,14 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getTodayLabel, getFormattedCurrentDate } from "../../../common components/dateUtils";
 
 import "./pendingPayments.css";
 
@@ -33,12 +39,14 @@ export interface PendingPaymentItem {
   followupStatus: FollowupAction;
 }
 
+const todayDate = getFormattedCurrentDate();
+
 const PENDING_PAYMENT_DATA: PendingPaymentItem[] = [
   {
     id: "PEND-01",
     invoiceNumber: "BILL-2026-1046",
-    billingDate: "25 Sep 2026",
-    dueDate: "25 Sep 2026",
+    billingDate: todayDate,
+    dueDate: todayDate,
     patientName: "Farhana Begum",
     patientId: "PID-4418",
     phone: "9876543214",
@@ -54,7 +62,7 @@ const PENDING_PAYMENT_DATA: PendingPaymentItem[] = [
   {
     id: "PEND-02",
     invoiceNumber: "BILL-2026-1050",
-    billingDate: "25 Sep 2026",
+    billingDate: todayDate,
     dueDate: "26 Sep 2026",
     patientName: "Kavitha Natarajan",
     patientId: "PID-4416",
@@ -71,8 +79,8 @@ const PENDING_PAYMENT_DATA: PendingPaymentItem[] = [
   {
     id: "PEND-03",
     invoiceNumber: "BILL-2026-1051",
-    billingDate: "25 Sep 2026",
-    dueDate: "25 Sep 2026",
+    billingDate: todayDate,
+    dueDate: todayDate,
     patientName: "Senthil Nathan",
     patientId: "PID-4412",
     phone: "9876543218",
@@ -248,32 +256,61 @@ const columns = [
   "Bill / Paid",
   "Balance Due",
   "Aging Status",
-  "Action",
+  "Follow-up",
+  "Actions",
 ];
 
 const PendingPayments = () => {
+  const [items, setItems] = useState<PendingPaymentItem[]>(PENDING_PAYMENT_DATA);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAging, setSelectedAging] = useState<string>("All");
   const [selectedAction, setSelectedAction] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [viewingItem, setViewingItem] = useState<PendingPaymentItem | null>(null);
+  const [editingItem, setEditingItem] = useState<PendingPaymentItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<PendingPaymentItem | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingItem) return;
+    setItems((prev) => prev.filter((item) => item.id !== deletingItem.id));
+    setDeletingItem(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setItems((prev) =>
+      prev.map((item) => (item.id === editingItem.id ? editingItem : item))
+    );
+    setEditingItem(null);
+    showToast("Pending payment updated successfully");
+  };
+
   // KPI calculations
   const totalBalanceDue = useMemo(() => {
-    return PENDING_PAYMENT_DATA.reduce((sum, item) => sum + item.balanceDue, 0);
-  }, []);
+    return items.reduce((sum, item) => sum + item.balanceDue, 0);
+  }, [items]);
 
-  const totalOverdueInvoices = PENDING_PAYMENT_DATA.length;
+  const totalOverdueInvoices = items.length;
 
   const averageAgingDays = useMemo(() => {
     if (totalOverdueInvoices === 0) return 0;
-    const sumDays = PENDING_PAYMENT_DATA.reduce((sum, item) => sum + item.daysAging, 0);
+    const sumDays = items.reduce((sum, item) => sum + item.daysAging, 0);
     return (sumDays / totalOverdueInvoices).toFixed(1);
-  }, [totalOverdueInvoices]);
+  }, [items, totalOverdueInvoices]);
 
   const criticalOverdueCount = useMemo(() => {
-    return PENDING_PAYMENT_DATA.filter((item) => item.daysAging > 7).length;
-  }, []);
+    return items.filter((item) => item.daysAging > 7).length;
+  }, [items]);
 
   // Aging brackets summary
   const agingBrackets = useMemo(() => {
@@ -285,8 +322,8 @@ const PendingPayments = () => {
     ];
 
     return brackets.map((bracket) => {
-      const items = PENDING_PAYMENT_DATA.filter((i) => i.agingCategory === bracket);
-      const totalAmount = items.reduce((sum, i) => sum + i.balanceDue, 0);
+      const bItems = items.filter((i) => i.agingCategory === bracket);
+      const totalAmount = bItems.reduce((sum, i) => sum + i.balanceDue, 0);
       const percentage =
         totalBalanceDue > 0 ? Math.round((totalAmount / totalBalanceDue) * 100) : 0;
 
@@ -297,17 +334,17 @@ const PendingPayments = () => {
 
       return {
         bracket,
-        count: items.length,
+        count: bItems.length,
         totalAmount,
         percentage,
         color,
       };
     });
-  }, [totalBalanceDue]);
+  }, [items, totalBalanceDue]);
 
   // Filtered list
   const filteredList = useMemo(() => {
-    return PENDING_PAYMENT_DATA.filter((item) => {
+    return items.filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -323,7 +360,7 @@ const PendingPayments = () => {
 
       return matchesSearch && matchesAging && matchesAction;
     });
-  }, [searchTerm, selectedAging, selectedAction]);
+  }, [items, searchTerm, selectedAging, selectedAction]);
 
   const currentList = useMemo(() => {
     return filteredList.slice(
@@ -358,7 +395,7 @@ const PendingPayments = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
             <CalendarTodayOutlinedIcon className="text-sm text-blue-600" />
-            <span>Today, 25 Sep 2026</span>
+            <span>{getTodayLabel()}</span>
           </div>
 
           <button
@@ -565,7 +602,6 @@ const PendingPayments = () => {
           <Table
             columns={columns}
             data={currentList}
-            maxHeight="430px"
             minWidth="1200px"
             emptyMessage="No pending payment records match your search criteria."
             renderRow={(item: PendingPaymentItem) => (
@@ -635,6 +671,32 @@ const PendingPayments = () => {
                     <span>{item.followupStatus}</span>
                   </div>
                 </td>
+
+                <td className="whitespace-nowrap px-4 py-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setViewingItem(item)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
+                      title="View Details"
+                    >
+                      <VisibilityOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setEditingItem({ ...item })}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 transition"
+                      title="Edit Payment"
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingItem(item)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                      title="Delete Record"
+                    >
+                      <DeleteOutlineOutlinedIcon fontSize="small" />
+                    </button>
+                  </div>
+                </td>
               </>
             )}
           />
@@ -656,8 +718,343 @@ const PendingPayments = () => {
           </div>
         )}
       </section>
+
+      {/* View Drawer */}
+      {viewingItem && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setViewingItem(null)} />
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Pending Payment Details</h3>
+                <p className="text-xs text-gray-500">{viewingItem.invoiceNumber} • {viewingItem.patientId}</p>
+              </div>
+              <button onClick={() => setViewingItem(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Patient Name</span>
+                  <span className="font-semibold text-slate-800">{viewingItem.patientName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Phone</span>
+                  <span className="text-slate-700">{viewingItem.phone}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Doctor / Sponsor</span>
+                  <span className="text-slate-800 font-medium">{viewingItem.sponsorOrDoctor}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-2">
+                <div className="text-xs font-medium text-slate-500">Tests Ordered</div>
+                <div className="font-semibold text-slate-800 text-xs">{viewingItem.testsOrdered}</div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Total Billed</span>
+                  <span className="font-semibold text-slate-800">₹{viewingItem.totalBill.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Amount Paid</span>
+                  <span className="font-semibold text-emerald-600">₹{viewingItem.paidAmount.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
+                  <span className="text-xs font-semibold text-slate-700">Balance Overdue</span>
+                  <span className="font-bold text-rose-600 text-base">₹{viewingItem.balanceDue.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Aging Category</span>
+                  <span className="rounded-full bg-rose-50 px-3 py-0.5 text-xs font-semibold text-rose-700">
+                    {viewingItem.agingCategory} ({viewingItem.daysAging} days)
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Follow-up Status</span>
+                  <span className="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-700">
+                    {viewingItem.followupStatus}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Billing Date</span>
+                  <span className="text-slate-700">{viewingItem.billingDate}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Due Date</span>
+                  <span className="text-slate-700">{viewingItem.dueDate}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Drawer */}
+      {editingItem && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setEditingItem(null)} />
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Edit Pending Payment</h3>
+                <p className="text-xs text-gray-500">{editingItem.invoiceNumber} • {editingItem.patientName}</p>
+              </div>
+              <button onClick={() => setEditingItem(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="flex flex-1 flex-col justify-between overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Patient Name</label>
+                  <input
+                    type="text"
+                    value={editingItem.patientName}
+                    onChange={(e) => setEditingItem({ ...editingItem, patientName: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Phone</label>
+                    <input
+                      type="text"
+                      value={editingItem.phone}
+                      onChange={(e) => setEditingItem({ ...editingItem, phone: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Doctor / Sponsor</label>
+                    <input
+                      type="text"
+                      value={editingItem.sponsorOrDoctor}
+                      onChange={(e) => setEditingItem({ ...editingItem, sponsorOrDoctor: e.target.value })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Tests Ordered</label>
+                  <input
+                    type="text"
+                    value={editingItem.testsOrdered}
+                    onChange={(e) => setEditingItem({ ...editingItem, testsOrdered: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Total Bill (₹)</label>
+                    <input
+                      type="number"
+                      value={editingItem.totalBill}
+                      onChange={(e) => {
+                        const total = Number(e.target.value) || 0;
+                        setEditingItem({
+                          ...editingItem,
+                          totalBill: total,
+                          balanceDue: Math.max(0, total - editingItem.paidAmount),
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Paid Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={editingItem.paidAmount}
+                      onChange={(e) => {
+                        const paid = Number(e.target.value) || 0;
+                        setEditingItem({
+                          ...editingItem,
+                          paidAmount: paid,
+                          balanceDue: Math.max(0, editingItem.totalBill - paid),
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+                  <span className="text-slate-500">Calculated Balance Due:</span>
+                  <div className="font-bold text-rose-600 text-sm">₹{editingItem.balanceDue.toLocaleString("en-IN")}</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Aging Days</label>
+                    <input
+                      type="number"
+                      value={editingItem.daysAging}
+                      onChange={(e) => {
+                        const days = Number(e.target.value) || 0;
+                        let cat: AgingCategory = "Due Today";
+                        if (days >= 1 && days <= 3) cat = "1-3 Days";
+                        else if (days >= 4 && days <= 7) cat = "4-7 Days";
+                        else if (days > 7) cat = "Over 7 Days";
+                        setEditingItem({
+                          ...editingItem,
+                          daysAging: days,
+                          agingCategory: cat,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Follow-up Status</label>
+                    <select
+                      value={editingItem.followupStatus}
+                      onChange={(e) => setEditingItem({ ...editingItem, followupStatus: e.target.value as FollowupAction })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="SMS Sent">SMS Sent</option>
+                      <option value="Call Scheduled">Call Scheduled</option>
+                      <option value="Under Review">Under Review</option>
+                      <option value="Escalated">Escalated</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Drawer */}
+      {deletingItem && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setDeletingItem(null)} />
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Delete Pending Payment</h3>
+                <p className="text-xs text-gray-500">{deletingItem.invoiceNumber} • {deletingItem.patientName}</p>
+              </div>
+              <button onClick={() => setDeletingItem(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+                <WarningAmberOutlinedIcon className="mt-0.5 text-rose-600 shrink-0" />
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">Warning: Destructive Action</div>
+                  <p className="text-xs text-rose-700">
+                    Are you sure you want to delete this pending payment record? This will remove the overdue balance from the accounts receivable ledger.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Invoice:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.invoiceNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Patient:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.patientName} ({deletingItem.patientId})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Tests:</span>
+                  <span className="text-slate-700 truncate max-w-[200px]">{deletingItem.testsOrdered}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Balance Overdue:</span>
+                  <span className="font-bold text-rose-600">₹{deletingItem.balanceDue.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Aging:</span>
+                  <span className="font-medium text-slate-700">{deletingItem.agingCategory} ({deletingItem.daysAging}d)</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default PendingPayments;
+

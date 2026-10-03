@@ -8,7 +8,7 @@ import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useAuth } from "../auth/useAuth";
-import type { User } from "../auth/authTypes";
+import type { User, UserRole } from "../auth/authTypes";
 import "./login.css";
 
 const Login = () => {
@@ -78,13 +78,14 @@ const Login = () => {
 
       console.log("Login successful:", data);
 
+      const userRole = (data.user?.role || "admin") as UserRole;
       const user: User = {
         userId: data.user.userId,
         labId: data.user.labId,
         labName: data.user.labName,
         name: data.user.name,
         email: data.user.email,
-        role: data.user.role,
+        role: userRole,
       };
       login(user);
       localStorage.setItem(
@@ -97,7 +98,15 @@ const Login = () => {
         data.tokenType
       );
 
-      navigate("/dashboard");
+      if (userRole === "admin") {
+        navigate("/dashboard/admin");
+      } else if (userRole === "lab_technician") {
+        navigate("/dashboard/technician");
+      } else if (userRole === "receptionist") {
+        navigate("/dashboard/receptionist");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.error("Login API error:", error);
 
@@ -225,17 +234,16 @@ const Login = () => {
             >
 
               {/* Email */}
-
               <div className="login-field">
-
                 <label htmlFor="email">
                   Email Address
                   <span>*</span>
                 </label>
 
                 <div
-                  className={`login-input-wrapper ${emailError ? "login-input-error" : ""
-                    }`}
+                  className={`login-input-wrapper ${
+                    emailError ? "login-input-error" : ""
+                  }`}
                 >
                   <EmailOutlinedIcon />
 
@@ -257,7 +265,6 @@ const Login = () => {
                     {emailError}
                   </p>
                 )}
-
               </div>
 
               {/* Password */}

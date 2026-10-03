@@ -7,8 +7,15 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
+import { getCurrentMonthYear } from "../../../common components/dateUtils";
 
 import "./monthlyRevenue.css";
 
@@ -197,39 +204,68 @@ const columns = [
   "Net Revenue",
   "Growth (MoM)",
   "Status",
+  "Actions",
 ];
 
 const MonthlyRevenue = () => {
+  const [dataList, setDataList] = useState<MonthlyRevenueItem[]>(MONTHLY_DATA);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedQuarter, setSelectedQuarter] = useState<string>("All");
   const [selectedYear, setSelectedYear] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [viewingItem, setViewingItem] = useState<MonthlyRevenueItem | null>(null);
+  const [editingItem, setEditingItem] = useState<MonthlyRevenueItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<MonthlyRevenueItem | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingItem) return;
+    setDataList((prev) => prev.filter((item) => item.id !== deletingItem.id));
+    setDeletingItem(null);
+    showToast("Deleted successfully");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setDataList((prev) =>
+      prev.map((item) => (item.id === editingItem.id ? editingItem : item))
+    );
+    setEditingItem(null);
+    showToast("Monthly revenue updated successfully");
+  };
+
   // KPI Calculations
   const totalNetTurnover = useMemo(() => {
-    return MONTHLY_DATA.reduce((sum, item) => sum + item.netRevenue, 0);
-  }, []);
+    return dataList.reduce((sum, item) => sum + item.netRevenue, 0);
+  }, [dataList]);
 
   const totalGrossTurnover = useMemo(() => {
-    return MONTHLY_DATA.reduce((sum, item) => sum + item.grossBilling, 0);
-  }, []);
+    return dataList.reduce((sum, item) => sum + item.grossBilling, 0);
+  }, [dataList]);
 
   const totalTestsOverall = useMemo(() => {
-    return MONTHLY_DATA.reduce((sum, item) => sum + item.testsConducted, 0);
-  }, []);
+    return dataList.reduce((sum, item) => sum + item.testsConducted, 0);
+  }, [dataList]);
 
   const averageMonthlyRevenue = useMemo(() => {
-    return MONTHLY_DATA.length > 0
-      ? Math.round(totalNetTurnover / MONTHLY_DATA.length)
+    return dataList.length > 0
+      ? Math.round(totalNetTurnover / dataList.length)
       : 0;
-  }, [totalNetTurnover]);
+  }, [dataList, totalNetTurnover]);
 
   // Quarterly Summary
   const quarterlyBreakdown = useMemo(() => {
     const quarters: QuarterType[] = ["Q3", "Q2", "Q1", "Q4"];
     return quarters.map((q) => {
-      const items = MONTHLY_DATA.filter((m) => m.quarter === q);
+      const items = dataList.filter((m) => m.quarter === q);
       const totalAmount = items.reduce((sum, m) => sum + m.netRevenue, 0);
       const percentage =
         totalNetTurnover > 0 ? Math.round((totalAmount / totalNetTurnover) * 100) : 0;
@@ -247,11 +283,11 @@ const MonthlyRevenue = () => {
         color,
       };
     });
-  }, [totalNetTurnover]);
+  }, [dataList, totalNetTurnover]);
 
   // Filtered List
   const filteredData = useMemo(() => {
-    return MONTHLY_DATA.filter((item) => {
+    return dataList.filter((item) => {
       const matchesSearch =
         item.monthName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.year.toString().includes(searchTerm);
@@ -264,7 +300,7 @@ const MonthlyRevenue = () => {
 
       return matchesSearch && matchesQuarter && matchesYear;
     });
-  }, [searchTerm, selectedQuarter, selectedYear]);
+  }, [dataList, searchTerm, selectedQuarter, selectedYear]);
 
   const currentData = useMemo(() => {
     return filteredData.slice(
@@ -384,7 +420,7 @@ const MonthlyRevenue = () => {
                 Peak Month
               </p>
               <h3 className="mt-2 text-2xl font-bold text-slate-900">
-                Sep 2026
+                {getCurrentMonthYear(new Date(), false)}
               </h3>
               <p className="mt-2 text-xs text-emerald-600 font-medium">
                 ₹4,47,000 net collection
@@ -505,7 +541,6 @@ const MonthlyRevenue = () => {
           <Table
             columns={columns}
             data={currentData}
-            maxHeight="430px"
             minWidth="1200px"
             emptyMessage="No monthly revenue records match your search criteria."
             renderRow={(item: MonthlyRevenueItem) => (
@@ -565,6 +600,32 @@ const MonthlyRevenue = () => {
                     {item.status}
                   </span>
                 </td>
+
+                <td className="whitespace-nowrap px-4 py-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setViewingItem(item)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition"
+                      title="View Details"
+                    >
+                      <VisibilityOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setEditingItem({ ...item })}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 transition"
+                      title="Edit Month"
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingItem(item)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
+                      title="Delete Month"
+                    >
+                      <DeleteOutlineOutlinedIcon fontSize="small" />
+                    </button>
+                  </div>
+                </td>
               </>
             )}
           />
@@ -586,8 +647,324 @@ const MonthlyRevenue = () => {
           </div>
         )}
       </section>
+
+      {/* View Drawer */}
+      {viewingItem && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setViewingItem(null)} />
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Monthly Revenue Details</h3>
+                <p className="text-xs text-gray-500">{viewingItem.monthName} ({viewingItem.monthCode})</p>
+              </div>
+              <button onClick={() => setViewingItem(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Period</span>
+                  <span className="font-semibold text-slate-800">{viewingItem.monthName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Fiscal Quarter</span>
+                  <span className="rounded-md bg-slate-200/70 px-2 py-0.5 text-xs font-bold text-slate-700">
+                    {viewingItem.quarter} {viewingItem.year}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Status</span>
+                  <span className="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-700">
+                    {viewingItem.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Tests Conducted</span>
+                  <span className="font-bold text-slate-900">{viewingItem.testsConducted.toLocaleString("en-IN")} tests</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Growth Rate (MoM)</span>
+                  <span className={`font-bold ${viewingItem.growthRate >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                    {viewingItem.growthRate >= 0 ? "+" : ""}{viewingItem.growthRate}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Gross Billing</span>
+                  <span className="font-semibold text-slate-800">₹{viewingItem.grossBilling.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">Discounts & Waivers</span>
+                  <span className="font-bold text-rose-600">-₹{viewingItem.discounts.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
+                  <span className="text-xs font-semibold text-slate-700">Net Revenue</span>
+                  <span className="font-bold text-emerald-600 text-base">₹{viewingItem.netRevenue.toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Drawer */}
+      {editingItem && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setEditingItem(null)} />
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Edit Monthly Record</h3>
+                <p className="text-xs text-gray-500">{editingItem.monthName}</p>
+              </div>
+              <button onClick={() => setEditingItem(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="flex flex-1 flex-col justify-between overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Month Name</label>
+                  <input
+                    type="text"
+                    value={editingItem.monthName}
+                    onChange={(e) => setEditingItem({ ...editingItem, monthName: e.target.value })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Quarter</label>
+                    <select
+                      value={editingItem.quarter}
+                      onChange={(e) => setEditingItem({ ...editingItem, quarter: e.target.value as QuarterType })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="Q1">Q1</option>
+                      <option value="Q2">Q2</option>
+                      <option value="Q3">Q3</option>
+                      <option value="Q4">Q4</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Year</label>
+                    <input
+                      type="number"
+                      value={editingItem.year}
+                      onChange={(e) => setEditingItem({ ...editingItem, year: Number(e.target.value) || 2026 })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-medium text-slate-700">Tests Conducted</label>
+                  <input
+                    type="number"
+                    value={editingItem.testsConducted}
+                    onChange={(e) => setEditingItem({ ...editingItem, testsConducted: Number(e.target.value) || 0 })}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    required
+                    min={0}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Gross Billing (₹)</label>
+                    <input
+                      type="number"
+                      value={editingItem.grossBilling}
+                      onChange={(e) => {
+                        const gross = Number(e.target.value) || 0;
+                        setEditingItem({
+                          ...editingItem,
+                          grossBilling: gross,
+                          netRevenue: gross - editingItem.discounts,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Discounts (₹)</label>
+                    <input
+                      type="number"
+                      value={editingItem.discounts}
+                      onChange={(e) => {
+                        const disc = Number(e.target.value) || 0;
+                        setEditingItem({
+                          ...editingItem,
+                          discounts: disc,
+                          netRevenue: editingItem.grossBilling - disc,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+                  <span className="text-slate-500">Calculated Net Revenue:</span>
+                  <div className="font-bold text-slate-900 text-sm">₹{editingItem.netRevenue.toLocaleString("en-IN")}</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Growth Rate (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingItem.growthRate}
+                      onChange={(e) => setEditingItem({ ...editingItem, growthRate: Number(e.target.value) || 0 })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-medium text-slate-700">Status</label>
+                    <select
+                      value={editingItem.status}
+                      onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value as MonthStatus })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="Completed">Completed</option>
+                      <option value="Current Month">Current Month</option>
+                      <option value="Projected">Projected</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#29384d] hover:bg-[#1e293b] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* Delete Drawer */}
+      {deletingItem && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[2px]" onClick={() => setDeletingItem(null)} />
+          <div
+            className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-lg flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Delete Monthly Record</h3>
+                <p className="text-xs text-gray-500">{deletingItem.monthName}</p>
+              </div>
+              <button onClick={() => setDeletingItem(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+                <WarningAmberOutlinedIcon className="mt-0.5 text-rose-600 shrink-0" />
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold">Warning: Destructive Action</div>
+                  <p className="text-xs text-rose-700">
+                    Are you sure you want to delete this monthly revenue record? This will remove the fiscal period entry from all KPI summaries and charts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Period:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.monthName} ({deletingItem.quarter} {deletingItem.year})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Tests Conducted:</span>
+                  <span className="font-semibold text-slate-800">{deletingItem.testsConducted.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Gross Billing:</span>
+                  <span className="font-semibold text-slate-800">₹{deletingItem.grossBilling.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Net Revenue:</span>
+                  <span className="font-bold text-rose-600">₹{deletingItem.netRevenue.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Status:</span>
+                  <span className="font-medium text-slate-700">{deletingItem.status}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default MonthlyRevenue;
+

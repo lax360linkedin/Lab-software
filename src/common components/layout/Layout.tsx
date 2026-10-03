@@ -5,11 +5,12 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Sidebar from "./Sidebar";
 import "./layout.css";
 import { useAuth } from "../../components/auth/useAuth";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 
 const Layout = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -44,7 +45,12 @@ const Layout = () => {
             </button>
 
             <div className="header-page-info">
-              <h1>Lax360</h1>
+              <h1>Lax 360</h1>
+              <img
+                src="/favicon.svg"
+                alt="Lax 360 Logo"
+                className="header-logo"
+              />
             </div>
           </div>
 
@@ -53,6 +59,7 @@ const Layout = () => {
               type="button"
               className="notification-button"
               aria-label="Notifications"
+              onClick={() => navigate("/notifications/settings")}
             >
               <NotificationsNoneOutlinedIcon />
 
