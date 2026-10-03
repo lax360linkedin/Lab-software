@@ -4,6 +4,18 @@ import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import type { Doctor, Referral } from "../../doctors/Doctor";
+import type { LabTest } from "../../tests/Tests";
+
+interface SelectedTest {
+  testId: string;
+  testCode: string;
+  testName: string;
+  category: string;
+  sampleType: string;
+  method: string;
+  price: number;
+  turnaroundTime: string;
+}
 
 interface FormData {
   patientName: string;
@@ -16,20 +28,10 @@ interface FormData {
   requiredTests: string[];
 }
 
-const testOptions = [
-  { code: "CBC", name: "Complete Blood Count" },
-  { code: "LFT", name: "Liver Function Test" },
-  { code: "KFT", name: "Kidney Function Test" },
-  { code: "LIPID", name: "Lipid Profile" },
-  { code: "THYROID", name: "Thyroid Profile" },
-  { code: "HBA1C", name: "HbA1c" },
-  { code: "URINE", name: "Urine Routine" },
-  { code: "DENGUE", name: "Dengue Test" },
-];
-
 const DOCTOR_STORAGE_KEY = "lab_doctors";
 const PATIENT_STORAGE_KEY = "lab_patients";
 const REFERRAL_STORAGE_KEY = "lab_referrals";
+const TEST_STORAGE_KEY = "lab_tests";
 
 const getDoctors = (): Doctor[] => {
   const storedDoctors = localStorage.getItem(DOCTOR_STORAGE_KEY);
@@ -63,6 +65,22 @@ const getReferrals = (): Referral[] => {
   }
 };
 
+const getTests = (): LabTest[] => {
+  const storedTests = localStorage.getItem(TEST_STORAGE_KEY);
+
+  if (!storedTests) {
+    return [];
+  }
+
+  try {
+    const parsedTests = JSON.parse(storedTests);
+
+    return Array.isArray(parsedTests) ? parsedTests : [];
+  } catch {
+    return [];
+  }
+};
+
 const generatePatientId = () => {
   const storedPatients = localStorage.getItem(PATIENT_STORAGE_KEY);
 
@@ -88,9 +106,8 @@ const generatePatientId = () => {
     })
     .filter((number) => number > 0);
 
-  const nextNumber = numbers.length > 0
-    ? Math.max(...numbers) + 1
-    : 10001;
+  const nextNumber =
+    numbers.length > 0 ? Math.max(...numbers) + 1 : 10001;
 
   return `PAT-${nextNumber}`;
 };
@@ -120,9 +137,8 @@ const generateRegistrationId = () => {
     })
     .filter((number) => number > 0);
 
-  const nextNumber = numbers.length > 0
-    ? Math.max(...numbers) + 1
-    : 10001;
+  const nextNumber =
+    numbers.length > 0 ? Math.max(...numbers) + 1 : 10001;
 
   return `REG-${nextNumber}`;
 };
@@ -138,9 +154,8 @@ const generateReferralId = () => {
     })
     .filter((number) => number > 0);
 
-  const nextNumber = numbers.length > 0
-    ? Math.max(...numbers) + 1
-    : 1;
+  const nextNumber =
+    numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 
   return `REF-${String(nextNumber).padStart(4, "0")}`;
 };
@@ -149,6 +164,9 @@ export default function NewRegistration() {
   const navigate = useNavigate();
 
   const [doctors] = useState<Doctor[]>(() => getDoctors());
+
+  // Load tests created from the Test List page
+  const [tests] = useState<LabTest[]>(() => getTests());
 
   const [formData, setFormData] = useState<FormData>({
     patientName: "",
@@ -163,14 +181,15 @@ export default function NewRegistration() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] =
+    useState(false);
 
   const [registeredPatient, setRegisteredPatient] = useState<{
     patientId: string;
     registrationId: string;
     patientName: string;
     doctorName: string;
-    tests: string[];
+    tests: SelectedTest[];
   } | null>(null);
 
   const handleChange = (
@@ -207,14 +226,15 @@ export default function NewRegistration() {
 
   const handleTestChange = (testCode: string) => {
     setFormData((previous) => {
-      const alreadySelected = previous.requiredTests.includes(testCode);
+      const alreadySelected =
+        previous.requiredTests.includes(testCode);
 
       return {
         ...previous,
         requiredTests: alreadySelected
           ? previous.requiredTests.filter(
-            (test) => test !== testCode
-          )
+              (test) => test !== testCode
+            )
           : [...previous.requiredTests, testCode],
       };
     });
@@ -245,11 +265,13 @@ export default function NewRegistration() {
     }
 
     if (!formData.doctorId) {
-      newErrors.doctorId = "Please select the concerned doctor";
+      newErrors.doctorId =
+        "Please select the concerned doctor";
     }
 
     if (formData.requiredTests.length === 0) {
-      newErrors.requiredTests = "Please select at least one test";
+      newErrors.requiredTests =
+        "Please select at least one test";
     }
 
     setErrors(newErrors);
@@ -274,12 +296,45 @@ export default function NewRegistration() {
       return;
     }
 
+    /*
+     * Convert selected test codes into complete test objects.
+     *
+     * This is important for the next Billing step because
+     * Billing can directly use the test price.
+     */
+    const selectedTests: SelectedTest[] = tests
+      .filter((test) =>
+        formData.requiredTests.includes(test.testCode)
+      )
+      .map((test) => ({
+        testId: test.id,
+        testCode: test.testCode,
+        testName: test.testName,
+        category: test.category,
+        sampleType: test.sampleType,
+        method: test.method,
+        price: test.price,
+        turnaroundTime: test.turnaroundTime,
+      }));
+
+    if (selectedTests.length === 0) {
+      setErrors({
+        requiredTests:
+          "Selected tests could not be found. Please select an active test.",
+      });
+
+      return;
+    }
+
     const patientId = generatePatientId();
     const registrationId = generateRegistrationId();
     const referralId = generateReferralId();
 
     const registrationDate = new Date().toISOString();
 
+    /*
+     * Patient record
+     */
     const newPatient = {
       id: patientId,
       patientId,
@@ -289,9 +344,16 @@ export default function NewRegistration() {
       gender: formData.gender,
       phone: formData.phone.trim(),
       address: formData.address.trim(),
+
       doctorId: selectedDoctor.id,
       doctorReferral: selectedDoctor.doctorName,
-      requiredTests: formData.requiredTests,
+
+      /*
+       * Keep the complete selected test data.
+       * Billing can use this later.
+       */
+      requiredTests: selectedTests,
+
       registrationDate,
       status: "Registered",
     };
@@ -322,6 +384,9 @@ export default function NewRegistration() {
       ])
     );
 
+    /*
+     * Referral record
+     */
     const newReferral: Referral = {
       id: referralId,
 
@@ -335,7 +400,11 @@ export default function NewRegistration() {
 
       referralDate: registrationDate,
 
-      tests: formData.requiredTests,
+      /*
+       * Referral currently expects string[],
+       * so keep the test codes here.
+       */
+      tests: selectedTests.map((test) => test.testCode),
 
       billAmount: 0,
 
@@ -361,7 +430,7 @@ export default function NewRegistration() {
       registrationId,
       patientName: formData.patientName.trim(),
       doctorName: selectedDoctor.doctorName,
-      tests: formData.requiredTests,
+      tests: selectedTests,
     });
 
     setRegistrationSuccess(true);
@@ -384,11 +453,18 @@ export default function NewRegistration() {
     setRegistrationSuccess(false);
   };
 
+  /*
+   * SUCCESS SCREEN
+   */
   if (registrationSuccess && registeredPatient) {
+    const totalTestAmount = registeredPatient.tests.reduce(
+      (total, test) => total + test.price,
+      0
+    );
+
     return (
       <div className="min-h-screen bg-slate-50 p-6">
         <div className="mx-auto max-w-3xl">
-
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
 
             <div className="mb-6 flex flex-col items-center text-center">
@@ -410,6 +486,7 @@ export default function NewRegistration() {
 
             <div className="grid gap-4 sm:grid-cols-2">
 
+              {/* Patient ID */}
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-medium text-slate-500">
                   Patient ID
@@ -420,6 +497,7 @@ export default function NewRegistration() {
                 </p>
               </div>
 
+              {/* Registration ID */}
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-medium text-slate-500">
                   Registration ID
@@ -430,6 +508,7 @@ export default function NewRegistration() {
                 </p>
               </div>
 
+              {/* Patient Name */}
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-medium text-slate-500">
                   Patient Name
@@ -440,6 +519,7 @@ export default function NewRegistration() {
                 </p>
               </div>
 
+              {/* Doctor */}
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-medium text-slate-500">
                   Concerned Doctor
@@ -450,23 +530,57 @@ export default function NewRegistration() {
                 </p>
               </div>
 
+              {/* Selected Tests */}
               <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
-                <p className="text-xs font-medium text-slate-500">
-                  Required Tests
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-slate-500">
+                      Required Tests
+                    </p>
 
-                <div className="mt-2 flex flex-wrap gap-2">
+                    <p className="mt-1 text-xs text-slate-400">
+                      {registeredPatient.tests.length} test
+                      {registeredPatient.tests.length !== 1
+                        ? "s"
+                        : ""}{" "}
+                      selected
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500">
+                      Test Total
+                    </p>
+
+                    <p className="text-lg font-semibold text-slate-800">
+                      ₹{totalTestAmount.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
                   {registeredPatient.tests.map((test) => (
-                    <span
-                      key={test}
-                      className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                    <div
+                      key={test.testId}
+                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2"
                     >
-                      {test}
-                    </span>
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">
+                          {test.testCode} — {test.testName}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {test.category} • {test.sampleType}
+                        </p>
+                      </div>
+
+                      <p className="text-sm font-semibold text-slate-800">
+                        ₹{test.price.toLocaleString("en-IN")}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>
-
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -481,7 +595,9 @@ export default function NewRegistration() {
 
               <button
                 type="button"
-                onClick={() => navigate("/doctors?tab=referred")}
+                onClick={() =>
+                  navigate("/doctors?tab=referred")
+                }
                 className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
               >
                 View Referral
@@ -496,20 +612,21 @@ export default function NewRegistration() {
               </button>
 
             </div>
-
           </div>
         </div>
       </div>
     );
   }
 
+  /*
+   * REGISTRATION FORM
+   */
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-5xl">
 
-        {/* Header */}
+        {/* HEADER */}
         <div className="mb-6 flex items-center gap-3">
-
           <button
             type="button"
             onClick={() => navigate("/patients")}
@@ -527,14 +644,12 @@ export default function NewRegistration() {
               Register a patient and assign the concerned doctor.
             </p>
           </div>
-
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
-          {/* Patient Information */}
+          {/* PATIENT INFORMATION */}
           <div className="mb-8">
-
             <div className="mb-5 flex items-center gap-2">
               <PersonAddOutlinedIcon className="text-blue-600" />
 
@@ -617,6 +732,7 @@ export default function NewRegistration() {
                   <option value="">
                     Select gender
                   </option>
+
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -674,13 +790,11 @@ export default function NewRegistration() {
                   className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-
             </div>
           </div>
 
-          {/* Doctor Referral */}
+          {/* DOCTOR / REFERRAL */}
           <div className="mb-8 border-t border-slate-200 pt-8">
-
             <h2 className="mb-5 text-lg font-semibold text-slate-800">
               Doctor / Referral
             </h2>
@@ -713,7 +827,8 @@ export default function NewRegistration() {
                       key={doctor.id}
                       value={doctor.id}
                     >
-                      {doctor.doctorName} — {doctor.specialization}
+                      {doctor.doctorName} —{" "}
+                      {doctor.specialization}
                     </option>
                   ))}
               </select>
@@ -725,81 +840,130 @@ export default function NewRegistration() {
               )}
 
               {doctors.filter(
-                (doctor) => doctor.status === "Active"
+                (doctor) =>
+                  doctor.status === "Active"
               ).length === 0 && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    No active doctors available. Please add a
-                    doctor before registering a referred patient.
-                  </p>
-                )}
+                <p className="mt-2 text-xs text-amber-600">
+                  No active doctors available. Please add a
+                  doctor before registering a referred patient.
+                </p>
+              )}
             </div>
-
           </div>
 
-          {/* Required Tests */}
+          {/* REQUIRED TESTS */}
           <div className="border-t border-slate-200 pt-8">
 
-            <h2 className="mb-2 text-lg font-semibold text-slate-800">
-              Required Tests
-            </h2>
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Required Tests
+              </h2>
 
-            <p className="mb-5 text-sm text-slate-500">
-              Select the tests requested for this patient.
-            </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Select the tests requested for this patient
+                from the active Test List.
+              </p>
+            </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+            {/* NO TESTS */}
+            {tests.filter(
+              (test) => test.status === "Active"
+            ).length === 0 && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+                <p className="text-sm font-medium text-amber-800">
+                  No active tests available.
+                </p>
 
-              {testOptions.map((test) => {
-                const selected =
-                  formData.requiredTests.includes(
-                    test.code
-                  );
+                <p className="mt-1 text-xs text-amber-700">
+                  Please add and activate tests from the Test
+                  List before registering a patient.
+                </p>
+              </div>
+            )}
 
-                return (
-                  <button
-                    key={test.code}
-                    type="button"
-                    onClick={() =>
-                      handleTestChange(test.code)
-                    }
-                    className={`rounded-xl border p-4 text-left transition ${selected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
+            {/* TEST LIST */}
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+              {tests
+                .filter(
+                  (test) => test.status === "Active"
+                )
+                .map((test) => {
+                  const selected =
+                    formData.requiredTests.includes(
+                      test.testCode
+                    );
+
+                  return (
+                    <button
+                      key={test.id}
+                      type="button"
+                      onClick={() =>
+                        handleTestChange(
+                          test.testCode
+                        )
+                      }
+                      className={`rounded-xl border p-4 text-left transition ${
+                        selected
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
                       }`}
-                  >
-                    <div className="flex items-center justify-between">
+                    >
+                      <div className="flex items-center justify-between gap-3">
 
-                      <span
-                        className={`text-sm font-semibold ${selected
-                          ? "text-blue-700"
-                          : "text-slate-800"
+                        <span
+                          className={`text-sm font-semibold ${
+                            selected
+                              ? "text-blue-700"
+                              : "text-slate-800"
                           }`}
-                      >
-                        {test.code}
-                      </span>
+                        >
+                          {test.testCode}
+                        </span>
 
-                      <span
-                        className={`flex h-5 w-5 items-center justify-center rounded border ${selected
-                          ? "border-blue-600 bg-blue-600"
-                          : "border-slate-300"
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
+                            selected
+                              ? "border-blue-600 bg-blue-600"
+                              : "border-slate-300"
                           }`}
-                      >
-                        {selected && (
-                          <span className="text-xs text-white">
-                            ✓
-                          </span>
-                        )}
-                      </span>
+                        >
+                          {selected && (
+                            <span className="text-xs text-white">
+                              ✓
+                            </span>
+                          )}
+                        </span>
+                      </div>
 
-                    </div>
+                      <p className="mt-1 text-sm text-slate-700">
+                        {test.testName}
+                      </p>
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      {test.name}
-                    </p>
-                  </button>
-                );
-              })}
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                          {test.category}
+                        </span>
 
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                          {test.sampleType}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-xs text-slate-500">
+                          {test.turnaroundTime}
+                        </span>
+
+                        <span className="text-sm font-semibold text-slate-800">
+                          ₹
+                          {test.price.toLocaleString(
+                            "en-IN"
+                          )}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
             </div>
 
             {errors.requiredTests && (
@@ -808,9 +972,45 @@ export default function NewRegistration() {
               </p>
             )}
 
+            {/* SELECTED TEST SUMMARY */}
+            {formData.requiredTests.length > 0 && (
+              <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-blue-800">
+                    Selected Tests
+                  </p>
+
+                  <p className="text-sm font-semibold text-blue-800">
+                    {formData.requiredTests.length} selected
+                  </p>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {formData.requiredTests.map(
+                    (testCode) => {
+                      const selectedTest = tests.find(
+                        (test) =>
+                          test.testCode === testCode
+                      );
+
+                      return (
+                        <span
+                          key={testCode}
+                          className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200"
+                        >
+                          {selectedTest
+                            ? `${selectedTest.testCode} — ${selectedTest.testName}`
+                            : testCode}
+                        </span>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Buttons */}
+          {/* BUTTONS */}
           <div className="mt-8 flex justify-end gap-3 border-t border-slate-200 pt-6">
 
             <button
@@ -830,7 +1030,6 @@ export default function NewRegistration() {
             </button>
 
           </div>
-
         </div>
       </div>
     </div>

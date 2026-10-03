@@ -4,12 +4,12 @@
         visibility: hidden !important;
     }
 
-     #payment-receipt,
-  #payment-receipt *,
-  #new-bill-print,
-  #new-bill-print * {
-    visibility: visible !important;
-  }
+    #payment-receipt,
+    #payment-receipt *,
+    #new-bill-print,
+    #new-bill-print * {
+        visibility: visible !important;
+    }
 
     #payment-receipt {
         position: absolute !important;
@@ -68,33 +68,30 @@
         display: none !important;
     }
 
-    
-  #payment-receipt,
-  #payment-receipt *,
-  #new-bill-print,
-  #new-bill-print * {
-    visibility: visible !important;
-  }
 
-  #payment-receipt,
-  #new-bill-print {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 12mm !important;
-    background: white !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
+    #payment-receipt,
+    #payment-receipt *,
+    #new-bill-print,
+    #new-bill-print * {
+        visibility: visible !important;
+    }
+
+    #payment-receipt,
+    #new-bill-print {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 12mm !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
     @page {
         size: A4;
         margin: 12mm;
     }
 }
-
-
-  
-

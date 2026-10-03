@@ -71,12 +71,12 @@ const menuItems: MenuItem[] = [
     roles: ["admin", "receptionist"],
     children: [
       {
-        label: "Patient List",
-        path: "/patients",
-      },
-      {
         label: "New Registration",
         path: "/patients/new-registration",
+      },
+      {
+        label: "Patient List",
+        path: "/patients",
       },
       {
         label: "Patient History",
@@ -96,12 +96,12 @@ const menuItems: MenuItem[] = [
         path: "/billing/new",
       },
       {
-        label: "Payments",
-        path: "/billing/payments",
-      },
-      {
         label: "Pending Payments",
         path: "/billing/pending-payments",
+      },
+      {
+        label: "Payments",
+        path: "/billing/payments",
       },
     ],
   },

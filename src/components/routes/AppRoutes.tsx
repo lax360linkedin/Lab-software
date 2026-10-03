@@ -53,7 +53,10 @@ const AppRoutes = () => {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/patients" element={<PatientList />} />
                     <Route path="/patients/new-registration" element={<NewRegistration />} />
-                    <Route path="/patients/history" element={<PatientHistory />} />
+                    <Route
+  path="/patients/history/:patientId"
+  element={<PatientHistory />}
+/>
                     <Route path="/accession/sample-collection" element={<SampleCollection />} />
                     <Route path="/accession/received-samples" element={<ReceivedSamples />} />
                     <Route path="/accession/accepted-samples" element={<AcceptedSamples />} />

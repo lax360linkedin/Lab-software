@@ -7,16 +7,36 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import Table from "../Table";
 import Pagination from "../Pagination";
 import "./NewBillPrint.css";
 
+interface LabTest {
+    id?: string | number;
+    code?: string;
+    name: string;
+    category: string;
+    sampleType?: string;
+    method?: string;
+    price: number | string;
+    turnaround?: string;
+    parameters?: string[];
+    status?: string;
+}
+
 interface BillTest {
     id: number;
+    testId?: string;
+    testCode?: string;
     testName: string;
     category: string;
     price: number;
     quantity: number;
+    sampleType?: string;
+    method?: string;
+    turnaroundTime?: string;
 }
 
 interface Bill {
@@ -37,6 +57,8 @@ interface Bill {
     paymentDate?: string;
 }
 
+type DrawerMode = "view" | "payment";
+
 const getPendingBills = (): Bill[] => {
     try {
         const storedBills = JSON.parse(
@@ -55,19 +77,46 @@ const getPendingBills = (): Bill[] => {
     }
 };
 
+const getAvailableTests = (): LabTest[] => {
+    try {
+        const storedTests = JSON.parse(
+            localStorage.getItem("lab_tests") || "[]"
+        );
+
+        if (!Array.isArray(storedTests)) {
+            return [];
+        }
+
+        return storedTests.filter(
+            (test: LabTest) =>
+                test.status !== "Inactive" &&
+                test.status !== "inactive"
+        );
+    } catch {
+        return [];
+    }
+};
+
 const BillingPendingPayments = () => {
     const navigate = useNavigate();
-
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+    const [drawerMode, setDrawerMode] = useState<DrawerMode>("view");
+    const [editableTests, setEditableTests] = useState<BillTest[]>([]);
+    const [discount, setDiscount] = useState(0);
+    const [tax, setTax] = useState(0);
+    const [showAddTest, setShowAddTest] = useState(false);
+    const [selectedTestId, setSelectedTestId] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("Cash");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [refreshKey, setRefreshKey] = useState(0);
-
-    // Payment receipt print preview
     const [showPrintForm, setShowPrintForm] = useState(false);
     const [paidBill, setPaidBill] = useState<Bill | null>(null);
+
+    const availableTests = useMemo(() => {
+        return getAvailableTests();
+    }, [refreshKey]);
 
     const pendingBills = useMemo(() => {
         return getPendingBills();
@@ -96,9 +145,25 @@ const BillingPendingPayments = () => {
     );
 
     const pendingAmount = pendingBills.reduce(
-        (total, bill) => total + bill.grandTotal,
+        (total, bill) => total + Number(bill.grandTotal || 0),
         0
     );
+
+    const editableSubtotal = useMemo(() => {
+        return editableTests.reduce(
+            (total, test) =>
+                total +
+                Number(test.price || 0) * Number(test.quantity || 0),
+            0
+        );
+    }, [editableTests]);
+
+    const editableGrandTotal = useMemo(() => {
+        return Math.max(
+            0,
+            editableSubtotal - Number(discount || 0) + Number(tax || 0)
+        );
+    }, [editableSubtotal, discount, tax]);
 
     const formatDate = (date: string) => {
         if (!date) {
@@ -144,6 +209,192 @@ const BillingPendingPayments = () => {
         setCurrentPage(1);
     };
 
+    const handleViewBill = (bill: Bill) => {
+        setSelectedBill(bill);
+        setDrawerMode("view");
+
+        setEditableTests(
+            bill.tests.map((test) => ({
+                ...test,
+                price: Number(test.price || 0),
+                quantity: Number(test.quantity || 1),
+            }))
+        );
+
+        setDiscount(Number(bill.discount || 0));
+        setTax(Number(bill.tax || 0));
+
+        setShowAddTest(false);
+        setSelectedTestId("");
+    };
+
+    const handleOpenPayment = (bill: Bill) => {
+        setSelectedBill(bill);
+        setDrawerMode("payment");
+        setPaymentMethod(bill.paymentMethod || "Cash");
+        setEditableTests(
+            bill.tests.map((test) => ({
+                ...test,
+                price: Number(test.price || 0),
+                quantity: Number(test.quantity || 1),
+            }))
+        );
+
+        setDiscount(Number(bill.discount || 0));
+        setTax(Number(bill.tax || 0));
+
+        setShowAddTest(false);
+        setSelectedTestId("");
+    };
+
+    const handleCloseDrawer = () => {
+        setSelectedBill(null);
+        setEditableTests([]);
+        setShowAddTest(false);
+        setSelectedTestId("");
+    };
+
+    const handleAddTest = () => {
+        if (!selectedTestId) {
+            return;
+        }
+
+        const selectedTest = availableTests.find(
+            (test) => String(test.id) === selectedTestId
+        );
+
+        if (!selectedTest) {
+            return;
+        }
+
+        const alreadyAdded = editableTests.some(
+            (test) =>
+                test.testId &&
+                String(test.testId) === String(selectedTest.id)
+        );
+
+        if (alreadyAdded) {
+            alert("This test is already added to the bill.");
+            return;
+        }
+
+        const newBillTest: BillTest = {
+            id: Date.now(),
+            testId: String(selectedTest.id ?? ""),
+            testCode: selectedTest.code || "",
+            testName: selectedTest.name,
+            category: selectedTest.category,
+            price: Number(selectedTest.price || 0),
+            quantity: 1,
+            sampleType: selectedTest.sampleType || "",
+            method: selectedTest.method || "",
+            turnaroundTime: selectedTest.turnaround || "",
+        };
+
+        setEditableTests((prev) => [...prev, newBillTest]);
+        setSelectedTestId("");
+        setShowAddTest(false);
+    };
+
+    const handleRemoveTest = (testId: number) => {
+        setEditableTests((prev) =>
+            prev.filter((test) => test.id !== testId)
+        );
+    };
+
+    const handleQuantityChange = (
+        testId: number,
+        quantity: number
+    ) => {
+        const safeQuantity = Math.max(1, quantity);
+
+        setEditableTests((prev) =>
+            prev.map((test) =>
+                test.id === testId
+                    ? {
+                        ...test,
+                        quantity: safeQuantity,
+                    }
+                    : test
+            )
+        );
+    };
+
+    const handleSaveBillChanges = () => {
+        if (!selectedBill) {
+            return;
+        }
+
+        if (editableTests.length === 0) {
+            alert("Please keep at least one test in the bill.");
+            return;
+        }
+
+        try {
+            const storedBills = JSON.parse(
+                localStorage.getItem("lab_bills") || "[]"
+            );
+
+            if (!Array.isArray(storedBills)) {
+                alert("Unable to update bill.");
+                return;
+            }
+
+            const updatedBill: Bill = {
+                ...selectedBill,
+                tests: editableTests,
+                subtotal: editableSubtotal,
+                discount: Number(discount || 0),
+                tax: Number(tax || 0),
+                grandTotal: editableGrandTotal,
+            };
+
+            const updatedBills = storedBills.map((bill: Bill) =>
+                bill.billNumber === selectedBill.billNumber
+                    ? updatedBill
+                    : bill
+            );
+
+            localStorage.setItem(
+                "lab_bills",
+                JSON.stringify(updatedBills)
+            );
+
+            setSelectedBill(updatedBill);
+            setRefreshKey((prev) => prev + 1);
+            setShowAddTest(false);
+            setSelectedTestId("");
+
+            alert("Bill updated successfully.");
+        } catch (error) {
+            console.error("Failed to update bill:", error);
+
+            alert(
+                "Failed to update bill. Please try again."
+            );
+        }
+    };
+
+    const handleCancelChanges = () => {
+        if (!selectedBill) {
+            return;
+        }
+
+        setEditableTests(
+            selectedBill.tests.map((test) => ({
+                ...test,
+                price: Number(test.price || 0),
+                quantity: Number(test.quantity || 1),
+            }))
+        );
+
+        setDiscount(Number(selectedBill.discount || 0));
+        setTax(Number(selectedBill.tax || 0));
+
+        setShowAddTest(false);
+        setSelectedTestId("");
+    };
+
     const handleCollectPayment = () => {
         if (!selectedBill) {
             return;
@@ -183,15 +434,9 @@ const BillingPendingPayments = () => {
                 "lab_bills",
                 JSON.stringify(updatedBills)
             );
-
-            // Close payment drawer
             setSelectedBill(null);
-
-            // Refresh pending payments
             setRefreshKey((prev) => prev + 1);
             setCurrentPage(1);
-
-            // Open receipt preview
             setPaidBill(paidBillData);
             setShowPrintForm(true);
         } catch (error) {
@@ -212,14 +457,19 @@ const BillingPendingPayments = () => {
     };
 
     const handlePrintReceipt = () => {
+        const handleAfterPrint = () => {
+            setShowPrintForm(false);
+            setPaidBill(null);
+            window.removeEventListener("afterprint", handleAfterPrint);
+        };
+
+        window.addEventListener("afterprint", handleAfterPrint);
+
         window.print();
     };
 
     return (
         <>
-            {/* =====================================================
-                PAGE
-            ====================================================== */}
             <div className="min-h-screen bg-slate-50">
 
                 {/* Header */}
@@ -394,7 +644,7 @@ const BillingPendingPayments = () => {
                                                     type="button"
                                                     title="View Bill"
                                                     onClick={() =>
-                                                        setSelectedBill(
+                                                        handleViewBill(
                                                             bill
                                                         )
                                                     }
@@ -407,14 +657,11 @@ const BillingPendingPayments = () => {
                                                 <button
                                                     type="button"
                                                     title="Collect Payment"
-                                                    onClick={() => {
-                                                        setSelectedBill(
+                                                    onClick={() =>
+                                                        handleOpenPayment(
                                                             bill
-                                                        );
-                                                        setPaymentMethod(
-                                                            "Cash"
-                                                        );
-                                                    }}
+                                                        )
+                                                    }
                                                     className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white transition hover:bg-blue-700"
                                                 >
                                                     <PaymentsOutlinedIcon fontSize="small" />
@@ -471,18 +718,13 @@ const BillingPendingPayments = () => {
 
             </div>
 
-            {/* =====================================================
-                PAYMENT DRAWER
-            ====================================================== */}
             {selectedBill && (
                 <div className="fixed inset-0 z-[9990]">
 
                     {/* Overlay */}
                     <div
                         className="absolute inset-0 bg-black/40"
-                        onClick={() =>
-                            setSelectedBill(null)
-                        }
+                        onClick={handleCloseDrawer}
                     />
 
                     {/* Drawer */}
@@ -493,7 +735,9 @@ const BillingPendingPayments = () => {
 
                             <div>
                                 <h2 className="text-lg font-semibold text-slate-800">
-                                    Collect Payment
+                                    {drawerMode === "payment"
+                                        ? "Collect Payment"
+                                        : "View Bill"}
                                 </h2>
 
                                 <p className="mt-1 text-sm text-slate-500">
@@ -503,9 +747,7 @@ const BillingPendingPayments = () => {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setSelectedBill(null)
-                                }
+                                onClick={handleCloseDrawer}
                                 className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
                             >
                                 <CloseOutlinedIcon />
@@ -581,9 +823,123 @@ const BillingPendingPayments = () => {
                             {/* Bill Details */}
                             <div className="mt-5">
 
-                                <h3 className="mb-3 text-sm font-semibold text-slate-800">
-                                    Bill Details
-                                </h3>
+                                <div className="mb-3 flex items-center justify-between">
+
+                                    <h3 className="text-sm font-semibold text-slate-800">
+                                        Bill Details
+                                    </h3>
+
+                                    {drawerMode === "view" && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowAddTest(
+                                                    (prev) => !prev
+                                                )
+                                            }
+                                            className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-100"
+                                        >
+                                            <AddOutlinedIcon fontSize="small" />
+                                            Add Test
+                                        </button>
+                                    )}
+
+                                </div>
+
+                                {/* Add Test */}
+                                {drawerMode === "view" &&
+                                    showAddTest && (
+                                        <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
+
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Select Test
+                                            </label>
+
+                                            <div className="flex flex-col gap-2 sm:flex-row">
+
+                                                <select
+                                                    value={
+                                                        selectedTestId
+                                                    }
+                                                    onChange={(event) =>
+                                                        setSelectedTestId(
+                                                            event.target
+                                                                .value
+                                                        )
+                                                    }
+                                                    className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                                >
+                                                    <option value="">
+                                                        Select a test
+                                                    </option>
+
+                                                    {availableTests.map(
+                                                        (test) => {
+                                                            const alreadyAdded =
+                                                                editableTests.some(
+                                                                    (
+                                                                        item
+                                                                    ) =>
+                                                                        item.testId &&
+                                                                        String(
+                                                                            item.testId
+                                                                        ) ===
+                                                                        String(
+                                                                            test.id
+                                                                        )
+                                                                );
+
+                                                            return (
+                                                                <option
+                                                                    key={
+                                                                        test.id
+                                                                    }
+                                                                    value={String(
+                                                                        test.id
+                                                                    )}
+                                                                    disabled={
+                                                                        alreadyAdded
+                                                                    }
+                                                                >
+                                                                    {test.code
+                                                                        ? `${test.code} - `
+                                                                        : ""}
+                                                                    {
+                                                                        test.name
+                                                                    }{" "}
+                                                                    - ₹
+                                                                    {Number(
+                                                                        test.price ||
+                                                                        0
+                                                                    ).toLocaleString(
+                                                                        "en-IN"
+                                                                    )}
+                                                                    {alreadyAdded
+                                                                        ? " (Added)"
+                                                                        : ""}
+                                                                </option>
+                                                            );
+                                                        }
+                                                    )}
+                                                </select>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleAddTest
+                                                    }
+                                                    disabled={
+                                                        !selectedTestId
+                                                    }
+                                                    className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    Add
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+                                    )}
 
                                 <div className="overflow-hidden rounded-xl border border-slate-200">
 
@@ -604,17 +960,21 @@ const BillingPendingPayments = () => {
                                                     Amount
                                                 </th>
 
+                                                {drawerMode === "view" && (
+                                                    <th className="px-3 py-3 text-center font-semibold text-slate-700">
+                                                        Action
+                                                    </th>
+                                                )}
+
                                             </tr>
                                         </thead>
 
                                         <tbody>
 
-                                            {selectedBill.tests.map(
+                                            {editableTests.map(
                                                 (test) => (
                                                     <tr
-                                                        key={
-                                                            test.id
-                                                        }
+                                                        key={test.id}
                                                         className="border-t border-slate-100"
                                                     >
 
@@ -634,17 +994,49 @@ const BillingPendingPayments = () => {
 
                                                         </td>
 
-                                                        <td className="px-4 py-3 text-center text-slate-600">
-                                                            {
-                                                                test.quantity
-                                                            }
+                                                        <td className="px-4 py-3 text-center">
+
+                                                            {drawerMode ===
+                                                                "view" ? (
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={
+                                                                        test.quantity
+                                                                    }
+                                                                    onChange={(
+                                                                        event
+                                                                    ) =>
+                                                                        handleQuantityChange(
+                                                                            test.id,
+                                                                            Number(
+                                                                                event
+                                                                                    .target
+                                                                                    .value
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm outline-none focus:border-blue-500"
+                                                                />
+                                                            ) : (
+                                                                <span className="text-slate-600">
+                                                                    {
+                                                                        test.quantity
+                                                                    }
+                                                                </span>
+                                                            )}
+
                                                         </td>
 
                                                         <td className="px-4 py-3 text-right font-medium text-slate-800">
                                                             ₹
                                                             {(
-                                                                test.price *
-                                                                test.quantity
+                                                                Number(
+                                                                    test.price
+                                                                ) *
+                                                                Number(
+                                                                    test.quantity
+                                                                )
                                                             ).toLocaleString(
                                                                 "en-IN",
                                                                 {
@@ -652,6 +1044,26 @@ const BillingPendingPayments = () => {
                                                                 }
                                                             )}
                                                         </td>
+
+                                                        {drawerMode ===
+                                                            "view" && (
+                                                                <td className="px-3 py-3 text-center">
+
+                                                                    <button
+                                                                        type="button"
+                                                                        title="Remove Test"
+                                                                        onClick={() =>
+                                                                            handleRemoveTest(
+                                                                                test.id
+                                                                            )
+                                                                        }
+                                                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                                                                    >
+                                                                        <DeleteOutlineOutlinedIcon fontSize="small" />
+                                                                    </button>
+
+                                                                </td>
+                                                            )}
 
                                                     </tr>
                                                 )
@@ -676,7 +1088,11 @@ const BillingPendingPayments = () => {
 
                                     <span className="font-medium text-slate-800">
                                         ₹
-                                        {selectedBill.subtotal.toLocaleString(
+                                        {(
+                                            drawerMode === "view"
+                                                ? editableSubtotal
+                                                : selectedBill.subtotal
+                                        ).toLocaleString(
                                             "en-IN",
                                             {
                                                 minimumFractionDigits: 2,
@@ -686,39 +1102,97 @@ const BillingPendingPayments = () => {
 
                                 </div>
 
-                                <div className="flex justify-between py-2 text-sm">
+                                <div className="flex items-center justify-between py-2 text-sm">
 
                                     <span className="text-slate-500">
                                         Discount
                                     </span>
 
-                                    <span className="font-medium text-slate-800">
-                                        - ₹
-                                        {selectedBill.discount.toLocaleString(
-                                            "en-IN",
-                                            {
-                                                minimumFractionDigits: 2,
-                                            }
-                                        )}
-                                    </span>
+                                    {drawerMode === "view" ? (
+                                        <div className="flex items-center gap-2">
+
+                                            <span className="text-slate-500">
+                                                ₹
+                                            </span>
+
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={discount}
+                                                onChange={(event) =>
+                                                    setDiscount(
+                                                        Math.max(
+                                                            0,
+                                                            Number(
+                                                                event
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                        )
+                                                    )
+                                                }
+                                                className="w-28 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm outline-none focus:border-blue-500"
+                                            />
+
+                                        </div>
+                                    ) : (
+                                        <span className="font-medium text-slate-800">
+                                            - ₹
+                                            {selectedBill.discount.toLocaleString(
+                                                "en-IN",
+                                                {
+                                                    minimumFractionDigits: 2,
+                                                }
+                                            )}
+                                        </span>
+                                    )}
 
                                 </div>
 
-                                <div className="flex justify-between py-2 text-sm">
+                                <div className="flex items-center justify-between py-2 text-sm">
 
                                     <span className="text-slate-500">
                                         Tax
                                     </span>
 
-                                    <span className="font-medium text-slate-800">
-                                        ₹
-                                        {selectedBill.tax.toLocaleString(
-                                            "en-IN",
-                                            {
-                                                minimumFractionDigits: 2,
-                                            }
-                                        )}
-                                    </span>
+                                    {drawerMode === "view" ? (
+                                        <div className="flex items-center gap-2">
+
+                                            <span className="text-slate-500">
+                                                ₹
+                                            </span>
+
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={tax}
+                                                onChange={(event) =>
+                                                    setTax(
+                                                        Math.max(
+                                                            0,
+                                                            Number(
+                                                                event
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                        )
+                                                    )
+                                                }
+                                                className="w-28 rounded-md border border-slate-300 px-2 py-1.5 text-right text-sm outline-none focus:border-blue-500"
+                                            />
+
+                                        </div>
+                                    ) : (
+                                        <span className="font-medium text-slate-800">
+                                            ₹
+                                            {selectedBill.tax.toLocaleString(
+                                                "en-IN",
+                                                {
+                                                    minimumFractionDigits: 2,
+                                                }
+                                            )}
+                                        </span>
+                                    )}
 
                                 </div>
 
@@ -730,7 +1204,11 @@ const BillingPendingPayments = () => {
 
                                     <span className="text-xl font-bold text-slate-900">
                                         ₹
-                                        {selectedBill.grandTotal.toLocaleString(
+                                        {(
+                                            drawerMode === "view"
+                                                ? editableGrandTotal
+                                                : selectedBill.grandTotal
+                                        ).toLocaleString(
                                             "en-IN",
                                             {
                                                 minimumFractionDigits: 2,
@@ -743,55 +1221,77 @@ const BillingPendingPayments = () => {
                             </div>
 
                             {/* Payment Method */}
-                            <div className="mt-5">
+                            {drawerMode === "payment" && (
+                                <div className="mt-5">
 
-                                <label className="mb-2 block text-sm font-medium text-slate-700">
-                                    Payment Method
-                                </label>
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                                        Payment Method
+                                    </label>
 
-                                <select
-                                    value={paymentMethod}
-                                    onChange={(event) =>
-                                        setPaymentMethod(
-                                            event.target.value
-                                        )
-                                    }
-                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
-                                >
+                                    <select
+                                        value={paymentMethod}
+                                        onChange={(event) =>
+                                            setPaymentMethod(
+                                                event.target.value
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
+                                    >
+                                        <option value="Cash">
+                                            Cash
+                                        </option>
 
-                                    <option value="Cash">
-                                        Cash
-                                    </option>
+                                        <option value="Card">
+                                            Card
+                                        </option>
 
-                                    <option value="Card">
-                                        Card
-                                    </option>
+                                        <option value="UPI">
+                                            UPI
+                                        </option>
 
-                                    <option value="UPI">
-                                        UPI
-                                    </option>
+                                        <option value="Bank Transfer">
+                                            Bank Transfer
+                                        </option>
+                                    </select>
 
-                                    <option value="Bank Transfer">
-                                        Bank Transfer
-                                    </option>
-
-                                </select>
-
-                            </div>
+                                </div>
+                            )}
 
                         </div>
 
                         {/* Drawer Footer */}
                         <div className="border-t border-slate-200 bg-white p-5">
 
-                            <button
-                                type="button"
-                                onClick={handleCollectPayment}
-                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
-                            >
-                                <CheckCircleOutlineOutlinedIcon fontSize="small" />
-                                Confirm Payment
-                            </button>
+                            {drawerMode === "view" ? (
+                                <div className="flex gap-3">
+
+                                    <button
+                                        type="button"
+                                        onClick={handleCancelChanges}
+                                        className="flex-1 rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveBillChanges}
+                                        className="flex-1 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                    >
+                                        Save
+                                    </button>
+
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleCollectPayment}
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
+                                >
+                                    <CheckCircleOutlineOutlinedIcon fontSize="small" />
+                                    Confirm Payment
+                                </button>
+                            )}
 
                         </div>
 
@@ -800,9 +1300,6 @@ const BillingPendingPayments = () => {
                 </div>
             )}
 
-            {/* =====================================================
-                PAYMENT RECEIPT PRINT PREVIEW
-            ====================================================== */}
             {showPrintForm && paidBill && (
                 <div
                     id="payment-receipt-wrapper"
@@ -885,8 +1382,7 @@ const BillingPendingPayments = () => {
                                         </p>
 
                                         <p className="mt-1 font-semibold text-slate-800">
-                                            {paidBill.paymentId ||
-                                                "-"}
+                                            {paidBill.paymentId || "-"}
                                         </p>
                                     </div>
 
@@ -907,8 +1403,7 @@ const BillingPendingPayments = () => {
 
                                         <p className="mt-1 font-semibold text-slate-800">
                                             {formatDateTime(
-                                                paidBill.paymentDate ||
-                                                    ""
+                                                paidBill.paymentDate || ""
                                             )}
                                         </p>
                                     </div>
@@ -919,8 +1414,7 @@ const BillingPendingPayments = () => {
                                         </p>
 
                                         <p className="mt-1 font-semibold text-slate-800">
-                                            {paidBill.paymentMethod ||
-                                                "-"}
+                                            {paidBill.paymentMethod || "-"}
                                         </p>
                                     </div>
 
@@ -933,8 +1427,7 @@ const BillingPendingPayments = () => {
 
                                     <div>
                                         <p className="font-semibold text-green-800">
-                                            Payment Received
-                                            Successfully
+                                            Payment Received Successfully
                                         </p>
 
                                         <p className="text-sm text-green-700">
@@ -966,9 +1459,7 @@ const BillingPendingPayments = () => {
                                             </p>
 
                                             <p className="font-medium text-slate-800">
-                                                {
-                                                    paidBill.patientName
-                                                }
+                                                {paidBill.patientName}
                                             </p>
                                         </div>
 
@@ -978,9 +1469,7 @@ const BillingPendingPayments = () => {
                                             </p>
 
                                             <p className="font-medium text-slate-800">
-                                                {
-                                                    paidBill.patientId
-                                                }
+                                                {paidBill.patientId}
                                             </p>
                                         </div>
 
@@ -990,9 +1479,7 @@ const BillingPendingPayments = () => {
                                             </p>
 
                                             <p className="font-medium text-slate-800">
-                                                {
-                                                    paidBill.registrationId
-                                                }
+                                                {paidBill.registrationId}
                                             </p>
                                         </div>
 
@@ -1002,10 +1489,7 @@ const BillingPendingPayments = () => {
                                             </p>
 
                                             <p className="font-medium text-slate-800">
-                                                {
-                                                    paidBill.doctorReferral ||
-                                                    "-"
-                                                }
+                                                {paidBill.doctorReferral || "-"}
                                             </p>
                                         </div>
 
@@ -1058,32 +1542,23 @@ const BillingPendingPayments = () => {
                                                         index
                                                     ) => (
                                                         <tr
-                                                            key={
-                                                                test.id
-                                                            }
+                                                            key={test.id}
                                                         >
 
                                                             <td className="border-b border-slate-100 px-4 py-3 text-slate-600">
-                                                                {index +
-                                                                    1}
+                                                                {index + 1}
                                                             </td>
 
                                                             <td className="border-b border-slate-100 px-4 py-3 font-medium text-slate-800">
-                                                                {
-                                                                    test.testName
-                                                                }
+                                                                {test.testName}
                                                             </td>
 
                                                             <td className="border-b border-slate-100 px-4 py-3 text-slate-600">
-                                                                {
-                                                                    test.category
-                                                                }
+                                                                {test.category}
                                                             </td>
 
                                                             <td className="border-b border-slate-100 px-4 py-3 text-center text-slate-600">
-                                                                {
-                                                                    test.quantity
-                                                                }
+                                                                {test.quantity}
                                                             </td>
 
                                                             <td className="border-b border-slate-100 px-4 py-3 text-right font-medium text-slate-800">
