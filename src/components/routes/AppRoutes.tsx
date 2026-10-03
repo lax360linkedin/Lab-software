@@ -34,27 +34,11 @@ import Departments from "../lab-management/departments/Departments";
 import Equipment from "../lab-management/equipment/Equipment";
 import LabSettings from "../lab-management/settings/LabSettings";
 import LabProfile from "../lab-profile/LabProfile";
-import ResultEntry from "../results/ResultEntry";
-import PendingVerification from "../results/PendingVerification";
-import VerifiedResults from "../results/VerifiedResults";
-import QCChecks from "../quality-control/QCChecks";
-import ControlResults from "../quality-control/ControlResults";
-import FailedQC from "../quality-control/FailedQC";
-import CorrectiveActions from "../quality-control/CorrectiveActions";
-import NotificationHistory from "../notifications/NotificationHistory";
-import MessageTemplates from "../notifications/MessageTemplates";
-import NotificationSettings from "../notifications/NotificationSettings";
 import Tests from "../tests/Tests";
 import Doctors from "../doctors/Doctor";
 import NewBill from "../../common components/billing/NewBill";
 import Payments from "../../common components/billing/Payments";
 import BillingPendingPayments from "../../common components/billing/BillingPendingPayments";
-import Reports from "../reports/Reports";
-import {
-    RoleDashboardGuard,
-    RoleDashboardRedirect,
-    LabRouteGuard,
-} from "./RoleDashboardGuard";
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
@@ -66,82 +50,18 @@ const AppRoutes = () => {
 
             <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
-                    <Route path="/dashboard" element={<RoleDashboardRedirect />} />
-                    <Route
-                        path="/dashboard/admin"
-                        element={
-                            <RoleDashboardGuard allowedRole="admin">
-                                <Dashboard role="admin" />
-                            </RoleDashboardGuard>
-                        }
-                    />
-                    <Route
-                        path="/dashboard/technician"
-                        element={
-                            <RoleDashboardGuard allowedRole="lab_technician">
-                                <Dashboard role="lab_technician" />
-                            </RoleDashboardGuard>
-                        }
-                    />
-                    <Route
-                        path="/dashboard/lab-technician"
-                        element={
-                            <RoleDashboardGuard allowedRole="lab_technician">
-                                <Dashboard role="lab_technician" />
-                            </RoleDashboardGuard>
-                        }
-                    />
-                    <Route
-                        path="/dashboard/receptionist"
-                        element={
-                            <RoleDashboardGuard allowedRole="receptionist">
-                                <Dashboard role="receptionist" />
-                            </RoleDashboardGuard>
-                        }
-                    />
-                    <Route
-                        path="/admin/dashboard"
-                        element={<Navigate to="/dashboard/admin" replace />}
-                    />
-                    <Route
-                        path="/technician/dashboard"
-                        element={<Navigate to="/dashboard/technician" replace />}
-                    />
-                    <Route
-                        path="/receptionist/dashboard"
-                        element={<Navigate to="/dashboard/receptionist" replace />}
-                    />
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/patients" element={<PatientList />} />
                     <Route path="/patients/new-registration" element={<NewRegistration />} />
-                    <Route path="/patients/history" element={<PatientHistory />} />
-
-                    {/* Technical Laboratory Processing Routes (Blocked for Receptionist via LabRouteGuard) */}
-                    <Route element={<LabRouteGuard />}>
-                        <Route path="/accession/sample-collection" element={<SampleCollection />} />
-                        <Route path="/accession/received-samples" element={<ReceivedSamples />} />
-                        <Route path="/accession/accepted-samples" element={<AcceptedSamples />} />
-                        <Route path="/accession/rejected-samples" element={<RejectedSamples />} />
-                        <Route path="/accession/sample-tracking" element={<SampleTracking />} />
-                        <Route path="/analysis/pending" element={<PendingTests />} />
-                        <Route path="/analysis/processing" element={<Processing />} />
-                        <Route path="/analysis/completed" element={<Completed />} />
-                        <Route path="/results/enter" element={<ResultEntry />} />
-                        <Route path="/results/pending-verification" element={<PendingVerification />} />
-                        <Route path="/results/verified" element={<VerifiedResults />} />
-                        <Route path="/quality-control/checks" element={<QCChecks />} />
-                        <Route path="/quality-control/control-results" element={<ControlResults />} />
-                        <Route path="/quality-control/failed" element={<FailedQC />} />
-                        <Route path="/quality-control/corrective-actions" element={<CorrectiveActions />} />
-                        <Route path="/tests" element={<Tests />} />
-                    </Route>
-
-                    {/* Reports Routes */}
-                    <Route path="/reports" element={<Reports />} />
-                    <Route path="/reports/pending" element={<Reports initialTab="pending" />} />
-                    <Route path="/reports/generated" element={<Reports initialTab="generated" />} />
-                    <Route path="/reports/history" element={<Reports initialTab="history" />} />
-                    <Route path="/reports/share" element={<Reports initialTab="share" />} />
-
+                    <Route path="/patients/history/:patientId" element={<PatientHistory />} />
+                    <Route path="/accession/sample-collection" element={<SampleCollection />} />
+                    <Route path="/accession/received-samples" element={<ReceivedSamples />} />
+                    <Route path="/accession/accepted-samples" element={<AcceptedSamples />} />
+                    <Route path="/accession/rejected-samples" element={<RejectedSamples />} />
+                    <Route path="/accession/sample-tracking" element={<SampleTracking />} />
+                    <Route path="/analysis/pending" element={<PendingTests />} />
+                    <Route path="/analysis/processing" element={<Processing />} />
+                    <Route path="/analysis/completed" element={<Completed />} />
                     <Route path="/financial-analysis/collections" element={<Collection />} />
                     <Route path="/financial-analysis/revenue" element={<Revenue />} />
                     <Route path="/financial-analysis/total-billing" element={<TotalBilling />} />
@@ -157,20 +77,19 @@ const AppRoutes = () => {
                     <Route path="/staff/users" element={<StaffUsers />} />
                     <Route path="/staff/roles" element={<StaffRoles />} />
                     <Route path="/staff/permissions" element={<StaffPermissions />} />
-                    <Route path="/notifications/history" element={<NotificationHistory />} />
-                    <Route path="/notifications/templates" element={<MessageTemplates />} />
-                    <Route path="/notifications/settings" element={<NotificationSettings />} />
                     <Route path="/lab-management/departments" element={<Departments />} />
                     <Route path="/lab-management/equipment" element={<Equipment />} />
                     <Route path="/lab-management/settings" element={<LabSettings />} />
                     <Route path="/lab-profile" element={<LabProfile />} />
+                    <Route path="/tests" element={<Tests />} />
+                    <Route path="/lab-profile" element={<LabProfile />} />
+                    <Route path="/doctors" element={<Doctors />} />
                     <Route path="/doctors" element={<Doctors />} />
                     <Route path="/billing/new" element={<NewBill />} />
                     <Route path="/billing/payments" element={<Payments />} />
                     <Route path="/billing/pending-payments" element={<BillingPendingPayments />} />
-
+                    
                 </Route>
-
             </Route>
 
             <Route path="*" element={
