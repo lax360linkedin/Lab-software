@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -9,13 +10,80 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import Table from "../../common components/Table";
-import Pagination from "../../common components/Pagination";
 import CloseIcon from "@mui/icons-material/Close";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 
+import Table from "../../common components/Table";
+import Pagination from "../../common components/Pagination";
+
+type SampleStatus =
+    | "Pending Collection"
+    | "Collected"
+    | "Received"
+    | "Accepted"
+    | "Processing"
+    | "Completed"
+    | "Rejected";
+
+interface StoredSample {
+    id: string;
+    sampleId: string;
+    accessionNumber: string;
+    barcode: string;
+
+    patientId: string;
+    registrationId: string;
+    patientName: string;
+
+    testId: string;
+    testName: string;
+    sampleType: string;
+
+    collectionDate: string;
+    collectionTime: string;
+    collector: string;
+
+    status: SampleStatus;
+    source: "Patient Registration";
+    createdAt: string;
+
+    receivedDate?: string;
+    receivedTime?: string;
+    receivedBy?: string;
+
+    acceptedDate?: string;
+    acceptedTime?: string;
+    acceptedBy?: string;
+
+    rejectedDate?: string;
+    rejectedTime?: string;
+    rejectedBy?: string;
+    rejectionReason?: string;
+
+    processingDate?: string;
+    processingTime?: string;
+    processingBy?: string;
+
+    completedDate?: string;
+    completedTime?: string;
+    completedBy?: string;
+
+    analyzer?: string;
+    method?: string;
+    priority?: "Normal" | "Urgent" | "STAT";
+}
+
+interface LabTest {
+    id?: string;
+    code?: string;
+    name?: string;
+    category?: string;
+    sampleType?: string;
+    method?: string;
+}
+
 interface PendingTest {
-    id: number;
+    id: string;
     sampleId: string;
     accessionNumber: string;
     patientId: string;
@@ -27,108 +95,8 @@ interface PendingTest {
     receivedTime: string;
     priority: "Normal" | "Urgent" | "STAT";
     status: "Pending";
+    originalSample: StoredSample;
 }
-
-const pendingTestData: PendingTest[] = [
-    {
-        id: 1,
-        sampleId: "SMP-10001",
-        accessionNumber: "ACC-2026-0003",
-        patientId: "PAT-1003",
-        patientName: "Karthik Raj",
-        testName: "Kidney Function Test",
-        testCategory: "Biochemistry",
-        sampleType: "Serum",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "09:18 AM",
-        priority: "Urgent",
-        status: "Pending",
-    },
-    {
-        id: 2,
-        sampleId: "SMP-10002",
-        accessionNumber: "ACC-2026-0008",
-        patientId: "PAT-1008",
-        patientName: "Anitha Devi",
-        testName: "Liver Function Test",
-        testCategory: "Biochemistry",
-        sampleType: "Serum",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "09:25 AM",
-        priority: "Normal",
-        status: "Pending",
-    },
-    {
-        id: 3,
-        sampleId: "SMP-10003",
-        accessionNumber: "ACC-2026-0009",
-        patientId: "PAT-1009",
-        patientName: "Ramesh Kumar",
-        testName: "Complete Blood Count",
-        testCategory: "Hematology",
-        sampleType: "Blood",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "09:32 AM",
-        priority: "STAT",
-        status: "Pending",
-    },
-    {
-        id: 4,
-        sampleId: "SMP-10004",
-        accessionNumber: "ACC-2026-0010",
-        patientId: "PAT-1010",
-        patientName: "Divya Srinivasan",
-        testName: "Thyroid Profile",
-        testCategory: "Immunology",
-        sampleType: "Serum",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "09:40 AM",
-        priority: "Normal",
-        status: "Pending",
-    },
-    {
-        id: 5,
-        sampleId: "SMP-10005",
-        accessionNumber: "ACC-2026-0011",
-        patientId: "PAT-1011",
-        patientName: "Mohan Das",
-        testName: "Blood Glucose",
-        testCategory: "Biochemistry",
-        sampleType: "Plasma",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "09:48 AM",
-        priority: "Urgent",
-        status: "Pending",
-    },
-    {
-        id: 6,
-        sampleId: "SMP-10006",
-        accessionNumber: "ACC-2026-0012",
-        patientId: "PAT-1012",
-        patientName: "Keerthana S",
-        testName: "Urine Routine",
-        testCategory: "Clinical Pathology",
-        sampleType: "Urine",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "09:55 AM",
-        priority: "Normal",
-        status: "Pending",
-    },
-    {
-        id: 7,
-        sampleId: "SMP-10007",
-        accessionNumber: "ACC-2026-0013",
-        patientId: "PAT-1013",
-        patientName: "Sanjay Kumar",
-        testName: "HbA1c",
-        testCategory: "Biochemistry",
-        sampleType: "Blood",
-        receivedDate: "26 Sep 2026",
-        receivedTime: "10:05 AM",
-        priority: "STAT",
-        status: "Pending",
-    },
-];
 
 const columns = [
     "Sample ID",
@@ -143,7 +111,9 @@ const columns = [
     "Actions",
 ];
 
-const getPriorityClasses = (priority: PendingTest["priority"]) => {
+const getPriorityClasses = (
+    priority: PendingTest["priority"]
+) => {
     switch (priority) {
         case "STAT":
             return "bg-red-50 text-red-700 border-red-200";
@@ -159,18 +129,124 @@ const getPriorityClasses = (priority: PendingTest["priority"]) => {
     }
 };
 
+const getToday = () => {
+    return new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+};
+
+const getCurrentTime = () => {
+    return new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+};
+
+const getCurrentTechnician = () => {
+    try {
+        const storedUser = localStorage.getItem("lab_user");
+
+        if (!storedUser) {
+            return "Laboratory Technician";
+        }
+
+        const user = JSON.parse(storedUser);
+
+        return (
+            user?.name ||
+            user?.fullName ||
+            user?.username ||
+            "Laboratory Technician"
+        );
+    } catch {
+        return "Laboratory Technician";
+    }
+};
+
 const PendingTests = () => {
     const navigate = useNavigate();
+
+    const [samples, setSamples] = useState<StoredSample[]>(() => {
+        try {
+            const stored = localStorage.getItem("lab_samples");
+
+            if (!stored) {
+                return [];
+            }
+
+            return JSON.parse(stored);
+        } catch {
+            return [];
+        }
+    });
+
+    const [testMasterData] = useState<LabTest[]>(() => {
+        try {
+            const stored = localStorage.getItem("lab_tests");
+
+            if (!stored) {
+                return [];
+            }
+
+            return JSON.parse(stored);
+        } catch {
+            return [];
+        }
+    });
+
     const [searchTerm, setSearchTerm] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("All");
     const [categoryFilter, setCategoryFilter] = useState("All");
+
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [selectedTest, setSelectedTest] = useState<PendingTest | null>(null);
+
+    const [selectedTest, setSelectedTest] =
+        useState<PendingTest | null>(null);
+
     const [showDetails, setShowDetails] = useState(false);
 
+    const pendingTests = useMemo<PendingTest[]>(() => {
+        return samples
+            .filter((sample) => sample.status === "Accepted")
+            .map((sample) => {
+                const masterTest = testMasterData.find(
+                    (test) =>
+                        test.id === sample.testId ||
+                        test.code === sample.testId ||
+                        test.name === sample.testName
+                );
+
+                return {
+                    id: sample.id,
+                    sampleId: sample.sampleId,
+                    accessionNumber: sample.accessionNumber,
+                    patientId: sample.patientId,
+                    patientName: sample.patientName,
+                    testName: sample.testName,
+                    testCategory:
+                        masterTest?.category || "Laboratory",
+                    sampleType: sample.sampleType,
+                    receivedDate:
+                        sample.receivedDate ||
+                        sample.acceptedDate ||
+                        "-",
+                    receivedTime:
+                        sample.receivedTime ||
+                        sample.acceptedTime ||
+                        "-",
+                    priority: sample.priority || "Normal",
+                    status: "Pending",
+                    originalSample: sample,
+                };
+            });
+    }, [samples, testMasterData]);
+
     const filteredTests = useMemo(() => {
-        return pendingTestData.filter((test) => {
+        return pendingTests.filter((test) => {
             const search = searchTerm.toLowerCase().trim();
 
             const matchesSearch =
@@ -183,27 +259,52 @@ const PendingTests = () => {
                 test.sampleType.toLowerCase().includes(search);
 
             const matchesPriority =
-                priorityFilter === "All" || test.priority === priorityFilter;
+                priorityFilter === "All" ||
+                test.priority === priorityFilter;
 
             const matchesCategory =
-                categoryFilter === "All" || test.testCategory === categoryFilter;
+                categoryFilter === "All" ||
+                test.testCategory === categoryFilter;
 
-            return matchesSearch && matchesPriority && matchesCategory;
+            return (
+                matchesSearch &&
+                matchesPriority &&
+                matchesCategory
+            );
         });
-    }, [searchTerm, priorityFilter, categoryFilter]);
+    }, [
+        pendingTests,
+        searchTerm,
+        priorityFilter,
+        categoryFilter,
+    ]);
 
     const currentData = filteredTests.slice(
         (currentPage - 1) * rowsPerPage,
         currentPage * rowsPerPage
     );
 
-    const urgentCount = pendingTestData.filter(
+    const normalCount = pendingTests.filter(
+        (test) => test.priority === "Normal"
+    ).length;
+
+    const urgentCount = pendingTests.filter(
         (test) => test.priority === "Urgent"
     ).length;
 
-    const statCount = pendingTestData.filter(
+    const statCount = pendingTests.filter(
         (test) => test.priority === "STAT"
     ).length;
+
+    const categories = useMemo(() => {
+        return Array.from(
+            new Set(
+                pendingTests
+                    .map((test) => test.testCategory)
+                    .filter(Boolean)
+            )
+        );
+    }, [pendingTests]);
 
     const handleReset = () => {
         setSearchTerm("");
@@ -221,13 +322,69 @@ const PendingTests = () => {
         setShowDetails(false);
         setSelectedTest(null);
     };
-    ;
+
+    const handleStartAnalysis = () => {
+        if (!selectedTest) {
+            return;
+        }
+
+        const today = getToday();
+        const currentTime = getCurrentTime();
+        const technician = getCurrentTechnician();
+
+        const masterTest = testMasterData.find(
+            (test) =>
+                test.id === selectedTest.originalSample.testId ||
+                test.code === selectedTest.originalSample.testId ||
+                test.name === selectedTest.testName
+        );
+
+        const updatedSamples = samples.map((sample) => {
+            if (
+                sample.id !== selectedTest.originalSample.id &&
+                sample.sampleId !== selectedTest.sampleId
+            ) {
+                return sample;
+            }
+
+            return {
+                ...sample,
+
+                status: "Processing" as SampleStatus,
+
+                processingDate: today,
+                processingTime: currentTime,
+                processingBy: technician,
+
+                priority:
+                    sample.priority || selectedTest.priority,
+
+                method:
+                    sample.method ||
+                    masterTest?.method ||
+                    "Standard Laboratory Method",
+            };
+        });
+
+        localStorage.setItem(
+            "lab_samples",
+            JSON.stringify(updatedSamples)
+        );
+
+        setSamples(updatedSamples);
+
+        handleCloseDetails();
+
+        navigate("/analysis/processing");
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 px-3 py-4 sm:px-5 lg:px-6">
+
             {/* Header */}
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
+
                     <button
                         onClick={() => navigate(-1)}
                         className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
@@ -260,7 +417,7 @@ const PendingTests = () => {
 
             {/* Summary Cards */}
             <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Total */}
+
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div>
@@ -269,7 +426,7 @@ const PendingTests = () => {
                             </p>
 
                             <h2 className="mt-1 text-2xl font-bold text-gray-800">
-                                {pendingTestData.length}
+                                {pendingTests.length}
                             </h2>
                         </div>
 
@@ -279,7 +436,6 @@ const PendingTests = () => {
                     </div>
                 </div>
 
-                {/* Normal */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div>
@@ -288,11 +444,7 @@ const PendingTests = () => {
                             </p>
 
                             <h2 className="mt-1 text-2xl font-bold text-blue-600">
-                                {
-                                    pendingTestData.filter(
-                                        (test) => test.priority === "Normal"
-                                    ).length
-                                }
+                                {normalCount}
                             </h2>
                         </div>
 
@@ -302,7 +454,6 @@ const PendingTests = () => {
                     </div>
                 </div>
 
-                {/* Urgent */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div>
@@ -321,7 +472,6 @@ const PendingTests = () => {
                     </div>
                 </div>
 
-                {/* STAT */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div>
@@ -343,8 +493,12 @@ const PendingTests = () => {
 
             {/* Filters */}
             <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+
                 <div className="mb-4 flex items-center gap-2">
-                    <FilterListIcon className="text-gray-600" fontSize="small" />
+                    <FilterListIcon
+                        className="text-gray-600"
+                        fontSize="small"
+                    />
 
                     <h2 className="text-sm font-semibold text-gray-800">
                         Search & Filters
@@ -352,7 +506,7 @@ const PendingTests = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    {/* Search */}
+
                     <div className="relative xl:col-span-2">
                         <SearchIcon
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -371,7 +525,6 @@ const PendingTests = () => {
                         />
                     </div>
 
-                    {/* Priority */}
                     <select
                         value={priorityFilter}
                         onChange={(e) => {
@@ -386,7 +539,6 @@ const PendingTests = () => {
                         <option value="STAT">STAT</option>
                     </select>
 
-                    {/* Category */}
                     <select
                         value={categoryFilter}
                         onChange={(e) => {
@@ -395,13 +547,18 @@ const PendingTests = () => {
                         }}
                         className="h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700 outline-none focus:border-blue-500"
                     >
-                        <option value="All">All Categories</option>
-                        <option value="Biochemistry">Biochemistry</option>
-                        <option value="Hematology">Hematology</option>
-                        <option value="Immunology">Immunology</option>
-                        <option value="Clinical Pathology">
-                            Clinical Pathology
+                        <option value="All">
+                            All Categories
                         </option>
+
+                        {categories.map((category) => (
+                            <option
+                                key={category}
+                                value={category}
+                            >
+                                {category}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
@@ -417,6 +574,7 @@ const PendingTests = () => {
 
             {/* Table */}
             <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
+
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-sm font-bold text-gray-800 sm:text-base">
@@ -425,7 +583,10 @@ const PendingTests = () => {
 
                         <p className="text-xs text-gray-500">
                             {filteredTests.length} test
-                            {filteredTests.length !== 1 ? "s" : ""} found
+                            {filteredTests.length !== 1
+                                ? "s"
+                                : ""}{" "}
+                            found
                         </p>
                     </div>
                 </div>
@@ -437,7 +598,6 @@ const PendingTests = () => {
                         maxHeight="380px"
                         renderRow={(test: PendingTest) => (
                             <>
-                                {/* Sample ID */}
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
                                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
@@ -459,14 +619,12 @@ const PendingTests = () => {
                                     </div>
                                 </td>
 
-                                {/* Accession */}
                                 <td className="px-4 py-3">
                                     <span className="whitespace-nowrap text-xs font-semibold text-gray-700">
                                         {test.accessionNumber}
                                     </span>
                                 </td>
 
-                                {/* Patient */}
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
@@ -488,28 +646,24 @@ const PendingTests = () => {
                                     </div>
                                 </td>
 
-                                {/* Test */}
                                 <td className="px-4 py-3">
                                     <p className="whitespace-nowrap text-xs font-medium text-gray-700">
                                         {test.testName}
                                     </p>
                                 </td>
 
-                                {/* Category */}
                                 <td className="px-4 py-3">
                                     <span className="whitespace-nowrap rounded-lg bg-purple-50 px-2.5 py-1 text-[11px] font-medium text-purple-700">
                                         {test.testCategory}
                                     </span>
                                 </td>
 
-                                {/* Sample */}
                                 <td className="px-4 py-3">
                                     <span className="whitespace-nowrap text-xs text-gray-600">
                                         {test.sampleType}
                                     </span>
                                 </td>
 
-                                {/* Received */}
                                 <td className="px-4 py-3">
                                     <div className="min-w-[125px]">
                                         <div className="flex items-center gap-1.5">
@@ -529,49 +683,45 @@ const PendingTests = () => {
                                     </div>
                                 </td>
 
-                                {/* Priority */}
                                 <td className="px-4 py-3">
                                     <span
                                         className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold ${getPriorityClasses(
                                             test.priority
                                         )}`}
                                     >
-                                        {(test.priority === "Urgent" ||
-                                            test.priority === "STAT") && (
-                                                <PriorityHighIcon
-                                                    fontSize="inherit"
-                                                />
-                                            )}
+                                        {(test.priority ===
+                                            "Urgent" ||
+                                            test.priority ===
+                                                "STAT") && (
+                                            <PriorityHighIcon fontSize="inherit" />
+                                        )}
 
                                         {test.priority}
                                     </span>
                                 </td>
 
-                                {/* Status */}
                                 <td className="px-4 py-3">
                                     <span className="inline-flex whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-700">
                                         Pending
                                     </span>
                                 </td>
 
-                                {/* Actions */}
                                 <td className="px-4 py-3">
-                                    <div className="flex items-center gap-1.5">
-                                        <button
-                                            onClick={() => handleViewDetails(test)}
-                                            title="View Details"
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                                        >
-                                            <VisibilityOutlinedIcon fontSize="small" />
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            handleViewDetails(test)
+                                        }
+                                        title="View Details"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                                    >
+                                        <VisibilityOutlinedIcon fontSize="small" />
+                                    </button>
                                 </td>
                             </>
                         )}
                     />
                 </div>
 
-                {/* Pagination */}
                 {filteredTests.length > 0 && (
                     <div className="mt-4 border-t border-gray-100 pt-4">
                         <Pagination
@@ -584,7 +734,6 @@ const PendingTests = () => {
                     </div>
                 )}
 
-                {/* Empty State */}
                 {filteredTests.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12">
                         <ScienceOutlinedIcon className="mb-2 text-4xl text-gray-300" />
@@ -594,40 +743,37 @@ const PendingTests = () => {
                         </p>
 
                         <p className="mt-1 text-xs text-gray-400">
-                            Try changing your search or filter criteria.
+                            Accepted samples will appear here when they are ready for analysis.
                         </p>
                     </div>
                 )}
             </div>
 
+            {/* Details Drawer */}
             {showDetails && selectedTest && (
                 <>
-                    {/* Backdrop */}
                     <div
                         className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[1px]"
                         onClick={handleCloseDetails}
                     />
 
-                    {/* Drawer */}
                     <div className="fixed right-0 top-0 z-[9999] flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
 
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
-                                        <ScienceOutlinedIcon className="text-blue-600" />
-                                    </div>
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                                    <ScienceOutlinedIcon className="text-blue-600" />
+                                </div>
 
-                                    <div>
-                                        <h2 className="text-base font-semibold text-gray-800">
-                                            Test Details
-                                        </h2>
+                                <div>
+                                    <h2 className="text-base font-semibold text-gray-800">
+                                        Test Details
+                                    </h2>
 
-                                        <p className="text-xs text-gray-500">
-                                            {selectedTest.sampleId}
-                                        </p>
-                                    </div>
+                                    <p className="mt-0.5 text-xs text-gray-500">
+                                        {selectedTest.sampleId}
+                                    </p>
                                 </div>
                             </div>
 
@@ -661,17 +807,12 @@ const PendingTests = () => {
                                             selectedTest.priority
                                         )}`}
                                     >
-                                        {(selectedTest.priority === "Urgent" ||
-                                            selectedTest.priority === "STAT") && (
-                                                <PriorityHighIcon fontSize="inherit" />
-                                            )}
-
                                         {selectedTest.priority}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Patient Information */}
+                            {/* Patient */}
                             <div className="mb-5">
                                 <div className="mb-3 flex items-center gap-2">
                                     <PersonIcon
@@ -685,8 +826,7 @@ const PendingTests = () => {
                                 </div>
 
                                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <p className="text-[11px] text-gray-500">
                                                 Patient Name
@@ -702,16 +842,15 @@ const PendingTests = () => {
                                                 Patient ID
                                             </p>
 
-                                            <p className="mt-1 text-sm font-semibold text-blue-700">
+                                            <p className="mt-1 text-xs font-semibold text-blue-700">
                                                 {selectedTest.patientId}
                                             </p>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Sample Information */}
+                            {/* Sample */}
                             <div className="mb-5">
                                 <div className="mb-3 flex items-center gap-2">
                                     <ScienceOutlinedIcon
@@ -726,7 +865,6 @@ const PendingTests = () => {
 
                                 <div className="rounded-xl border border-gray-200 bg-white">
                                     <div className="grid grid-cols-2 divide-x divide-gray-200">
-
                                         <div className="p-3">
                                             <p className="text-[11px] text-gray-500">
                                                 Sample ID
@@ -746,11 +884,9 @@ const PendingTests = () => {
                                                 {selectedTest.accessionNumber}
                                             </p>
                                         </div>
-
                                     </div>
 
-                                    <div className="border-t border-gray-200 grid grid-cols-2 divide-x divide-gray-200">
-
+                                    <div className="grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200">
                                         <div className="p-3">
                                             <p className="text-[11px] text-gray-500">
                                                 Sample Type
@@ -763,19 +899,18 @@ const PendingTests = () => {
 
                                         <div className="p-3">
                                             <p className="text-[11px] text-gray-500">
-                                                Test Category
+                                                Category
                                             </p>
 
                                             <span className="mt-1 inline-flex rounded-lg bg-purple-50 px-2.5 py-1 text-[10px] font-semibold text-purple-700">
                                                 {selectedTest.testCategory}
                                             </span>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Test Information */}
+                            {/* Test */}
                             <div className="mb-5">
                                 <div className="mb-3 flex items-center gap-2">
                                     <AssignmentOutlinedIcon
@@ -789,40 +924,17 @@ const PendingTests = () => {
                                 </div>
 
                                 <div className="rounded-xl border border-gray-200 bg-white p-4">
+                                    <p className="text-[11px] text-gray-500">
+                                        Test Name
+                                    </p>
 
-                                    <div className="mb-4">
-                                        <p className="text-[11px] text-gray-500">
-                                            Test Name
-                                        </p>
-
-                                        <p className="mt-1 text-sm font-semibold text-gray-800">
-                                            {selectedTest.testName}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-[11px] text-gray-500">
-                                            Priority
-                                        </p>
-
-                                        <span
-                                            className={`mt-1 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold ${getPriorityClasses(
-                                                selectedTest.priority
-                                            )}`}
-                                        >
-                                            {(selectedTest.priority === "Urgent" ||
-                                                selectedTest.priority === "STAT") && (
-                                                    <PriorityHighIcon fontSize="inherit" />
-                                                )}
-
-                                            {selectedTest.priority}
-                                        </span>
-                                    </div>
-
+                                    <p className="mt-1 text-sm font-semibold text-gray-800">
+                                        {selectedTest.testName}
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Received Information */}
+                            {/* Received */}
                             <div className="mb-5">
                                 <div className="mb-3 flex items-center gap-2">
                                     <AccessTimeIcon
@@ -837,7 +949,6 @@ const PendingTests = () => {
 
                                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                                     <div className="grid grid-cols-2 gap-4">
-
                                         <div>
                                             <p className="text-[11px] text-gray-500">
                                                 Received Date
@@ -857,12 +968,10 @@ const PendingTests = () => {
                                                 {selectedTest.receivedTime}
                                             </p>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Workflow Info */}
                             <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
                                 <div className="flex gap-3">
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white">
@@ -878,19 +987,16 @@ const PendingTests = () => {
                                         </p>
 
                                         <p className="mt-1 text-[11px] leading-5 text-blue-700">
-                                            This sample has been received and is waiting to be
-                                            processed by the laboratory technician.
+                                            This sample was accepted during accession and is ready to begin laboratory analysis.
                                         </p>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
 
                         {/* Footer */}
                         <div className="border-t border-gray-200 bg-white px-5 py-4">
                             <div className="flex gap-3">
-
                                 <button
                                     onClick={handleCloseDetails}
                                     className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50"
@@ -899,18 +1005,13 @@ const PendingTests = () => {
                                 </button>
 
                                 <button
-                                    onClick={() => {
-                                        console.log("Start Analysis:", selectedTest);
-                                        handleCloseDetails();
-                                    }}
+                                    onClick={handleStartAnalysis}
                                     className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-700"
                                 >
                                     Start Analysis
                                 </button>
-
                             </div>
                         </div>
-
                     </div>
                 </>
             )}
