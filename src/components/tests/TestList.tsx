@@ -3,6 +3,7 @@ import {
     Add,
     Close,
     EditOutlined,
+    DeleteOutlineOutlined,
     FilterList,
     Search,
     VisibilityOutlined,
@@ -17,6 +18,7 @@ type TestListProps = {
     onAddTest: () => void;
     onEditTest: (test: LabTest) => void;
     onToggleStatus: (id: string) => void;
+    onDeleteTest?: (id: string) => void;
 };
 
 const TestList = ({
@@ -25,13 +27,30 @@ const TestList = ({
     onAddTest,
     onEditTest,
     onToggleStatus,
+    onDeleteTest,
 }: TestListProps) => {
     const [search, setSearch] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
     const [viewTest, setViewTest] = useState<LabTest | null>(null);
+    const [deletingTest, setDeletingTest] = useState<LabTest | null>(null);
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3000);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deletingTest) return;
+        if (onDeleteTest) {
+            onDeleteTest(deletingTest.id);
+        }
+        setDeletingTest(null);
+        showToast("Deleted successfully");
+    };
 
     const filteredData = useMemo(() => {
         return tests.filter((test) => {
@@ -298,9 +317,18 @@ const TestList = ({
                                                 type="button"
                                                 title="Edit"
                                                 onClick={() => onEditTest(test)}
-                                                className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
+                                                className="rounded-lg p-2 text-slate-500 hover:bg-amber-50 hover:text-amber-600"
                                             >
                                                 <EditOutlined fontSize="small" />
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                title="Delete"
+                                                onClick={() => setDeletingTest(test)}
+                                                className="rounded-lg p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                                            >
+                                                <DeleteOutlineOutlined fontSize="small" />
                                             </button>
                                         </div>
                                     </td>
@@ -516,6 +544,92 @@ const TestList = ({
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Drawer (Matching Screenshot 1 style) */}
+            {deletingTest && (
+                <div
+                    className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm"
+                    onClick={() => setDeletingTest(null)}
+                >
+                    <div
+                        className="flex h-full w-full max-w-md flex-col justify-between bg-white shadow-2xl animate-in slide-in-from-right duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div>
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-rose-500 font-bold text-lg">⚠️</span>
+                                    <h3 className="text-base font-bold text-slate-900">Delete Test</h3>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeletingTest(null)}
+                                    className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                                >
+                                    <Close fontSize="small" />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                {/* Yellow Warning Box */}
+                                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 space-y-1">
+                                    <strong className="block font-semibold">Are you sure you want to permanently delete this test?</strong>
+                                    <p className="text-amber-800">
+                                        This test configuration and its parameters will be removed from the master list. This action cannot be undone.
+                                    </p>
+                                </div>
+
+                                {/* Details Card */}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2 text-xs">
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Test Name</span>
+                                        <strong className="text-slate-800 text-sm">{deletingTest.testName}</strong>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Test Code</span>
+                                        <span className="font-mono font-medium text-slate-700">{deletingTest.testCode}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Category & Sample</span>
+                                        <span className="text-slate-700">{deletingTest.category} • {deletingTest.sampleType}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Price</span>
+                                        <span className="font-semibold text-slate-800">₹{deletingTest.price.toLocaleString("en-IN")}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Buttons */}
+                        <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+                            <button
+                                type="button"
+                                onClick={() => setDeletingTest(null)}
+                                className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmDelete}
+                                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow transition hover:bg-rose-700"
+                            >
+                                Confirm Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Notification (Top Right) */}
+            {toastMsg && (
+                <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{toastMsg}</span>
                 </div>
             )}
         </>

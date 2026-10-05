@@ -5,6 +5,8 @@ import AddIcon from "@mui/icons-material/Add";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import "./patients.css";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
@@ -293,6 +295,23 @@ const PatientList = () => {
   setOpenMenu(null);
 };
 
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [deletingPatient, setDeletingPatient] = useState<Patient | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingPatient) return;
+    const updated = patients.filter((p) => p.patientId !== deletingPatient.patientId);
+    setPatients(updated);
+    localStorage.setItem("lab_patients", JSON.stringify(updated));
+    setDeletingPatient(null);
+    showToast("Deleted successfully");
+  };
+
   const handleSavePatient = () => {
     if (!selectedPatient) {
       return;
@@ -316,6 +335,7 @@ const PatientList = () => {
     setIsEditMode(false);
     setIsViewDrawerOpen(false);
     setSelectedPatient(null);
+    showToast("Patient details updated successfully.");
   };
 
   const handleCloseDrawer = () => {
@@ -543,6 +563,15 @@ const PatientList = () => {
                       className="rounded-lg p-2 text-slate-500 transition hover:bg-purple-50 hover:text-purple-600"
                     >
                       <HistoryOutlinedIcon fontSize="small" />
+                    </button>
+
+                    <button
+                      type="button"
+                      title="Delete"
+                      onClick={() => setDeletingPatient(patient)}
+                      className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                    >
+                      <DeleteOutlineOutlinedIcon fontSize="small" />
                     </button>
 
                   </div>
@@ -1134,6 +1163,88 @@ const PatientList = () => {
             </div>
           </>
         )}
+
+      {/* Delete Confirmation Drawer (Matching Screenshot 1 style) */}
+      {deletingPatient && (
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm"
+          onClick={() => setDeletingPatient(null)}
+        >
+          <div
+            className="flex h-full w-full max-w-md flex-col justify-between bg-white shadow-2xl animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-rose-500 font-bold text-lg">⚠️</span>
+                  <h3 className="text-base font-bold text-slate-900">Delete Patient</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeletingPatient(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <CloseIcon fontSize="small" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Yellow Warning Box */}
+                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 space-y-1">
+                  <strong className="block font-semibold">Are you sure you want to permanently delete this patient?</strong>
+                  <p className="text-amber-800">
+                    This patient record will be removed from the system. This action cannot be undone.
+                  </p>
+                </div>
+
+                {/* Details Card */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Patient Name</span>
+                    <strong className="text-slate-800 text-sm">{deletingPatient.patientName}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Patient ID</span>
+                    <span className="font-mono font-medium text-slate-700">{deletingPatient.patientId}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Phone & Gender</span>
+                    <span className="text-slate-700">{deletingPatient.phone || "—"} • {deletingPatient.gender}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setDeletingPatient(null)}
+                className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow transition hover:bg-rose-700"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification (Top Right) */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };

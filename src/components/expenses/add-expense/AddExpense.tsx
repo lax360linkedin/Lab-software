@@ -64,6 +64,12 @@ export default function AddExpense() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -76,7 +82,7 @@ export default function AddExpense() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.amount) {
-      alert("Please fill in the expense title and amount.");
+      showToast("Please fill in the expense title and amount.");
       return;
     }
 
@@ -387,6 +393,14 @@ export default function AddExpense() {
           </div>
         </div>
       </form>
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-2xl transition-all">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 }

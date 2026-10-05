@@ -54,6 +54,12 @@ const AddDoctor = ({
     const [notes, setNotes] = useState(initialForm.notes);
     const isEditing = Boolean(editingDoctor);
 
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3000);
+    };
+
     const handleSubmit = (
         event: React.FormEvent<HTMLFormElement>
     ) => {
@@ -64,7 +70,7 @@ const AddDoctor = ({
             !specialization.trim() ||
             !phone.trim()
         ) {
-            alert(
+            showToast(
                 "Please fill all required fields."
             );
             return;
@@ -73,7 +79,7 @@ const AddDoctor = ({
         if (
             phone.trim().length < 10
         ) {
-            alert(
+            showToast(
                 "Please enter a valid phone number."
             );
             return;
@@ -85,7 +91,7 @@ const AddDoctor = ({
                 email.trim()
             )
         ) {
-            alert(
+            showToast(
                 "Please enter a valid email address."
             );
             return;
@@ -463,6 +469,14 @@ const AddDoctor = ({
                     </button>
                 </div>
             </form>
+
+            {/* Toast Notification */}
+            {toastMsg && (
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-2xl transition-all">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{toastMsg}</span>
+                </div>
+            )}
         </div>
     );
 };

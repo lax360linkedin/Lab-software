@@ -24,6 +24,7 @@ export type Doctor = {
     notes: string;
     status: DoctorStatus;
     createdAt: string;
+    hospitalClinic?: string;
 };
 
 export type ReferralStatus =
@@ -244,6 +245,12 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
         setActiveTab("list");
     };
 
+    const handleDeleteDoctor = (doctorId: string) => {
+        const updatedDoctors = doctors.filter((doctor) => doctor.id !== doctorId);
+        setDoctors(updatedDoctors);
+        localStorage.setItem(DOCTOR_STORAGE_KEY, JSON.stringify(updatedDoctors));
+    };
+
     const handleToggleDoctorStatus = (doctorId: string) => {
         const updatedDoctors: Doctor[] = doctors.map((doctor) => {
             if (doctor.id !== doctorId) {
@@ -381,6 +388,7 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
                         onAddDoctor={handleAddDoctor}
                         onEditDoctor={handleEditDoctor}
                         onToggleStatus={handleToggleDoctorStatus}
+                        onDeleteDoctor={handleDeleteDoctor}
                     />
                 )}
 

@@ -65,7 +65,7 @@ const NotificationHistory: React.FC = () => {
   const handleSendDirect = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!recipientName || !recipientContact || !messageContent) {
-      alert("Please fill all required recipient and message fields.");
+      showToast("Please fill all required recipient and message fields.");
       return;
     }
 

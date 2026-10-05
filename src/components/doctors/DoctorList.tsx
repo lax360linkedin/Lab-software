@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import ToggleOnOutlinedIcon from "@mui/icons-material/ToggleOnOutlined";
 import ToggleOffOutlinedIcon from "@mui/icons-material/ToggleOffOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
@@ -26,6 +27,7 @@ type DoctorListProps = {
     onAddDoctor: () => void;
     onEditDoctor: (doctor: Doctor) => void;
     onToggleStatus: (doctorId: string) => void;
+    onDeleteDoctor?: (doctorId: string) => void;
 };
 
 const DoctorList = ({
@@ -34,13 +36,30 @@ const DoctorList = ({
     onAddDoctor,
     onEditDoctor,
     onToggleStatus,
+    onDeleteDoctor,
 }: DoctorListProps) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [specializationFilter, setSpecializationFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
     const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+    const [deletingDoctor, setDeletingDoctor] = useState<Doctor | null>(null);
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3000);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deletingDoctor) return;
+        if (onDeleteDoctor) {
+            onDeleteDoctor(deletingDoctor.id);
+        }
+        setDeletingDoctor(null);
+        showToast("Deleted successfully");
+    };
 
     const specializations = useMemo(() => {
         return Array.from(
@@ -320,6 +339,17 @@ const DoctorList = ({
                                                 )}
                                             </button>
 
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setDeletingDoctor(doctor)
+                                                }
+                                                title="Delete Doctor"
+                                                className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                                            >
+                                                <DeleteOutlineOutlinedIcon fontSize="small" />
+                                            </button>
+
                                         </div>
                                     </td>
                                 </>
@@ -567,6 +597,88 @@ const DoctorList = ({
                         </div>
                     </aside>
                 </>
+            )}
+
+            {/* Delete Confirmation Drawer (Matching Screenshot 1 style) */}
+            {deletingDoctor && (
+                <div
+                    className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm"
+                    onClick={() => setDeletingDoctor(null)}
+                >
+                    <div
+                        className="flex h-full w-full max-w-md flex-col justify-between bg-white shadow-2xl animate-in slide-in-from-right duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div>
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-rose-500 font-bold text-lg">⚠️</span>
+                                    <h3 className="text-base font-bold text-slate-900">Delete Doctor</h3>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeletingDoctor(null)}
+                                    className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                                >
+                                    <CloseOutlinedIcon fontSize="small" />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                {/* Yellow Warning Box */}
+                                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 space-y-1">
+                                    <strong className="block font-semibold">Are you sure you want to permanently delete this doctor?</strong>
+                                    <p className="text-amber-800">
+                                        This doctor referral record will be removed from the system. This action cannot be undone.
+                                    </p>
+                                </div>
+
+                                {/* Details Card */}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2 text-xs">
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Doctor Name</span>
+                                        <strong className="text-slate-800 text-sm">{deletingDoctor.doctorName}</strong>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Doctor Code</span>
+                                        <span className="font-mono font-medium text-slate-700">{deletingDoctor.doctorCode || deletingDoctor.id}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Specialization & Clinic</span>
+                                        <span className="text-slate-700">{deletingDoctor.specialization} • {(deletingDoctor as any).hospitalClinic || deletingDoctor.referralType || "Private"}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Buttons */}
+                        <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+                            <button
+                                type="button"
+                                onClick={() => setDeletingDoctor(null)}
+                                className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmDelete}
+                                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow transition hover:bg-rose-700"
+                            >
+                                Confirm Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Notification (Top Right) */}
+            {toastMsg && (
+                <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{toastMsg}</span>
+                </div>
             )}
         </>
     );

@@ -49,6 +49,7 @@ import VerifiedResults from "../verification/VerifiedResults";
 import PendingReports from "../reports/PendingReports";
 import FinalReports from "../reports/FinalReports";
 
+
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
     console.log("📥 RECEIVED SAMPLES COMPONENT LOADED");
@@ -109,6 +110,7 @@ const AppRoutes = () => {
                     <Route path="/verification/verified" element={ <VerifiedResults /> } />
                     <Route path="/reports/pending" element={ <PendingReports /> } />
                     <Route path="/reports/final" element={ <FinalReports /> } />
+
                     
                 </Route>
             </Route>

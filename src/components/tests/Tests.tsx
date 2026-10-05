@@ -293,6 +293,11 @@ const Tests = () => {
         setActiveTab("list");
     };
 
+    const handleDeleteTest = (id: string) => {
+        const updatedTests = tests.filter((test) => test.id !== id);
+        saveTests(updatedTests);
+    };
+
     const handleSaveCategory = (categoryData: TestCategory) => {
         const existingCategory = categories.some(
             (category) => category.id === categoryData.id
@@ -306,6 +311,11 @@ const Tests = () => {
             )
             : [...categories, categoryData];
 
+        saveCategories(updatedCategories);
+    };
+
+    const handleDeleteCategory = (id: string) => {
+        const updatedCategories = categories.filter((category) => category.id !== id);
         saveCategories(updatedCategories);
     };
 
@@ -416,6 +426,7 @@ const Tests = () => {
                         onAddTest={handleAddTest}
                         onEditTest={handleEditTest}
                         onToggleStatus={handleToggleTestStatus}
+                        onDeleteTest={handleDeleteTest}
                     />
                 )}
 
@@ -434,6 +445,7 @@ const Tests = () => {
                         categories={categories}
                         onSaveCategory={handleSaveCategory}
                         onToggleCategory={handleToggleCategory}
+                        onDeleteCategory={handleDeleteCategory}
                     />
                 )}
             </div>
