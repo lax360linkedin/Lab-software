@@ -1,13 +1,11 @@
 import { useMemo, useState } from "react";
-import {
-    Add,
-    Close,
-    EditOutlined,
-    DeleteOutlineOutlined,
-    FilterList,
-    Search,
-    VisibilityOutlined,
-} from "@mui/icons-material";
+import Add from "@mui/icons-material/Add";
+import Close from "@mui/icons-material/Close";
+import EditOutlined from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
+import FilterList from "@mui/icons-material/FilterList";
+import Search from "@mui/icons-material/Search";
+import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import type { LabTest, TestCategory } from "./Tests";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import Sidebar from "./Sidebar";
 import "./layout.css";
 import { useAuth } from "../../components/auth/useAuth";
@@ -19,6 +20,37 @@ const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [globalToast, setGlobalToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Intercept window.alert so all alert() calls display the toast instead of native browser popup
+    const originalAlert = window.alert;
+    window.alert = (msg?: unknown) => {
+      setGlobalToast(String(msg ?? ""));
+    };
+
+    const handleCustomToast = (e: Event) => {
+      const custom = e as CustomEvent<{ message: string }>;
+      if (custom.detail?.message) {
+        setGlobalToast(custom.detail.message);
+      }
+    };
+    window.addEventListener("app-toast", handleCustomToast);
+
+    return () => {
+      window.alert = originalAlert;
+      window.removeEventListener("app-toast", handleCustomToast);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (globalToast) {
+      const timer = setTimeout(() => {
+        setGlobalToast(null);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [globalToast]);
 
   useEffect(() => {
     const saved = localStorage.getItem("dashboard_accent_color");
@@ -140,6 +172,14 @@ const Layout = ({ children }: LayoutProps) => {
             {children || <Outlet />}
         </main>
       </div>
+
+      {/* Toast Notification (Replaces native browser alerts) */}
+      {globalToast && (
+        <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+          <CheckCircleOutlineOutlinedIcon className="text-emerald-400" />
+          <span>{globalToast}</span>
+        </div>
+      )}
     </div>
   );
 };

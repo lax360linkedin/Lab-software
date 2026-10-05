@@ -48,6 +48,11 @@ import VerificationPending from "../verification/Verification";
 import VerifiedResults from "../verification/VerifiedResults";
 import PendingReports from "../reports/PendingReports";
 import FinalReports from "../reports/FinalReports";
+import SettingsModule from "../settings/SettingsModule";
+import CorrectiveActions from "../quality-control/CorrectiveActions";
+import NotificationHistory from "../notifications/NotificationHistory";
+import MessageTemplates from "../notifications/MessageTemplates";
+import NotificationSettings from "../notifications/NotificationSettings";
 
 
 const AppRoutes = () => {
@@ -66,6 +71,7 @@ const AppRoutes = () => {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/patients" element={<PatientList />} />
                     <Route path="/patients/new-registration" element={<NewRegistration />} />
+                    <Route path="/patients/history" element={<PatientHistory />} />
                     <Route path="/patients/history/:patientId" element={<PatientHistory />} />
                     <Route path="/accession/sample-collection" element={<SampleCollection />} />
                     <Route path="/accession/received-samples" element={<ReceivedSamples />} />
@@ -95,22 +101,27 @@ const AppRoutes = () => {
                     <Route path="/lab-management/settings" element={<LabSettings />} />
                     <Route path="/lab-profile" element={<LabProfile />} />
                     <Route path="/tests" element={<Tests />} />
-                    <Route path="/lab-profile" element={<LabProfile />} />
-                    <Route path="/doctors" element={<Doctors />} />
                     <Route path="/doctors" element={<Doctors />} />
                     <Route path="/billing/new" element={<NewBill />} />
                     <Route path="/billing/payments" element={<Payments />} />
                     <Route path="/billing/pending-payments" element={<BillingPendingPayments />} />
                     <Route path="/results/pending-results" element={<PendingResults />} />
+                    <Route path="/results/entry" element={<ResultEntry />} />
                     <Route path="/results/entry/:sampleId" element={<ResultEntry />} />
                     <Route path="/qc/pending" element={<PendingQC />} />
-                    <Route path="/qc/passed" element={ <QCPassed /> } />
-                    <Route path="/qc/failed" element={ <QCFailed /> }/>
-                    <Route path="/verification/pending" element={ <VerificationPending /> } />
-                    <Route path="/verification/verified" element={ <VerifiedResults /> } />
-                    <Route path="/reports/pending" element={ <PendingReports /> } />
-                    <Route path="/reports/final" element={ <FinalReports /> } />
-
+                    <Route path="/qc/passed" element={<QCPassed />} />
+                    <Route path="/qc/failed" element={<QCFailed />} />
+                    <Route path="/quality-control/corrective-actions" element={<CorrectiveActions />} />
+                    <Route path="/qc/corrective-actions" element={<CorrectiveActions />} />
+                    <Route path="/verification/pending" element={<VerificationPending />} />
+                    <Route path="/verification/verified" element={<VerifiedResults />} />
+                    <Route path="/reports/pending" element={<PendingReports />} />
+                    <Route path="/reports/final" element={<FinalReports />} />
+                    <Route path="/reports/history" element={<FinalReports />} />
+                    <Route path="/notifications/history" element={<NotificationHistory />} />
+                    <Route path="/notifications/templates" element={<MessageTemplates />} />
+                    <Route path="/notifications/settings" element={<NotificationSettings />} />
+                    <Route path="/settings" element={<SettingsModule />} />
                     
                 </Route>
             </Route>
