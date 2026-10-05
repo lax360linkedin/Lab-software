@@ -50,7 +50,7 @@ const patientsData: Patient[] = [
     gender: "Male",
     phone: "9876543210",
     doctorReferral: "Dr. John Smith",
-    requiredTests: ["CBC"],
+    requiredTests: ["CBC", "LFT", "KFT", "Lipid Profile"],
     registrationDate: "25 Sep 2026",
     status: "Active",
   },
@@ -89,7 +89,7 @@ const patientsData: Patient[] = [
     gender: "Female",
     phone: "9876543213",
     doctorReferral: "Dr. John Smith",
-    requiredTests: ["CBC", "LFT"],
+    requiredTests: ["CBC", "LFT", "Thyroid Profile"],
     registrationDate: "24 Sep 2026",
     status: "Active",
   },
@@ -102,7 +102,7 @@ const patientsData: Patient[] = [
     gender: "Male",
     phone: "9876543214",
     doctorReferral: "Dr. Sarah Wilson",
-    requiredTests: ["Lipid Profile"],
+    requiredTests: ["Lipid Profile", "Blood Glucose", "HbA1c", "Urine Routine"],
     registrationDate: "23 Sep 2026",
     status: "Pending",
   },
@@ -217,6 +217,21 @@ const PatientList = () => {
           JSON.parse(storedPatients);
 
         if (Array.isArray(parsedPatients)) {
+          const hasMoreThanTwo = parsedPatients.some(
+            (p) => Array.isArray(p.requiredTests) && p.requiredTests.length > 2
+          );
+          if (!hasMoreThanTwo && parsedPatients.length > 0) {
+            if (parsedPatients[0]) {
+              parsedPatients[0].requiredTests = ["CBC", "LFT", "KFT", "Lipid Profile"];
+            }
+            if (parsedPatients[3]) {
+              parsedPatients[3].requiredTests = ["CBC", "LFT", "Thyroid Profile"];
+            }
+            if (parsedPatients[4]) {
+              parsedPatients[4].requiredTests = ["Lipid Profile", "Blood Glucose", "HbA1c", "Urine Routine"];
+            }
+            localStorage.setItem("lab_patients", JSON.stringify(parsedPatients));
+          }
           return parsedPatients;
         }
 
@@ -458,9 +473,9 @@ const PatientList = () => {
 
                 {/* TESTS */}
 
-                <td className="px-4 py-4">
+                <td className="whitespace-nowrap px-4 py-4">
 
-                  <div className="flex max-w-[220px] flex-wrap gap-1.5">
+                  <div className="flex items-center gap-1.5 whitespace-nowrap">
 
                     {patient.requiredTests?.length > 0 ? (
                       <>
@@ -472,25 +487,21 @@ const PatientList = () => {
                                 typeof test ===
                                 "string"
                                   ? `${test}-${index}`
-                                  : test.testId
+                                  : test.testId || `${test.testCode}-${index}`
                               }
-                              className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                              className="inline-flex max-w-[120px] truncate items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700"
                             >
                               {typeof test ===
                               "string"
                                 ? test
-                                : test.testCode}
+                                : test.testCode || test.testName}
                             </span>
                           ))}
 
                         {patient.requiredTests
                           .length > 2 && (
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                            +
-                            {patient
-                              .requiredTests
-                              .length - 2}{" "}
-                            more
+                          <span className="inline-flex shrink-0 items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                            +{patient.requiredTests.length - 2}more...
                           </span>
                         )}
                       </>

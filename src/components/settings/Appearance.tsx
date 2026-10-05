@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import { ACCENT_COLORS, DEFAULT_ACCENT } from "../../context/ThemeContext";
+import laxLogo from "../../assets/laxlogo.jpg";
 
 export default function Appearance() {
+  const navigate = useNavigate();
   const [appliedColor, setAppliedColor] = useState<string>(() => {
     const saved = localStorage.getItem("dashboard_accent_color");
     return saved && saved.trim() ? saved : DEFAULT_ACCENT;
@@ -83,9 +86,16 @@ export default function Appearance() {
             style={{ backgroundColor: selectedColor }}
             className="flex h-14 items-center justify-between px-5 text-white transition-colors duration-200"
           >
-            <span className="text-sm font-bold tracking-tight">
-              Lax Lab Dashboard
-            </span>
+            <div className="flex items-center gap-2.5">
+              <img
+                src={laxLogo}
+                alt="Lax Lab Logo"
+                className="h-8 w-8 rounded-lg object-contain shadow-sm border border-white/20 bg-black"
+              />
+              <span className="text-sm font-bold tracking-tight">
+                Lax Lab
+              </span>
+            </div>
 
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-full bg-white/25" />
@@ -100,18 +110,34 @@ export default function Appearance() {
               style={{ backgroundColor: selectedColor }}
               className="w-32 shrink-0 p-3 space-y-1.5 transition-colors duration-200 border-t border-white/10"
             >
-              <div className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-semibold text-white">
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                className="w-full text-left rounded-lg bg-white/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/30 cursor-pointer"
+              >
                 Dashboard
-              </div>
-              <div className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80">
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/patients")}
+                className="w-full text-left rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/25 hover:text-white cursor-pointer"
+              >
                 Patients
-              </div>
-              <div className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80">
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/reports/pending")}
+                className="w-full text-left rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/25 hover:text-white cursor-pointer"
+              >
                 Reports
-              </div>
-              <div className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80">
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/settings")}
+                className="w-full text-left rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/25 hover:text-white cursor-pointer"
+              >
                 Settings
-              </div>
+              </button>
             </div>
 
             {/* Mini Dashboard Overview Content */}

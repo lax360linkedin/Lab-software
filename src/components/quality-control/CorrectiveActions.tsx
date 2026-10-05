@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import BuildCircleOutlinedIcon from "@mui/icons-material/BuildCircleOutlined";
@@ -25,12 +25,13 @@ import {
 import {
   getStoredResults,
   saveResultsStore,
+  type TestResultItem,
 } from "../results/resultsData";
 import "./qualityControl.css";
 
 const CorrectiveActions: React.FC = () => {
   const navigate = useNavigate();
-  const [capaList, setCapaList] = useState<CorrectiveActionRecord[]>([]);
+  const [capaList, setCapaList] = useState<CorrectiveActionRecord[]>(() => getStoredCAPA());
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -52,10 +53,6 @@ const CorrectiveActions: React.FC = () => {
   const [deletingItem, setDeletingItem] = useState<CorrectiveActionRecord | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    setCapaList(getStoredCAPA());
-  }, []);
-
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 4000);
@@ -63,10 +60,10 @@ const CorrectiveActions: React.FC = () => {
 
   const releaseSamplesToResults = (record: CorrectiveActionRecord) => {
     const results = getStoredResults();
-    const existingSampleIds = new Set(results.map((r) => r.sampleId));
+    const existingSampleIds = new Set(results.map((r: TestResultItem) => r.sampleId));
 
     // Release existing held samples
-    const updatedResults = results.map((r) => {
+    const updatedResults = results.map((r: TestResultItem) => {
       const isTarget =
         record.releasedSampleIds?.includes(r.sampleId) ||
         r.status === "QC_FAILED" ||
@@ -552,7 +549,7 @@ const CorrectiveActions: React.FC = () => {
                     <label className="block font-semibold text-slate-700 mb-1">Root Cause Category</label>
                     <select
                       value={rootCauseCategory}
-                      onChange={(e) => setRootCauseCategory(e.target.value as any)}
+                      onChange={(e) => setRootCauseCategory(e.target.value as CorrectiveActionRecord["rootCauseCategory"])}
                       className="w-full h-10 rounded-xl border border-slate-300 px-3 font-semibold text-slate-800 outline-none focus:border-teal-500"
                     >
                       <option value="Calibration Drift">Calibration Drift</option>

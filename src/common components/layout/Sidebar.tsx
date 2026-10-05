@@ -241,7 +241,7 @@ const menuItems: MenuItem[] = [
     roles: ["admin"],
     children: [
       {
-        label: "Communication History",
+        label: "Report Notifications",
         path: "/notifications/history",
       },
       {

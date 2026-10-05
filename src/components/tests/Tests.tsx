@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Add, ScienceOutlined } from "@mui/icons-material";
+import Add from "@mui/icons-material/Add";
+import ScienceOutlined from "@mui/icons-material/ScienceOutlined";
 import TestList from "./TestList";
 import AddTest from "./AddTest";
 import Categories from "./Categories";
