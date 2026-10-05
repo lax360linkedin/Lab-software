@@ -106,6 +106,12 @@ const AddTest = ({
         );
     };
 
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3000);
+    };
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -118,7 +124,7 @@ const AddTest = ({
             !price ||
             !turnaroundTime.trim()
         ) {
-            alert("Please fill all required fields.");
+            showToast("Please fill all required fields.");
             return;
         }
 
@@ -130,7 +136,7 @@ const AddTest = ({
         );
 
         if (validParameters.length === 0) {
-            alert("Please add at least one test parameter.");
+            showToast("Please add at least one test parameter.");
             return;
         }
 
@@ -471,6 +477,14 @@ const AddTest = ({
                     </button>
                 </div>
             </form>
+
+            {/* Toast Notification */}
+            {toastMsg && (
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-2xl transition-all">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{toastMsg}</span>
+                </div>
+            )}
         </div>
     );
 };

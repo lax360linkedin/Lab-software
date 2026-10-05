@@ -977,7 +977,7 @@ export default function ExpenseList() {
               <button
                 type="button"
                 onClick={() => {
-                  alert(`Downloading ${attachmentPreview.attachmentName || "Receipt.pdf"}...`);
+                  showToast(`Downloading ${attachmentPreview.attachmentName || "Receipt.pdf"}...`);
                   setAttachmentPreview(null);
                 }}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700"

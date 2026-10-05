@@ -40,6 +40,7 @@ import NewBill from "../../common components/billing/NewBill";
 import Payments from "../../common components/billing/Payments";
 import BillingPendingPayments from "../../common components/billing/BillingPendingPayments";
 
+
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
     return (
@@ -88,6 +89,7 @@ const AppRoutes = () => {
                     <Route path="/billing/new" element={<NewBill />} />
                     <Route path="/billing/payments" element={<Payments />} />
                     <Route path="/billing/pending-payments" element={<BillingPendingPayments />} />
+                
                     
                 </Route>
             </Route>

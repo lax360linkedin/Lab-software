@@ -3,6 +3,7 @@ import {
     Add,
     Close,
     EditOutlined,
+    DeleteOutlineOutlined,
     Save,
     Search,
 } from "@mui/icons-material";
@@ -15,6 +16,7 @@ type CategoriesProps = {
     categories: TestCategory[];
     onSaveCategory: (category: TestCategory) => void;
     onToggleCategory: (id: string) => void;
+    onDeleteCategory?: (id: string) => void;
 };
 
 const inputClass =
@@ -24,6 +26,7 @@ const Categories = ({
     categories,
     onSaveCategory,
     onToggleCategory,
+    onDeleteCategory,
 }: CategoriesProps) => {
     const [categorySearch, setCategorySearch] = useState("");
     const [showCategoryForm, setShowCategoryForm] = useState(false);
@@ -89,14 +92,32 @@ const Categories = ({
         setShowCategoryForm(true);
     };
 
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+    const [deletingCategory, setDeletingCategory] = useState<TestCategory | null>(null);
+
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3000);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deletingCategory) return;
+        if (onDeleteCategory) {
+            onDeleteCategory(deletingCategory.id);
+        }
+        setDeletingCategory(null);
+        showToast("Deleted successfully");
+    };
+
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!categoryName.trim()) {
-            alert("Please enter category name.");
+            showToast("Please enter category name.");
             return;
         }
 
+        const isEditing = Boolean(editingCategoryId);
         const category: TestCategory = {
             id:
                 editingCategoryId ??
@@ -113,7 +134,7 @@ const Categories = ({
         };
 
         onSaveCategory(category);
-
+        showToast(isEditing ? "Category updated successfully." : "Category created successfully.");
         resetForm();
     };
 
@@ -344,16 +365,29 @@ const Categories = ({
                                         </td>
 
                                         <td className="whitespace-nowrap px-4 py-3">
-                                            <button
-                                                type="button"
-                                                title="Edit"
-                                                onClick={() =>
-                                                    handleEdit(category)
-                                                }
-                                                className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
-                                            >
-                                                <EditOutlined fontSize="small" />
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    title="Edit"
+                                                    onClick={() =>
+                                                        handleEdit(category)
+                                                    }
+                                                    className="rounded-lg p-2 text-slate-500 hover:bg-amber-50 hover:text-amber-600"
+                                                >
+                                                    <EditOutlined fontSize="small" />
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    title="Delete"
+                                                    onClick={() =>
+                                                        setDeletingCategory(category)
+                                                    }
+                                                    className="rounded-lg p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                                                >
+                                                    <DeleteOutlineOutlined fontSize="small" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </>
                                 );
@@ -386,6 +420,88 @@ const Categories = ({
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Drawer (Matching Screenshot 1 style) */}
+            {deletingCategory && (
+                <div
+                    className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm"
+                    onClick={() => setDeletingCategory(null)}
+                >
+                    <div
+                        className="flex h-full w-full max-w-md flex-col justify-between bg-white shadow-2xl animate-in slide-in-from-right duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div>
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-rose-500 font-bold text-lg">⚠️</span>
+                                    <h3 className="text-base font-bold text-slate-900">Delete Category</h3>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeletingCategory(null)}
+                                    className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                                >
+                                    <Close fontSize="small" />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                {/* Yellow Warning Box */}
+                                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 space-y-1">
+                                    <strong className="block font-semibold">Are you sure you want to permanently delete this category?</strong>
+                                    <p className="text-amber-800">
+                                        This test category will be removed. This action cannot be undone.
+                                    </p>
+                                </div>
+
+                                {/* Details Card */}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2 text-xs">
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Category Name</span>
+                                        <strong className="text-slate-800 text-sm">{deletingCategory.name}</strong>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Category ID</span>
+                                        <span className="font-mono font-medium text-slate-700">{deletingCategory.id}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400 block text-[11px]">Description</span>
+                                        <span className="text-slate-700">{deletingCategory.description || "—"}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Buttons */}
+                        <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 bg-slate-50">
+                            <button
+                                type="button"
+                                onClick={() => setDeletingCategory(null)}
+                                className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmDelete}
+                                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-semibold text-white shadow transition hover:bg-rose-700"
+                            >
+                                Confirm Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Notification (Top Right) */}
+            {toastMsg && (
+                <div className="fixed top-5 right-5 z-[10000] flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl animate-in fade-in slide-in-from-top-2">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{toastMsg}</span>
+                </div>
+            )}
         </>
     );
 };

@@ -10,7 +10,9 @@
 }
 
 .app-header {
-  @apply sticky top-0 z-40 flex h-[76px] items-center justify-between border-b border-white/10 bg-slate-950 px-6 text-white;
+  @apply sticky top-0 z-40 flex h-[76px] items-center justify-between border-b border-white/10 px-6 text-white;
+  background-color: var(--dashboard-accent, #020617);
+  transition: background-color 0.2s ease;
 }
 
 .header-left {
@@ -18,11 +20,11 @@
 }
 
 .header-page-info {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-3;
 }
 
 .header-page-info h1 {
-  @apply m-0 text-lg font-bold text-white;
+  @apply m-0 text-xl font-bold tracking-tight text-white;
 }
 
 .header-page-info span {
@@ -30,7 +32,12 @@
 }
 
 .header-logo {
-  @apply h-6 w-6 shrink-0 object-contain;
+  @apply h-12 w-12 shrink-0 rounded-xl object-contain border border-white/25 shadow-md bg-black;
+  transition: transform 0.2s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
 }
 
 .mobile-menu-button {
@@ -70,7 +77,10 @@
 }
 
 .header-avatar {
-  @apply flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white;
+  @apply flex h-9 w-9 items-center justify-center rounded-full overflow-hidden text-sm font-bold text-white ring-2 ring-white/20 bg-white/10;
+}
+.header-avatar img {
+  @apply h-full w-full object-cover;
 }
 
 .header-user-info {
@@ -155,4 +165,86 @@
   .app-content {
     @apply p-4;
   }
+}
+
+/* Dynamic Accent Color applied to Sidebar without touching any Sidebar files */
+.app-sidebar {
+  background-color: var(--dashboard-accent, #020617) !important;
+  transition: background-color 0.2s ease;
+}
+
+.app-sidebar .sidebar-brand-icon {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.app-sidebar .sidebar-nav-item {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.app-sidebar .sidebar-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.app-sidebar .sidebar-nav-active {
+  background-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.app-sidebar .sidebar-submenu-item {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.app-sidebar .sidebar-submenu-item:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.app-sidebar .sidebar-submenu-active {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.app-sidebar .sidebar-submenu-active .sidebar-submenu-dot {
+  background-color: #ffffff !important;
+}
+
+.app-sidebar .sidebar-expand-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.app-sidebar .sidebar-expand-active {
+  color: #ffffff !important;
+}
+
+/* Update Sidebar Brand on the left side to Lax Lab without touching Sidebar files */
+.app-sidebar .sidebar-brand-text strong {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  display: block !important;
+}
+
+.app-sidebar .sidebar-brand-text strong::after {
+  content: "Lax Lab" !important;
+  font-size: 15px !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  display: block !important;
+}
+
+.app-sidebar .sidebar-brand-icon {
+  background-image: url("../../assets/laxlogo.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.app-sidebar .sidebar-brand-icon svg {
+  display: none !important;
 }

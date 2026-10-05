@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -6,13 +6,36 @@ import Sidebar from "./Sidebar";
 import "./layout.css";
 import { useAuth } from "../../components/auth/useAuth";
 import { Outlet, useNavigate } from "react-router-dom";
+import { DEFAULT_AVATAR } from "../../context/ThemeContext";
+import laxLogo from "../../assets/laxlogo.jpg";
 
 
-const Layout = () => {
+interface LayoutProps {
+  children?: React.ReactNode;
+}
+
+const Layout = ({ children }: LayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("dashboard_accent_color");
+    if (saved && saved.trim() && saved !== "#702459") {
+      document.documentElement.style.setProperty("--dashboard-accent", saved);
+    }
+
+    // Ensure left-side sidebar brand text & icon are updated to Lax Lab
+    const brandTitle = document.querySelector(".sidebar-brand-text strong");
+    if (brandTitle) {
+      brandTitle.textContent = "Lax Lab";
+    }
+    const brandIcon = document.querySelector(".sidebar-brand-icon");
+    if (brandIcon && !brandIcon.querySelector("img")) {
+      brandIcon.innerHTML = `<img src="${laxLogo}" alt="Lax Lab Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" />`;
+    }
+  }, []);
 
   if (!user) {
     return null;
@@ -45,11 +68,11 @@ const Layout = () => {
             </button>
 
             <div className="header-page-info">
-              <h1>Lax 360</h1>
+              <h1>Lax Lab</h1>
               <img
-                src="/favicon.svg"
-                alt="Lax 360 Logo"
-                className="header-logo"
+                src={laxLogo}
+                alt="Lax Lab Logo"
+                className="header-logo rounded-xl object-contain shadow-md"
               />
             </div>
           </div>
@@ -77,7 +100,7 @@ const Layout = () => {
                 }
               >
                 <div className="header-avatar">
-                  {user.name.charAt(0).toUpperCase()}
+                  <img src={DEFAULT_AVATAR} alt={user.name} />
                 </div>
 
                 <div className="header-user-info">
@@ -114,7 +137,7 @@ const Layout = () => {
         </header>
 
         <main className="app-content">
-            <Outlet />
+            {children || <Outlet />}
         </main>
       </div>
     </div>

@@ -98,15 +98,7 @@ const Login = () => {
         data.tokenType
       );
 
-      if (userRole === "admin") {
-        navigate("/dashboard/admin");
-      } else if (userRole === "lab_technician") {
-        navigate("/dashboard/technician");
-      } else if (userRole === "receptionist") {
-        navigate("/dashboard/receptionist");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login API error:", error);
 
