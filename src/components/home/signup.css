@@ -251,6 +251,33 @@
   @apply text-slate-400;
 }
 
+.role-input-wrapper {
+  @apply flex h-11 items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 transition-all duration-200;
+}
+
+.role-input-wrapper:focus-within {
+  @apply border-blue-500;
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 10%);
+}
+
+.role-input-wrapper > svg {
+  @apply flex-shrink-0 text-slate-400;
+  font-size: 19px;
+}
+
+.role-input-wrapper select {
+  @apply w-full min-w-0 border-0 bg-transparent text-sm text-slate-800 outline-none;
+  cursor: pointer;
+}
+
+.role-input-wrapper select:focus {
+  outline: none;
+}
+
+.role-input-wrapper select option {
+  @apply text-slate-800;
+}
+
 .textarea-wrapper {
   @apply h-auto min-h-24 items-start py-3;
 }

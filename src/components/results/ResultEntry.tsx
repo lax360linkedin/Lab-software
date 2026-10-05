@@ -728,7 +728,7 @@ const ResultEntry = () => {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        navigate("/results/pending")
+                                        navigate("/results/pending-results")
                                     }
                                     className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                                 >

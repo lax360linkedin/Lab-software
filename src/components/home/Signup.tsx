@@ -18,6 +18,7 @@ interface FormData {
   email: string;
   phone: string;
   address: string;
+  role: string;
   password: string;
   confirmPassword: string;
 }
@@ -28,6 +29,7 @@ interface FormErrors {
   email?: string;
   phone?: string;
   address?: string;
+  role?: string;
   password?: string;
   confirmPassword?: string;
   terms?: string;
@@ -39,6 +41,7 @@ const initialForm: FormData = {
   email: "",
   phone: "",
   address: "",
+  role: "",
   password: "",
   confirmPassword: "",
 };
@@ -67,6 +70,22 @@ const Signup = () => {
     setErrors((previous) => ({
       ...previous,
       [name]: undefined,
+    }));
+  };
+
+  const handleRoleChange = (
+    event: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const { value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      role: value,
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      role: undefined,
     }));
   };
 
@@ -99,15 +118,22 @@ const Signup = () => {
       newErrors.address = "Laboratory address is required.";
     }
 
+    if (!formData.role) {
+      newErrors.role = "Please select a role.";
+    }
+
     if (!formData.password) {
       newErrors.password = "Password is required.";
     } else if (formData.password.length < 8) {
-      newErrors.password = "Password must contain at least 8 characters.";
+      newErrors.password =
+        "Password must contain at least 8 characters.";
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password.";
-    } else if (formData.password !== formData.confirmPassword) {
+    } else if (
+      formData.password !== formData.confirmPassword
+    ) {
       newErrors.confirmPassword = "Passwords do not match.";
     }
 
@@ -121,7 +147,7 @@ const Signup = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) {
@@ -131,51 +157,34 @@ const Signup = () => {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/auth/signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            labName: formData.labName,
-            adminName: formData.adminName,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            password: formData.password,
-            confirmPassword: formData.confirmPassword,
-          }),
-        }
+      const signupData = {
+        labName: formData.labName.trim(),
+        adminName: formData.adminName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        role: formData.role,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      };
+
+      localStorage.setItem(
+        "lab_signup_data",
+        JSON.stringify(signupData)
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Signup failed:", data);
-
-        setErrors({
-          email:
-            data?.detail?.[0]?.msg ||
-            "Unable to create account. Please try again.",
-        });
-
-        return;
-      }
-
-      console.log("Signup successful:", data);
-
-      // Don't store the password in localStorage.
-      localStorage.removeItem("lab_signup_data");
+      console.log("Signup successful:", {
+        ...signupData,
+        password: "********",
+        confirmPassword: "********",
+      });
 
       navigate("/login");
     } catch (error) {
-      console.error("Signup API error:", error);
+      console.error("Signup localStorage error:", error);
 
       setErrors({
-        email:
-          "Unable to connect to the server. Please make sure the backend is running.",
+        email: "Unable to create account. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -201,7 +210,6 @@ const Signup = () => {
   return (
     <div className="signup-page">
       <div className="signup-layout">
-        {/* Left Branding Panel */}
         <section className="signup-brand-panel">
           <div className="brand-content">
             <div className="brand-logo">
@@ -294,7 +302,9 @@ const Signup = () => {
             </div>
 
             <div className="signup-heading">
-              <span className="signup-eyebrow">GET STARTED</span>
+              <span className="signup-eyebrow">
+                GET STARTED
+              </span>
 
               <h2>Create your laboratory account</h2>
 
@@ -304,7 +314,11 @@ const Signup = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="signup-form">
+            <form
+              onSubmit={handleSubmit}
+              className="signup-form"
+            >
+
               {/* Laboratory Information */}
               <div className="form-section">
                 <div className="form-section-heading">
@@ -317,7 +331,9 @@ const Signup = () => {
                 </div>
 
                 <div className="form-grid">
+                  {/* Laboratory Name */}
                   <div className="form-field full-width">
+
                     <label htmlFor="labName">
                       Laboratory Name
                       <span>*</span>
@@ -340,7 +356,9 @@ const Signup = () => {
                     </div>
 
                     {errors.labName && (
-                      <p className="field-error">{errors.labName}</p>
+                      <p className="field-error">
+                        {errors.labName}
+                      </p>
                     )}
                   </div>
 
@@ -367,7 +385,9 @@ const Signup = () => {
                     </div>
 
                     {errors.address && (
-                      <p className="field-error">{errors.address}</p>
+                      <p className="field-error">
+                        {errors.address}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -380,7 +400,9 @@ const Signup = () => {
 
                   <div>
                     <h3>Administrator Information</h3>
-                    <p>Create the primary administrator account.</p>
+                    <p>
+                      Create the primary administrator account.
+                    </p>
                   </div>
                 </div>
 
@@ -408,7 +430,9 @@ const Signup = () => {
                     </div>
 
                     {errors.adminName && (
-                      <p className="field-error">{errors.adminName}</p>
+                      <p className="field-error">
+                        {errors.adminName}
+                      </p>
                     )}
                   </div>
 
@@ -433,10 +457,8 @@ const Signup = () => {
                         placeholder="10-digit phone number"
                         value={formData.phone}
                         onChange={(event) => {
-                          const value = event.target.value.replace(
-                            /\D/g,
-                            ""
-                          );
+                          const value =
+                            event.target.value.replace(/\D/g, "");
 
                           setFormData((previous) => ({
                             ...previous,
@@ -452,11 +474,15 @@ const Signup = () => {
                     </div>
 
                     {errors.phone && (
-                      <p className="field-error">{errors.phone}</p>
+                      <p className="field-error">
+                        {errors.phone}
+                      </p>
                     )}
                   </div>
 
-                  <div className="form-field full-width">
+                  {/* Email */}
+                  <div className="form-field">
+
                     <label htmlFor="email">
                       Email Address
                       <span>*</span>
@@ -479,11 +505,51 @@ const Signup = () => {
                     </div>
 
                     {errors.email && (
-                      <p className="field-error">{errors.email}</p>
+                      <p className="field-error">
+                        {errors.email}
+                      </p>
                     )}
+
                   </div>
 
+                  {/* Role */}
                   <div className="form-field">
+
+                    <label htmlFor="role">
+                      Role
+                      <span>*</span>
+                    </label>
+
+                    <div
+                      className={`role-input-wrapper ${errors.role ? "input-error" : ""
+                        }`}
+                    >
+                      <PersonIcon />
+
+                      <select
+                        id="role"
+                        name="role"
+                        value={formData.role}
+                        onChange={handleRoleChange}
+                      >
+                        <option value="">Select your role</option>
+                        <option value="admin">Admin</option>
+                        <option value="receptionist">Receptionist</option>
+                        <option value="lab_technician">Lab Technician</option>
+                      </select>
+                    </div>
+
+                    {errors.role && (
+                      <p className="field-error">
+                        {errors.role}
+                      </p>
+                    )}
+
+                  </div>
+
+                  {/* Password */}
+                  <div className="form-field">
+
                     <label htmlFor="password">
                       Password
                       <span>*</span>
@@ -498,7 +564,9 @@ const Signup = () => {
                       <input
                         id="password"
                         name="password"
-                        type={showPassword ? "text" : "password"}
+                        type={
+                          showPassword ? "text" : "password"
+                        }
                         placeholder="Minimum 8 characters"
                         value={formData.password}
                         onChange={handleChange}
@@ -507,7 +575,11 @@ const Signup = () => {
                       <button
                         type="button"
                         className="password-toggle"
-                        onClick={() => setShowPassword((previous) => !previous)}
+                        onClick={() =>
+                          setShowPassword(
+                            (previous) => !previous
+                          )
+                        }
                         aria-label={
                           showPassword
                             ? "Hide password"
@@ -523,18 +595,25 @@ const Signup = () => {
                     </div>
 
                     {errors.password && (
-                      <p className="field-error">{errors.password}</p>
+                      <p className="field-error">
+                        {errors.password}
+                      </p>
                     )}
+
                   </div>
 
+                  {/* Confirm Password */}
                   <div className="form-field">
+
                     <label htmlFor="confirmPassword">
                       Confirm Password
                       <span>*</span>
                     </label>
 
                     <div
-                      className={`input-wrapper ${errors.confirmPassword ? "input-error" : ""
+                      className={`input-wrapper ${errors.confirmPassword
+                        ? "input-error"
+                        : ""
                         }`}
                     >
                       <LockOutlinedIcon />
@@ -542,7 +621,11 @@ const Signup = () => {
                       <input
                         id="confirmPassword"
                         name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
+                        type={
+                          showConfirmPassword
+                            ? "text"
+                            : "password"
+                        }
                         placeholder="Re-enter password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
@@ -552,7 +635,9 @@ const Signup = () => {
                         type="button"
                         className="password-toggle"
                         onClick={() =>
-                          setShowConfirmPassword((previous) => !previous)
+                          setShowConfirmPassword(
+                            (previous) => !previous
+                          )
                         }
                         aria-label={
                           showConfirmPassword
@@ -573,18 +658,24 @@ const Signup = () => {
                         {errors.confirmPassword}
                       </p>
                     )}
+
                   </div>
+
                 </div>
               </div>
 
               {/* Legal Consent */}
               <div className="terms-container">
+
                 <label className="terms-checkbox">
+
                   <input
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(event) => {
-                      setAcceptedTerms(event.target.checked);
+                      setAcceptedTerms(
+                        event.target.checked
+                      );
 
                       if (event.target.checked) {
                         setErrors((previous) => ({
@@ -600,11 +691,13 @@ const Signup = () => {
                   </span>
 
                   <span className="terms-text">
-                    I agree to the{" "}
+                    I agree to{" "}
                     <button
                       type="button"
                       className="terms-link"
-                      onClick={() => openLegalModal("terms")}
+                      onClick={() =>
+                        openLegalModal("terms")
+                      }
                     >
                       Terms & Conditions
                     </button>{" "}
@@ -612,12 +705,15 @@ const Signup = () => {
                     <button
                       type="button"
                       className="terms-link"
-                      onClick={() => openLegalModal("privacy")}
+                      onClick={() =>
+                        openLegalModal("privacy")
+                      }
                     >
                       Privacy Policy
                     </button>
                     .
                   </span>
+
                 </label>
 
                 {errors.terms && (
@@ -625,20 +721,26 @@ const Signup = () => {
                     {errors.terms}
                   </p>
                 )}
+
               </div>
 
+              {/* Submit */}
               <button
                 type="submit"
                 className="signup-submit"
                 disabled={isSubmitting}
               >
                 <span>
-                  {isSubmitting ? "Creating Account..." : "Create Laboratory Account"}
+                  {isSubmitting
+                    ? "Creating Account..."
+                    : "Create Laboratory Account"}
                 </span>
+
                 <span className="submit-arrow">
                   {isSubmitting ? "..." : "→"}
                 </span>
               </button>
+
             </form>
 
             <div className="login-link">
@@ -647,8 +749,11 @@ const Signup = () => {
             </div>
 
             <div className="mobile-footer">
-              <span>Secure laboratory management platform</span>
+              <span>
+                Secure laboratory management platform
+              </span>
             </div>
+
           </div>
         </section>
       </div>

@@ -21,9 +21,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     let isValid = true;
@@ -48,62 +46,43 @@ const Login = () => {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-          }),
-        }
-      );
+      const storedData = localStorage.getItem("lab_signup_data");
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Login failed:", data);
-
-        const backendMessage =
-          data?.detail?.[0]?.msg ||
-          "Invalid email or password.";
-
-        setEmailError(backendMessage);
-
+      if (!storedData) {
+        setEmailError("No account found. Please create an account first.");
         return;
       }
 
-      console.log("Login successful:", data);
+      const signupData = JSON.parse(storedData);
+
+      if (
+        email.trim().toLowerCase() !==
+        signupData.email.trim().toLowerCase()
+      ) {
+        setEmailError("Invalid email or password.");
+        return;
+      }
+
+      if (password !== signupData.password) {
+        setPasswordError("Invalid email or password.");
+        return;
+      }
 
       const user: User = {
-        userId: data.user.userId,
-        labId: data.user.labId,
-        labName: data.user.labName,
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
+        userId: `USER-${Date.now()}`,
+        labId: `LAB-${Date.now()}`,
+        labName: signupData.labName,
+        name: signupData.adminName,
+        email: signupData.email,
+        role: signupData.role,
       };
-      login(user);
-      localStorage.setItem(
-        "accessToken",
-        data.accessToken
-      );
 
-      localStorage.setItem(
-        "tokenType",
-        data.tokenType
-      );
+      login(user);
 
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login API error:", error);
-
-      setEmailError(
-        "Unable to connect to the server. Please make sure the backend is running."
-      );
+      console.error("Login error:", error);
+      setEmailError("Unable to login. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
