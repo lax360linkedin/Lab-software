@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -40,13 +39,13 @@ interface StoredSample {
     collector: string;
 
     status:
-        | "Pending Collection"
-        | "Collected"
-        | "Received"
-        | "Accepted"
-        | "Processing"
-        | "Completed"
-        | "Rejected";
+    | "Pending Collection"
+    | "Collected"
+    | "Received"
+    | "Accepted"
+    | "Processing"
+    | "Completed"
+    | "Rejected";
 
     source: "Patient Registration";
     createdAt: string;
@@ -77,12 +76,12 @@ interface StoredSample {
     priority?: "Normal" | "Urgent" | "STAT";
 
     resultStatus?:
-        | "Pending"
-        | "Entered"
-        | "QC Pending"
-        | "QC Passed"
-        | "QC Failed"
-        | "Verified";
+    | "Pending"
+    | "Entered"
+    | "QC Pending"
+    | "QC Passed"
+    | "QC Failed"
+    | "Verified";
 
     resultParameters?: ResultParameter[];
     resultRemarks?: string;
@@ -369,14 +368,13 @@ export default function VerifiedResults() {
                                     {/* Priority */}
                                     <td className="px-4 py-4">
                                         <span
-                                            className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                sample.priority === "STAT"
+                                            className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${sample.priority === "STAT"
                                                     ? "bg-red-100 text-red-700"
                                                     : sample.priority ===
                                                         "Urgent"
-                                                      ? "bg-orange-100 text-orange-700"
-                                                      : "bg-slate-100 text-slate-600"
-                                            }`}
+                                                        ? "bg-orange-100 text-orange-700"
+                                                        : "bg-slate-100 text-slate-600"
+                                                }`}
                                         >
                                             {formatPriority(
                                                 sample.priority
@@ -427,19 +425,19 @@ export default function VerifiedResults() {
                     </div>
 
                     {/* Pagination */}
-                     {filteredSamples.length > 0 && (
-                    <div className="mt-4 border-t border-gray-100 pt-4">
+                    {filteredSamples.length > 0 && (
+                        <div className="mt-4 border-t border-gray-100 pt-4">
 
-                        <Pagination
-                            totalItems={filteredSamples.length}
-                            rowsPerPage={rowsPerPage}
-                            setRowsPerPage={setRowsPerPage}
-                            currentPage={currentPage}
-                            setCurrentPage={setCurrentPage}
-                        />
+                            <Pagination
+                                totalItems={filteredSamples.length}
+                                rowsPerPage={rowsPerPage}
+                                setRowsPerPage={setRowsPerPage}
+                                currentPage={currentPage}
+                                setCurrentPage={setCurrentPage}
+                            />
 
-                    </div>
-                )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -634,7 +632,7 @@ export default function VerifiedResults() {
 
                                 <div className="p-4">
                                     {selectedSample.resultParameters &&
-                                    selectedSample.resultParameters.length >
+                                        selectedSample.resultParameters.length >
                                         0 ? (
                                         <div className="overflow-x-auto">
                                             <table className="w-full min-w-[420px] text-left text-sm">
@@ -913,9 +911,7 @@ export default function VerifiedResults() {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    navigate("/reports")
-                                }
+                                onClick={() => navigate("/reports/pending")}
                                 className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
                             >
                                 Go to Reports

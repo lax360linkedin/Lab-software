@@ -170,68 +170,71 @@ const VerificationPending = () => {
         setVerificationRemarks("");
     };
 
-    const handleVerify = () => {
-        if (!selectedSample) return;
+const handleVerify = () => {
+    if (!selectedSample) return;
 
-        const now = new Date();
+    const now = new Date();
 
-        const verificationDate = now.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-        });
+    const verificationDate = now.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
 
-        const verificationTime = now.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+    const verificationTime = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 
-        let verificationBy = "Laboratory Technician";
+    let verificationBy = "Laboratory Technician";
 
-        try {
-            const user = JSON.parse(
-                localStorage.getItem("lab_user") || "null"
-            );
-
-            verificationBy =
-                user?.name ||
-                user?.fullName ||
-                user?.username ||
-                "Laboratory Technician";
-        } catch {
-            // fallback
-        }
-
-        const updatedSamples = samples.map((sample) => {
-            if (
-                sample.id === selectedSample.id ||
-                sample.sampleId === selectedSample.sampleId
-            ) {
-                return {
-                    ...sample,
-                    resultStatus: "Verified" as StoredSample["resultStatus"],
-                    verificationDate,
-                    verificationTime,
-                    verificationBy,
-                    verificationRemarks:
-                        verificationRemarks.trim(),
-                };
-            }
-
-            return sample;
-        });
-
-        localStorage.setItem(
-            "lab_samples",
-            JSON.stringify(updatedSamples)
+    try {
+        const user = JSON.parse(
+            localStorage.getItem("lab_user") || "null"
         );
 
-        setSamples(updatedSamples);
+        verificationBy =
+            user?.name ||
+            user?.fullName ||
+            user?.username ||
+            "Laboratory Technician";
+    } catch {
+        // fallback
+    }
 
-        handleCloseDrawer();
+    const updatedSamples = samples.map((sample) => {
+        if (
+            sample.id === selectedSample.id ||
+            sample.sampleId === selectedSample.sampleId
+        ) {
+            return {
+                ...sample,
+                resultStatus: "Verified" as StoredSample["resultStatus"],
+                verificationDate,
+                verificationTime,
+                verificationBy,
+                verificationRemarks: verificationRemarks.trim(),
+            };
+        }
 
-        navigate("/reports");
-    };
+        return sample;
+    });
+
+    // Save updated result
+    localStorage.setItem(
+        "lab_samples",
+        JSON.stringify(updatedSamples)
+    );
+
+    // Update local state
+    setSamples(updatedSamples);
+
+    // Close drawer
+    handleCloseDrawer();
+
+    // Go to Verified Results
+    navigate("/verification/verified");
+};
 
     return (
         <div className="min-h-screen bg-slate-50 p-4 sm:p-6">

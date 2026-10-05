@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -10,7 +9,6 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
-
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 
@@ -19,19 +17,15 @@ interface StoredSample {
     sampleId: string;
     accessionNumber: string;
     barcode: string;
-
     patientId: string;
     registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status:
         | "Pending Collection"
         | "Collected"
@@ -40,34 +34,34 @@ interface StoredSample {
         | "Processing"
         | "Completed"
         | "Rejected";
-
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
     rejectionReason?: string;
-
     processingDate?: string;
     processingTime?: string;
     processingBy?: string;
-
     completedDate?: string;
     completedTime?: string;
     completedBy?: string;
-
     analyzer?: string;
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
+    resultStatus?:
+    | "Pending"
+    | "Entered"
+    | "QC Pending"
+    | "QC Passed"
+    | "QC Failed"
+    | "Verified";
 }
 
 const PendingResults = () => {
@@ -94,14 +88,19 @@ const PendingResults = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
-    const pendingResults = useMemo(() => {
-        return samples
-            .filter((sample) => sample.status === "Completed")
-            .map((sample) => ({
-                ...sample,
-                priority: sample.priority || "Normal",
-            }));
-    }, [samples]);
+   const pendingResults = useMemo(() => {
+    return samples
+        .filter(
+            (sample) =>
+                sample.status === "Completed" &&
+                (!sample.resultStatus ||
+                    sample.resultStatus === "Pending")
+        )
+        .map((sample) => ({
+            ...sample,
+            priority: sample.priority || "Normal",
+        }));
+}, [samples]);
 
     const filteredResults = useMemo(() => {
         const search = searchTerm.toLowerCase().trim();
