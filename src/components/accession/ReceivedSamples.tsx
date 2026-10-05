@@ -12,6 +12,8 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
 
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
@@ -19,6 +21,13 @@ import Pagination from "../../common components/Pagination";
 /* =========================
    TYPES
 ========================= */
+
+type SampleStatus =
+    | "Pending Collection"
+    | "Collected"
+    | "Received"
+    | "Accepted"
+    | "Rejected";
 
 interface StoredSample {
     id: string;
@@ -38,13 +47,22 @@ interface StoredSample {
     collectionTime: string;
     collector: string;
 
-    status: "Pending Collection" | "Collected";
+    status: SampleStatus;
     source: "Patient Registration";
     createdAt: string;
 
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
+
+    acceptedDate?: string;
+    acceptedTime?: string;
+    acceptedBy?: string;
+
+    rejectedDate?: string;
+    rejectedTime?: string;
+    rejectedBy?: string;
+    rejectionReason?: string;
 }
 
 interface ReceivedSample {
@@ -167,6 +185,18 @@ const ReceivedSamples = () => {
     const [receivedBy, setReceivedBy] =
         useState("Lab Technician");
 
+    const [acceptedBy, setAcceptedBy] =
+        useState("Lab Technician");
+
+    const [rejectedBy, setRejectedBy] =
+        useState("Lab Technician");
+
+    const [rejectionReason, setRejectionReason] =
+        useState("");
+
+    const [showRejectForm, setShowRejectForm] =
+        useState(false);
+
     /* =========================
        LOAD ACTUAL SAMPLES
     ========================= */
@@ -180,15 +210,22 @@ const ReceivedSamples = () => {
     );
 
     /* =========================
-       CONVERT COLLECTED SAMPLES
-       INTO RECEIVED SAMPLE DATA
+       CONVERT COLLECTED / RECEIVED
+       SAMPLES INTO TABLE DATA
+
+       Collected:
+       Awaiting Receipt
+
+       Received:
+       Ready for Acceptance
     ========================= */
 
     const receivedSamples = useMemo<ReceivedSample[]>(() => {
         return storedSamples
             .filter(
                 (sample) =>
-                    sample.status === "Collected"
+                    sample.status === "Collected" ||
+                    sample.status === "Received"
             )
             .map((sample) => ({
                 id: sample.id,
@@ -228,7 +265,7 @@ const ReceivedSamples = () => {
                     sample.barcode || "-",
 
                 status:
-                    sample.receivedDate
+                    sample.status === "Received"
                         ? "Received"
                         : "Awaiting Receipt",
             }));
@@ -346,12 +383,33 @@ const ReceivedSamples = () => {
         sample: ReceivedSample
     ) => {
         setSelectedSample(sample);
+
         setReceivedBy(
             sample.receivedBy !== "-"
                 ? sample.receivedBy
                 : "Lab Technician"
         );
+
+        setAcceptedBy("Lab Technician");
+
+        setRejectedBy("Lab Technician");
+
+        setRejectionReason("");
+
+        setShowRejectForm(false);
+
         setShowViewDrawer(true);
+    };
+
+    /* =========================
+       CLOSE DRAWER
+    ========================= */
+
+    const handleCloseDrawer = () => {
+        setShowViewDrawer(false);
+        setSelectedSample(null);
+        setShowRejectForm(false);
+        setRejectionReason("");
     };
 
     /* =========================
@@ -377,7 +435,10 @@ const ReceivedSamples = () => {
                 return {
                     ...item,
 
-                    receivedDate: getToday(),
+                    status: "Received" as SampleStatus,
+
+                    receivedDate:
+                        getToday(),
 
                     receivedTime:
                         getCurrentTime(),
@@ -393,14 +454,116 @@ const ReceivedSamples = () => {
             updated
         );
 
-        setShowViewDrawer(false);
-        setSelectedSample(null);
+        handleCloseDrawer();
+
+        window.location.reload();
+    };
+
+    /* =========================
+       ACCEPT SAMPLE
+    ========================= */
+
+    const handleAcceptSample = (
+        sample: ReceivedSample
+    ) => {
+        const stored =
+            getStoredArray<StoredSample>(
+                SAMPLE_STORAGE_KEY
+            );
+
+        const updated =
+            stored.map((item) => {
+                if (
+                    item.id !== sample.id
+                ) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+
+                    status: "Accepted" as SampleStatus,
+
+                    acceptedDate:
+                        getToday(),
+
+                    acceptedTime:
+                        getCurrentTime(),
+
+                    acceptedBy:
+                        acceptedBy.trim() ||
+                        "Lab Technician",
+                };
+            });
+
+        saveStoredArray(
+            SAMPLE_STORAGE_KEY,
+            updated
+        );
+
+        handleCloseDrawer();
+
+        window.location.reload();
+    };
+
+    /* =========================
+       REJECT SAMPLE
+    ========================= */
+
+    const handleRejectSample = (
+        sample: ReceivedSample
+    ) => {
+        const reason =
+            rejectionReason.trim();
+
+        if (!reason) {
+            return;
+        }
+
+        const stored =
+            getStoredArray<StoredSample>(
+                SAMPLE_STORAGE_KEY
+            );
+
+        const updated = stored.map((item) => {
+            if (item.id !== sample.id) {
+                return item;
+            }
+
+            return {
+                ...item,
+                status: "Rejected" as SampleStatus,
+
+                rejectedDate: getToday(),
+                rejectedTime: getCurrentTime(),
+
+                rejectedBy:
+                    rejectedBy.trim() ||
+                    "Lab Technician",
+
+                rejectionReason: reason,
+            };
+        });
+
+        saveStoredArray(
+            SAMPLE_STORAGE_KEY,
+            updated
+        );
 
         /*
-         * Reload so the page reads the
-         * updated localStorage data.
+         * Clear drawer/form state first.
          */
-        window.location.reload();
+        setShowRejectForm(false);
+        setRejectionReason("");
+        setSelectedSample(null);
+        setShowViewDrawer(false);
+
+        /*
+         * Force the rejected page to mount again
+         * and read the latest localStorage data.
+         */
+        window.location.href =
+            "/accession/rejected-samples";
     };
 
     /* =========================
@@ -511,7 +674,7 @@ const ReceivedSamples = () => {
                             </h2>
 
                             <p className="mt-1 text-xs text-slate-400">
-                                Successfully received
+                                Ready for acceptance
                             </p>
                         </div>
 
@@ -673,6 +836,7 @@ const ReceivedSamples = () => {
                                 sample: ReceivedSample
                             ) => (
                                 <>
+
                                     {/* ACCESSION */}
 
                                     <td className="px-4 py-4">
@@ -732,12 +896,11 @@ const ReceivedSamples = () => {
                                     <td className="px-4 py-4">
 
                                         <span
-                                            className={`inline-flex whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                                                sampleTypeStyles[
-                                                    sample.sampleType
+                                            className={`inline-flex whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold ${sampleTypeStyles[
+                                                sample.sampleType
                                                 ] ||
                                                 "bg-slate-100 text-slate-600"
-                                            }`}
+                                                }`}
                                         >
                                             {
                                                 sample.sampleType
@@ -792,7 +955,7 @@ const ReceivedSamples = () => {
                                         <div className="min-w-[145px]">
 
                                             {sample.receivedDate !==
-                                            "-" ? (
+                                                "-" ? (
                                                 <>
                                                     <div className="flex items-center gap-2 text-sm text-slate-600">
 
@@ -850,11 +1013,10 @@ const ReceivedSamples = () => {
                                     <td className="px-4 py-4">
 
                                         <span
-                                            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
-                                                statusStyles[
-                                                    sample.status
+                                            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyles[
+                                                sample.status
                                                 ]
-                                            }`}
+                                                }`}
                                         >
                                             {
                                                 sample.status
@@ -901,22 +1063,23 @@ const ReceivedSamples = () => {
 
                                             {sample.status ===
                                                 "Awaiting Receipt" && (
-                                                <button
-                                                    title="Receive Sample"
-                                                    onClick={() =>
-                                                        handleReceiveSample(
-                                                            sample
-                                                        )
-                                                    }
-                                                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
-                                                >
-                                                    <CheckCircleIcon fontSize="small" />
-                                                </button>
-                                            )}
+                                                    <button
+                                                        title="Receive Sample"
+                                                        onClick={() =>
+                                                            handleViewSample(
+                                                                sample
+                                                            )
+                                                        }
+                                                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
+                                                    >
+                                                        <CheckCircleIcon fontSize="small" />
+                                                    </button>
+                                                )}
 
                                         </div>
 
                                     </td>
+
                                 </>
                             )}
                         />
@@ -986,10 +1149,8 @@ const ReceivedSamples = () => {
 
                         <div
                             className="absolute inset-0 bg-black/30"
-                            onClick={() =>
-                                setShowViewDrawer(
-                                    false
-                                )
+                            onClick={
+                                handleCloseDrawer
                             }
                         />
 
@@ -1014,10 +1175,8 @@ const ReceivedSamples = () => {
                                 </div>
 
                                 <button
-                                    onClick={() =>
-                                        setShowViewDrawer(
-                                            false
-                                        )
+                                    onClick={
+                                        handleCloseDrawer
                                     }
                                     className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100"
                                 >
@@ -1049,11 +1208,10 @@ const ReceivedSamples = () => {
                                         </div>
 
                                         <span
-                                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                                                statusStyles[
-                                                    selectedSample.status
+                                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyles[
+                                                selectedSample.status
                                                 ]
-                                            }`}
+                                                }`}
                                         >
                                             {
                                                 selectedSample.status
@@ -1226,7 +1384,7 @@ const ReceivedSamples = () => {
 
                                 {/* RECEIVING */}
 
-                                <div>
+                                <div className="mb-5">
 
                                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                         Laboratory Receipt
@@ -1235,7 +1393,7 @@ const ReceivedSamples = () => {
                                     <div className="space-y-4 rounded-xl border border-slate-200 p-4">
 
                                         {selectedSample.status ===
-                                        "Received" ? (
+                                            "Received" ? (
                                             <>
                                                 <div className="flex justify-between gap-4">
                                                     <span className="text-sm text-slate-500">
@@ -1312,6 +1470,145 @@ const ReceivedSamples = () => {
                                     </div>
 
                                 </div>
+
+                                {/* =========================
+                                    ACCEPT / REJECT
+                                ========================= */}
+
+                                {selectedSample.status ===
+                                    "Received" && (
+                                        <div className="mb-5">
+
+                                            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                Sample Acceptance
+                                            </p>
+
+                                            <div className="rounded-xl border border-slate-200 p-4">
+
+                                                {!showRejectForm ? (
+                                                    <div className="space-y-3">
+
+                                                        <div>
+                                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                                Accepted By
+                                                            </label>
+
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    acceptedBy
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setAcceptedBy(
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                placeholder="Enter staff name"
+                                                                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                                            />
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() =>
+                                                                handleAcceptSample(
+                                                                    selectedSample
+                                                                )
+                                                            }
+                                                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                                        >
+                                                            <DoneAllOutlinedIcon fontSize="small" />
+                                                            Accept Sample
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() =>
+                                                                setShowRejectForm(
+                                                                    true
+                                                                )
+                                                            }
+                                                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                                                        >
+                                                            <CancelOutlinedIcon fontSize="small" />
+                                                            Reject Sample
+                                                        </button>
+
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+
+                                                        <div>
+                                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                                Rejected By
+                                                            </label>
+
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    rejectedBy
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setRejectedBy(
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                placeholder="Enter staff name"
+                                                                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                                Rejection Reason
+                                                            </label>
+
+                                                            <textarea
+                                                                value={
+                                                                    rejectionReason
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setRejectionReason(
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                placeholder="Enter reason for rejecting this sample..."
+                                                                rows={4}
+                                                                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                                                            />
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() =>
+                                                                handleRejectSample(
+                                                                    selectedSample
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !rejectionReason.trim()
+                                                            }
+                                                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            <CancelOutlinedIcon fontSize="small" />
+                                                            Confirm Rejection
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() =>
+                                                                setShowRejectForm(
+                                                                    false
+                                                                )
+                                                            }
+                                                            className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                                                        >
+                                                            Cancel
+                                                        </button>
+
+                                                    </div>
+                                                )}
+
+                                            </div>
+
+                                        </div>
+                                    )}
 
                             </div>
 

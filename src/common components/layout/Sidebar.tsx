@@ -19,7 +19,7 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CloseIcon from "@mui/icons-material/Close";
 import ScienceIcon from "@mui/icons-material/Science";
-
+import VerifiedIcon from "@mui/icons-material/Verified";
 import "./sidebar.css";
 import type { UserRole } from "../../components/auth/authTypes";
 import { useAuth } from "../../components/auth/useAuth";
@@ -52,7 +52,7 @@ const menuItems: MenuItem[] = [
   // ==================== MASTER DATA ====================
   {
     label: "Tests",
-    path:  "/tests",
+    path: "/tests",
     icon: <HealthAndSafetyOutlinedIcon />,
     roles: ["admin"],
   },
@@ -155,6 +155,22 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
+  // ==================== RESULTS ====================
+  {
+    label: "Results",
+    icon: <AssignmentOutlinedIcon />,
+    roles: ["admin", "lab_technician"],
+    children: [
+      {
+        label: "Pending Results",
+        path: "/results/pending-results",
+      },
+      {
+        label: "Enter Results",
+        path: "/results/entry",
+      },
+    ],
+  },
 
   // ==================== QUALITY CONTROL ====================
   {
@@ -163,16 +179,16 @@ const menuItems: MenuItem[] = [
     roles: ["admin", "lab_technician"],
     children: [
       {
-        label: "QC Checks",
-        path: "/quality-control/checks",
+        label: "Pending QC",
+        path: "/qc/pending",
       },
       {
-        label: "Control Results",
-        path: "/quality-control/control-results",
+        label: "QC Passed",
+        path: "qc/passed",
       },
       {
         label: "Failed QC",
-        path: "/quality-control/failed",
+        path: "qc/failed",
       },
       {
         label: "Corrective Actions",
@@ -181,23 +197,18 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  // ==================== RESULTS ====================
   {
-    label: "Results",
-    icon: <AssignmentOutlinedIcon />,
+    label: "Verification",
+    icon: <VerifiedIcon />,
     roles: ["admin", "lab_technician"],
     children: [
       {
-        label: "Enter Results",
-        path: "/results/enter",
-      },
-      {
         label: "Pending Verification",
-        path: "/results/pending-verification",
+        path: "/verification/pending",
       },
       {
         label: "Verified Results",
-        path: "/results/verified",
+        path: "/verification/verified",
       },
     ],
   },
@@ -214,15 +225,11 @@ const menuItems: MenuItem[] = [
       },
       {
         label: "Generated Reports",
-        path: "/reports/generated",
+        path: "/reports/final",
       },
       {
         label: "Report History",
         path: "/reports/history",
-      },
-      {
-        label: "Share Report",
-        path: "/reports/share",
       },
     ],
   },
@@ -497,8 +504,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 <button
                   type="button"
                   className={`sidebar-nav-item sidebar-menu-button ${isOpenMenu
-                      ? "sidebar-menu-open"
-                      : ""
+                    ? "sidebar-menu-open"
+                    : ""
                     }`}
                   onClick={() => toggleMenu(item.label)}
                 >

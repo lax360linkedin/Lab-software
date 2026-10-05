@@ -12,7 +12,6 @@ import ReceivedSamples from "../accession/ReceivedSamples";
 import AcceptedSamples from "../accession/AcceptedSamples";
 import Collection from "../financial analysis/collections/collection";
 import Revenue from "../financial analysis/revenue/revenue";
-import RejectedSamples from "../accession/RejectedSamples";
 import SampleTracking from "../accession/SampleTracking";
 import PendingTests from "../analysis/PendingTests";
 import Processing from "../analysis/Processing";
@@ -39,10 +38,23 @@ import Doctors from "../doctors/Doctor";
 import NewBill from "../../common components/billing/NewBill";
 import Payments from "../../common components/billing/Payments";
 import BillingPendingPayments from "../../common components/billing/BillingPendingPayments";
+import RejectedSamples from "../accession/RejectedSamples";
+import PendingResults from "../results/PendingResults";
+import ResultEntry from "../results/ResultEntry";
+import PendingQC from "../quality-control/PendingQC";
+import QCPassed from "../quality-control/QCPassed";
+import QCFailed from "../quality-control/QCFailed";
+import VerificationPending from "../verification/Verification";
+import VerifiedResults from "../verification/VerifiedResults";
+import PendingReports from "../reports/PendingReports";
+import FinalReports from "../reports/FinalReports";
 
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
+    console.log("📥 RECEIVED SAMPLES COMPONENT LOADED");
+    console.log("🔥 REJECTED SAMPLES COMPONENT LOADED");
+    
     return (
         <Routes>
             <Route path="/" element={<Navigate to="/signup" replace />} />
@@ -89,7 +101,16 @@ const AppRoutes = () => {
                     <Route path="/billing/new" element={<NewBill />} />
                     <Route path="/billing/payments" element={<Payments />} />
                     <Route path="/billing/pending-payments" element={<BillingPendingPayments />} />
-                
+                    <Route path="/results/pending-results" element={<PendingResults />} />
+                    <Route path="/results/entry/:sampleId" element={<ResultEntry />} />
+                    <Route path="/qc/pending" element={<PendingQC />} />
+                    <Route path="/qc/passed" element={ <QCPassed /> } />
+                    <Route path="/qc/failed" element={ <QCFailed /> }/>
+                    <Route path="/verification/pending" element={ <VerificationPending /> } />
+                    <Route path="/verification/verified" element={ <VerifiedResults /> } />
+                    <Route path="/reports/pending" element={ <PendingReports /> } />
+                    <Route path="/reports/final" element={ <FinalReports /> } />
+
                     
                 </Route>
             </Route>
