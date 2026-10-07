@@ -783,16 +783,18 @@ const Completed = () => {
 
                                 <td className="px-4 py-3">
 
-                                    <span
-                                        className={`inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold ${
-                                            test.resultStatus ===
-                                            "Ready for Results"
-                                                ? "border-blue-200 bg-blue-50 text-blue-700"
-                                                : "border-purple-200 bg-purple-50 text-purple-700"
-                                        }`}
+
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            navigate("/results/pending-results")
+                                        }
+                                        title="Go to Pending Results"
+                                        className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-semibold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-600 hover:text-white"
                                     >
-                                        {test.resultStatus}
-                                    </span>
+                                        Ready for Result
+                                    </button>
 
                                 </td>
 
@@ -952,7 +954,7 @@ const Completed = () => {
 
                                     </div>
 
-                                    <span
+                                      <span
                                         className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${
                                             selectedTest.resultStatus ===
                                             "Ready for Results"

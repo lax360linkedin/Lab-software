@@ -419,40 +419,42 @@ const SampleCollection = () => {
         const searchValue =
             search.trim().toLowerCase();
 
-        return collectionSamples.filter((sample) => {
-            const matchesSearch =
-                !searchValue ||
-                sample.patientName
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.patientId
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.registrationId
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.sampleId
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.accessionNumber
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.testName
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.barcode
-                    .toLowerCase()
-                    .includes(searchValue);
+        return collectionSamples
+            .filter((sample) => sample.status === "Pending Collection")
+            .filter((sample) => {
+                const matchesSearch =
+                    !searchValue ||
+                    sample.patientName
+                        .toLowerCase()
+                        .includes(searchValue) ||
+                    sample.patientId
+                        .toLowerCase()
+                        .includes(searchValue) ||
+                    sample.registrationId
+                        .toLowerCase()
+                        .includes(searchValue) ||
+                    sample.sampleId
+                        .toLowerCase()
+                        .includes(searchValue) ||
+                    sample.accessionNumber
+                        .toLowerCase()
+                        .includes(searchValue) ||
+                    sample.testName
+                        .toLowerCase()
+                        .includes(searchValue) ||
+                    sample.barcode
+                        .toLowerCase()
+                        .includes(searchValue);
 
-            const matchesStatus =
-                statusFilter === "All" ||
-                sample.status === statusFilter;
+                const matchesStatus =
+                    statusFilter === "All" ||
+                    sample.status === statusFilter;
 
-            return (
-                matchesSearch &&
-                matchesStatus
-            );
-        });
+                return (
+                    matchesSearch &&
+                    matchesStatus
+                );
+            });
     }, [
         collectionSamples,
         search,
@@ -505,7 +507,8 @@ const SampleCollection = () => {
             storedSamples.map(
                 (item) => {
                     if (
-                        item.id !== sample.id
+                        item.id !== sample.id &&
+                        item.sampleId !== sample.sampleId
                     ) {
                         return item;
                     }
@@ -522,7 +525,7 @@ const SampleCollection = () => {
                         collector,
 
                         status:
-                            "Collected",
+                            "Collected" as const,
                     };
                 }
             );
@@ -531,7 +534,7 @@ const SampleCollection = () => {
             SAMPLE_STORAGE_KEY,
             updatedSamples
         );
-        window.location.reload();
+        navigate("/accession/received-samples");
     };
 
     const handleViewSample = (
@@ -746,10 +749,6 @@ const SampleCollection = () => {
 
                                     <option value="Pending Collection">
                                         Pending Collection
-                                    </option>
-
-                                    <option value="Collected">
-                                        Collected
                                     </option>
                                 </select>
 
