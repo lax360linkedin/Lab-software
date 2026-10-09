@@ -114,7 +114,7 @@ const defaultReferrals: Referral[] = [
     {
         id: "REF-0001",
         patientId: "PAT-10001",
-        patientName: "Raj Kumar",
+        patientName: "Arun Kumar",
         doctorId: "DOC-001",
         doctorName: "Dr. Arun Kumar",
         referralDate: "2026-09-28",
@@ -127,7 +127,7 @@ const defaultReferrals: Referral[] = [
     {
         id: "REF-0002",
         patientId: "PAT-10002",
-        patientName: "Priya Devi",
+        patientName: "Priya Sharma",
         doctorId: "DOC-002",
         doctorName: "Dr. Priya Sharma",
         referralDate: "2026-09-28",
@@ -140,7 +140,7 @@ const defaultReferrals: Referral[] = [
     {
         id: "REF-0003",
         patientId: "PAT-10003",
-        patientName: "Karthik Raj",
+        patientName: "Rajesh Kumar",
         doctorId: "DOC-003",
         doctorName: "Dr. Suresh Kumar",
         referralDate: "2026-09-27",
@@ -173,18 +173,43 @@ const getStoredDoctors = (): Doctor[] => {
 
 const getStoredReferrals = (): Referral[] => {
     try {
+        const storedPatients = localStorage.getItem("lab_patients");
+        const patients: Array<{ patientId?: string; patientName?: string }> =
+            storedPatients ? JSON.parse(storedPatients) : [];
+        const normalizePatientNames = (referrals: Referral[]) =>
+            referrals.map((referral) => {
+                const patient = patients.find(
+                    (item) => item.patientId === referral.patientId
+                );
+
+                return patient?.patientName
+                    ? { ...referral, patientName: patient.patientName }
+                    : referral;
+            });
         const stored = localStorage.getItem(REFERRAL_STORAGE_KEY);
 
         if (stored) {
-            return JSON.parse(stored);
+            const parsed = JSON.parse(stored);
+            const referrals = Array.isArray(parsed) ? parsed : defaultReferrals;
+            const normalizedReferrals = normalizePatientNames(referrals);
+
+            if (JSON.stringify(referrals) !== JSON.stringify(normalizedReferrals)) {
+                localStorage.setItem(
+                    REFERRAL_STORAGE_KEY,
+                    JSON.stringify(normalizedReferrals)
+                );
+            }
+
+            return normalizedReferrals;
         }
 
+        const normalizedDefaults = normalizePatientNames(defaultReferrals);
         localStorage.setItem(
             REFERRAL_STORAGE_KEY,
-            JSON.stringify(defaultReferrals)
+            JSON.stringify(normalizedDefaults)
         );
 
-        return defaultReferrals;
+        return normalizedDefaults;
     } catch {
         return defaultReferrals;
     }
@@ -192,7 +217,9 @@ const getStoredReferrals = (): Referral[] => {
 
 const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
     const [doctors, setDoctors] = useState<Doctor[]>( () => getStoredDoctors() );
-    const [referrals,] = useState<Referral[]>( () => getStoredReferrals());
+    const [referrals, setReferrals] = useState<Referral[]>(
+    () => getStoredReferrals()
+   );
     const [searchParams] = useSearchParams();
     const tabFromUrl = searchParams.get("tab");
     const initialActiveTab =
@@ -203,6 +230,7 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
                 : initialTab;
     const [activeTab, setActiveTab] = useState< "list" | "add" | "referred" | "history" >(initialActiveTab);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
+    const [selectedReferralDoctor, setSelectedReferralDoctor] = useState<Doctor | null>(null);
 
     const handleSaveDoctor = (doctor: Doctor) => {
         let updatedDoctors: Doctor[];
@@ -273,14 +301,17 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
             JSON.stringify(updatedDoctors)
         );
     };
-    const handleUpdateReferrals = (
-        updatedReferrals: Referral[]
-    ) => {
-        localStorage.setItem(
-            REFERRAL_STORAGE_KEY,
-            JSON.stringify(updatedReferrals)
-        );
-    };
+        const handleUpdateReferrals = (
+            updatedReferrals: Referral[]
+        ) => {
+            setReferrals(updatedReferrals);
+
+            localStorage.setItem(
+                REFERRAL_STORAGE_KEY,
+                JSON.stringify(updatedReferrals)
+            );
+        };
+  
 
     return (
         <div className="space-y-6">
@@ -350,6 +381,7 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
                         type="button"
                         onClick={() => {
                             setEditingDoctor(null);
+                            setSelectedReferralDoctor(null);
                             setActiveTab("referred");
                         }}
                         className={`border-b-2 px-5 py-3.5 text-sm font-medium transition ${activeTab === "referred"
@@ -405,6 +437,8 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
                     <ReferredPatients
                         referrals={referrals}
                         doctors={doctors}
+                        selectedDoctor={selectedReferralDoctor}
+                        onSelectDoctor={(doctor) => setSelectedReferralDoctor(doctor)}
                         onUpdateReferrals={handleUpdateReferrals}
                     />
                 )}

@@ -456,7 +456,7 @@ const ReceivedSamples = () => {
 
         handleCloseDrawer();
 
-        window.location.reload();
+       window.location.reload();
     };
 
     /* =========================
@@ -503,7 +503,7 @@ const ReceivedSamples = () => {
 
         handleCloseDrawer();
 
-        window.location.reload();
+        navigate("/accession/accepted-samples");
     };
 
     /* =========================

@@ -28,7 +28,7 @@ const reportStatusStyles: Record<string, string> = {
 const formatDate = (date: string) => {
     if (!date) return "-";
 
-    const parsedDate = new Date(`${date}T00:00:00`);
+    const parsedDate = new Date(date);
 
     if (Number.isNaN(parsedDate.getTime())) {
         return date;

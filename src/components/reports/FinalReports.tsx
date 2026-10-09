@@ -6,6 +6,9 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import SmsOutlinedIcon from "@mui/icons-material/SmsOutlined";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import "./ReportPrint.css";
 import type { StoredSample } from "./ReportPrint";
 import Table from "../../common components/Table";
@@ -28,6 +31,8 @@ const FinalReports = () => {
     const [priorityFilter, setPriorityFilter] = useState("All");
     const [selectedSample, setSelectedSample] = useState<StoredSample | null>(null);
     const [showDetails, setShowDetails] = useState(false);
+    const [showShareOptions, setShowShareOptions] = useState(false);
+    const [shareText, setShareText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -76,10 +81,12 @@ const FinalReports = () => {
     const openReport = (sample: StoredSample) => {
         setSelectedSample(sample);
         setShowDetails(true);
+        setShowShareOptions(false);
     };
 
     const closeReport = () => {
         setShowDetails(false);
+        setShowShareOptions(false);
         setSelectedSample(null);
     };
 
@@ -90,8 +97,12 @@ const FinalReports = () => {
         });
     };
 
-    const handleShare = async () => {
+    const handleShare = () => {
         if (!selectedSample) return;
+        if (showShareOptions) {
+            setShowShareOptions(false);
+            return;
+        }
 
         const reportText = `
 Laboratory Report
@@ -121,21 +132,8 @@ Remarks:
 ${selectedSample.resultRemarks || "-"}
         `.trim();
 
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: `Laboratory Report - ${
-                        selectedSample.reportId || selectedSample.sampleId
-                    }`,
-                    text: reportText,
-                });
-            } else {
-                await navigator.clipboard.writeText(reportText);
-                alert("Report details copied to clipboard.");
-            }
-        } catch {
-            // User cancelled sharing.
-        }
+        setShareText(reportText);
+        setShowShareOptions(true);
     };
 
     const columns = [
@@ -667,6 +665,20 @@ ${selectedSample.resultRemarks || "-"}
             {selectedSample && (
                 <div className="report-print-container">
                     <ReportPrint sample={selectedSample} />
+                </div>
+            )}
+
+            {showShareOptions && selectedSample && (
+                <div className="fixed left-1/2 top-1/2 z-[100] flex h-72 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-16 rounded-2xl border border-slate-200 bg-white px-10 shadow-2xl" role="group" aria-label="Share report">
+                    <div aria-label="SMS" title="SMS" className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 text-slate-700">
+                        <SmsOutlinedIcon sx={{ fontSize: 42 }} />
+                    </div>
+                    <div aria-label="Email" title="Email" className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 text-slate-700">
+                        <EmailOutlinedIcon sx={{ fontSize: 42 }} />
+                    </div>
+                    <div aria-label="WhatsApp" title="WhatsApp" className="flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 text-green-600">
+                        <WhatsAppIcon sx={{ fontSize: 42 }} />
+                    </div>
                 </div>
             )}
         </>
