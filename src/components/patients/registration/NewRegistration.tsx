@@ -260,8 +260,8 @@ export default function NewRegistration() {
       newErrors.gender = "Gender is required";
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
+   if(!/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Please enter a valid 10-digit phone number";
     }
 
     if (!formData.doctorId) {
@@ -757,7 +757,7 @@ export default function NewRegistration() {
                   onChange={(event) =>
                     handleChange(
                       "phone",
-                      event.target.value
+                      event.target.value.replace(/\D/g, "").slice(0,10)
                     )
                   }
                   placeholder="Enter phone number"
