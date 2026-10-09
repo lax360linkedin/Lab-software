@@ -429,14 +429,20 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
       <aside className={`app-sidebar ${isOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-header">
-          <div className="sidebar-brand">
-            <div className="sidebar-brand-icon">
-              <ScienceIcon />
+          <div className="sidebar-lab">
+            <div className="sidebar-lab-icon">
+              <ScienceOutlinedIcon />
             </div>
 
-            <div className="sidebar-brand-text">
-              <strong>LabCare</strong>
-              <span>Management System</span>
+            <div className="sidebar-lab-info">
+              <strong>{user.labName}</strong>
+              <span>
+                {user.role === "lab_technician"
+                  ? "Lab Technician"
+                  : user.role === "receptionist"
+                    ? "Receptionist"
+                    : "Administrator"}
+              </span>
             </div>
           </div>
 
@@ -448,23 +454,6 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           >
             <CloseIcon />
           </button>
-        </div>
-
-        <div className="sidebar-lab">
-          <div className="sidebar-lab-icon">
-            <ScienceOutlinedIcon />
-          </div>
-
-          <div className="sidebar-lab-info">
-            <strong>{user.labName}</strong>
-            <span>
-              {user.role === "lab_technician"
-                ? "Lab Technician"
-                : user.role === "receptionist"
-                  ? "Receptionist"
-                  : "Administrator"}
-            </span>
-          </div>
         </div>
 
         <nav className="sidebar-navigation">

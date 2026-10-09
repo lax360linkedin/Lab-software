@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
@@ -32,6 +32,41 @@ const DOCTOR_STORAGE_KEY = "lab_doctors";
 const PATIENT_STORAGE_KEY = "lab_patients";
 const REFERRAL_STORAGE_KEY = "lab_referrals";
 const TEST_STORAGE_KEY = "lab_tests";
+
+interface StoredPatient {
+  patientId?: string;
+  patientName?: string;
+  age?: string | number;
+  gender?: string;
+  phone?: string;
+  address?: string;
+  doctorId?: string;
+  doctorReferral?: string;
+  registrationDate?: string;
+}
+
+const getExistingPatient = (patientId: string | null): StoredPatient | null => {
+  if (!patientId) return null;
+
+  try {
+    const stored = localStorage.getItem(PATIENT_STORAGE_KEY);
+    const patients: StoredPatient[] = stored ? JSON.parse(stored) : [];
+
+    if (!Array.isArray(patients)) return null;
+
+    return (
+      patients
+        .filter((patient) => patient.patientId === patientId)
+        .sort(
+          (a, b) =>
+            new Date(b.registrationDate ?? 0).getTime() -
+            new Date(a.registrationDate ?? 0).getTime()
+        )[0] ?? null
+    );
+  } catch {
+    return null;
+  }
+};
 
 const getDoctors = (): Doctor[] => {
   const storedDoctors = localStorage.getItem(DOCTOR_STORAGE_KEY);
@@ -162,27 +197,28 @@ const generateReferralId = () => {
 
 export default function NewRegistration() {
   const navigate = useNavigate();
-
+  const [searchParams] = useSearchParams();
+  const existingPatientId = searchParams.get("patientId");
+  const isExistingPatient = Boolean(existingPatientId);
   const [doctors] = useState<Doctor[]>(() => getDoctors());
-
-  // Load tests created from the Test List page
   const [tests] = useState<LabTest[]>(() => getTests());
 
-  const [formData, setFormData] = useState<FormData>({
-    patientName: "",
-    age: "",
-    gender: "",
-    phone: "",
-    address: "",
-    doctorId: "",
-    doctorReferral: "",
+  const existingPatient = getExistingPatient(existingPatientId);
+
+  const [formData, setFormData] = useState<FormData>(() => ({
+    patientName: existingPatient?.patientName ?? "",
+    age: String(existingPatient?.age ?? ""),
+    gender: existingPatient?.gender ?? "",
+    phone: existingPatient?.phone ?? "",
+    address: existingPatient?.address ?? "",
+    doctorId: existingPatient?.doctorId ?? "",
+    doctorReferral: existingPatient?.doctorReferral ?? "",
     requiredTests: [],
-  });
+  }));
+
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [registrationSuccess, setRegistrationSuccess] =
-    useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const [registeredPatient, setRegisteredPatient] = useState<{
     patientId: string;
@@ -233,8 +269,8 @@ export default function NewRegistration() {
         ...previous,
         requiredTests: alreadySelected
           ? previous.requiredTests.filter(
-              (test) => test !== testCode
-            )
+            (test) => test !== testCode
+          )
           : [...previous.requiredTests, testCode],
       };
     });
@@ -260,8 +296,8 @@ export default function NewRegistration() {
       newErrors.gender = "Gender is required";
     }
 
-   if(!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid 10-digit phone number";
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
     }
 
     if (!formData.doctorId) {
@@ -280,6 +316,10 @@ export default function NewRegistration() {
   };
 
   const handleSubmit = () => {
+    if (existingPatientId && !existingPatient) {
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -326,17 +366,14 @@ export default function NewRegistration() {
       return;
     }
 
-    const patientId = generatePatientId();
+    const patientId = existingPatientId || generatePatientId();
     const registrationId = generateRegistrationId();
     const referralId = generateReferralId();
 
     const registrationDate = new Date().toISOString();
 
-    /*
-     * Patient record
-     */
     const newPatient = {
-      id: patientId,
+      id: registrationId,
       patientId,
       registrationId,
       patientName: formData.patientName.trim(),
@@ -344,16 +381,9 @@ export default function NewRegistration() {
       gender: formData.gender,
       phone: formData.phone.trim(),
       address: formData.address.trim(),
-
       doctorId: selectedDoctor.id,
       doctorReferral: selectedDoctor.doctorName,
-
-      /*
-       * Keep the complete selected test data.
-       * Billing can use this later.
-       */
       requiredTests: selectedTests,
-
       registrationDate,
       status: "Registered",
     };
@@ -400,10 +430,6 @@ export default function NewRegistration() {
 
       referralDate: registrationDate,
 
-      /*
-       * Referral currently expects string[],
-       * so keep the test codes here.
-       */
       tests: selectedTests.map((test) => test.testCode),
 
       billAmount: 0,
@@ -476,7 +502,7 @@ export default function NewRegistration() {
               </div>
 
               <h1 className="text-2xl font-bold text-slate-800">
-                Patient Registered Successfully
+                {isExistingPatient ? "New Visit Registered Successfully" : "Patient Registered Successfully"}
               </h1>
 
               <p className="mt-2 text-sm text-slate-500">
@@ -605,7 +631,13 @@ export default function NewRegistration() {
 
               <button
                 type="button"
-                onClick={handleNewRegistration}
+                onClick={() => {
+                  if (isExistingPatient) {
+                    navigate("/patients/new-registration");
+                    return;
+                  }
+                  handleNewRegistration();
+                }}
                 className="rounded-lg border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
               >
                 New Registration
@@ -637,7 +669,7 @@ export default function NewRegistration() {
 
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              New Patient Registration
+              {isExistingPatient ? "Register New Visit" : "New Patient Registration"}
             </h1>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -645,6 +677,26 @@ export default function NewRegistration() {
             </p>
           </div>
         </div>
+
+        {existingPatientId && !existingPatient && (
+          <div
+            role="alert"
+            className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          >
+            <p className="font-semibold">Existing patient could not be found.</p>
+            <p className="mt-1">
+              Return to the existing patient list and select a valid patient before
+              registering a new visit.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/patients/existing")}
+              className="mt-2 font-semibold underline underline-offset-2"
+            >
+              Back to Existing Patients
+            </button>
+          </div>
+        )}
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -757,7 +809,7 @@ export default function NewRegistration() {
                   onChange={(event) =>
                     handleChange(
                       "phone",
-                      event.target.value.replace(/\D/g, "").slice(0,10)
+                      event.target.value
                     )
                   }
                   placeholder="Enter phone number"
@@ -843,11 +895,11 @@ export default function NewRegistration() {
                 (doctor) =>
                   doctor.status === "Active"
               ).length === 0 && (
-                <p className="mt-2 text-xs text-amber-600">
-                  No active doctors available. Please add a
-                  doctor before registering a referred patient.
-                </p>
-              )}
+                  <p className="mt-2 text-xs text-amber-600">
+                    No active doctors available. Please add a
+                    doctor before registering a referred patient.
+                  </p>
+                )}
             </div>
           </div>
 
@@ -869,17 +921,17 @@ export default function NewRegistration() {
             {tests.filter(
               (test) => test.status === "Active"
             ).length === 0 && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-                <p className="text-sm font-medium text-amber-800">
-                  No active tests available.
-                </p>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+                  <p className="text-sm font-medium text-amber-800">
+                    No active tests available.
+                  </p>
 
-                <p className="mt-1 text-xs text-amber-700">
-                  Please add and activate tests from the Test
-                  List before registering a patient.
-                </p>
-              </div>
-            )}
+                  <p className="mt-1 text-xs text-amber-700">
+                    Please add and activate tests from the Test
+                    List before registering a patient.
+                  </p>
+                </div>
+              )}
 
             {/* TEST LIST */}
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -902,30 +954,27 @@ export default function NewRegistration() {
                           test.testCode
                         )
                       }
-                      className={`rounded-xl border p-4 text-left transition ${
-                        selected
+                      className={`rounded-xl border p-4 text-left transition ${selected
                           ? "border-blue-500 bg-blue-50"
                           : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between gap-3">
 
                         <span
-                          className={`text-sm font-semibold ${
-                            selected
+                          className={`text-sm font-semibold ${selected
                               ? "text-blue-700"
                               : "text-slate-800"
-                          }`}
+                            }`}
                         >
                           {test.testCode}
                         </span>
 
                         <span
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
-                            selected
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${selected
                               ? "border-blue-600 bg-blue-600"
                               : "border-slate-300"
-                          }`}
+                            }`}
                         >
                           {selected && (
                             <span className="text-xs text-white">
@@ -1024,9 +1073,10 @@ export default function NewRegistration() {
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+              disabled={Boolean(existingPatientId && !existingPatient)}
+              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Register Patient
+              {isExistingPatient ? "Register New Visit" : "Register Patient"}
             </button>
 
           </div>

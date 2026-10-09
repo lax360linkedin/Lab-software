@@ -11,6 +11,7 @@ import "./patients.css";
 import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
 
 interface SelectedTest {
   testId: string;
@@ -39,87 +40,6 @@ interface Patient {
   status: string;
 }
 
-
-const patientsData: Patient[] = [
-  {
-    id: "1",
-    patientId: "PAT-10001",
-    registrationId: "REG-10001",
-    patientName: "Arun Kumar",
-    age: 34,
-    gender: "Male",
-    phone: "9876543210",
-    doctorReferral: "Dr. John Smith",
-    requiredTests: ["CBC", "LFT", "KFT", "Lipid Profile"],
-    registrationDate: "25 Sep 2026",
-    status: "Active",
-  },
-  {
-    id: "2",
-    patientId: "PAT-10002",
-    registrationId: "REG-10002",
-    patientName: "Priya Sharma",
-    age: 28,
-    gender: "Female",
-    phone: "9876543211",
-    doctorReferral: "Dr. Sarah Wilson",
-    requiredTests: ["LFT"],
-    registrationDate: "25 Sep 2026",
-    status: "Pending",
-  },
-  {
-    id: "3",
-    patientId: "PAT-10003",
-    registrationId: "REG-10003",
-    patientName: "Rajesh Kumar",
-    age: 45,
-    gender: "Male",
-    phone: "9876543212",
-    doctorReferral: "Dr. Michael Brown",
-    requiredTests: ["KFT"],
-    registrationDate: "24 Sep 2026",
-    status: "Completed",
-  },
-  {
-    id: "4",
-    patientId: "PAT-10004",
-    registrationId: "REG-10004",
-    patientName: "Divya Menon",
-    age: 31,
-    gender: "Female",
-    phone: "9876543213",
-    doctorReferral: "Dr. John Smith",
-    requiredTests: ["CBC", "LFT", "Thyroid Profile"],
-    registrationDate: "24 Sep 2026",
-    status: "Active",
-  },
-  {
-    id: "5",
-    patientId: "PAT-10005",
-    registrationId: "REG-10005",
-    patientName: "Karthik Raj",
-    age: 52,
-    gender: "Male",
-    phone: "9876543214",
-    doctorReferral: "Dr. Sarah Wilson",
-    requiredTests: ["Lipid Profile", "Blood Glucose", "HbA1c", "Urine Routine"],
-    registrationDate: "23 Sep 2026",
-    status: "Pending",
-  },
-  {
-    id: "6",
-    patientId: "PAT-10006",
-    registrationId: "REG-10006",
-    patientName: "Anitha Devi",
-    age: 39,
-    gender: "Female",
-    phone: "9876543215",
-    doctorReferral: "Dr. Michael Brown",
-    requiredTests: ["Thyroid Profile"],
-    registrationDate: "23 Sep 2026",
-    status: "Completed",
-  },
-];
 
 const columns = [
   "Patient ID",
@@ -192,6 +112,7 @@ const getTotalTestAmount = (
 const PatientList = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [showExistingPatients, setShowExistingPatients] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [, setOpenMenu] = useState<string | null>(null);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -199,57 +120,57 @@ const PatientList = () => {
   const [isViewDrawerOpen, setIsViewDrawerOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const [patients, setPatients] =
-    useState<Patient[]>(() => {
-      const storedPatients =
-        localStorage.getItem("lab_patients");
-      if (!storedPatients) {
-        localStorage.setItem(
-          "lab_patients",
-          JSON.stringify(patientsData)
-        );
+  const [patients, setPatients] = useState<Patient[]>(() => {
+    try {
+      const storedPatients = localStorage.getItem("lab_patients");
+      if (!storedPatients) return [];
 
-        return patientsData;
+      const parsedPatients: unknown = JSON.parse(storedPatients);
+      if (!Array.isArray(parsedPatients)) return [];
+
+      // Remove only the six known demo records that were previously seeded by this page.
+      const demoPatients = new Set([
+        "PAT-10001|Arun Kumar",
+        "PAT-10002|Priya Sharma",
+        "PAT-10003|Rajesh Kumar",
+        "PAT-10004|Divya Menon",
+        "PAT-10005|Karthik Raj",
+        "PAT-10006|Anitha Devi",
+      ]);
+      const cleanedPatients = (parsedPatients as Patient[]).filter(
+        (patient) => !demoPatients.has(`${patient.patientId}|${patient.patientName}`)
+      );
+
+      if (cleanedPatients.length !== parsedPatients.length) {
+        localStorage.setItem("lab_patients", JSON.stringify(cleanedPatients));
       }
-
-      try {
-        const parsedPatients =
-          JSON.parse(storedPatients);
-
-        if (Array.isArray(parsedPatients)) {
-          const hasMoreThanTwo = parsedPatients.some(
-            (p) => Array.isArray(p.requiredTests) && p.requiredTests.length > 2
-          );
-          if (!hasMoreThanTwo && parsedPatients.length > 0) {
-            if (parsedPatients[0]) {
-              parsedPatients[0].requiredTests = ["CBC", "LFT", "KFT", "Lipid Profile"];
-            }
-            if (parsedPatients[3]) {
-              parsedPatients[3].requiredTests = ["CBC", "LFT", "Thyroid Profile"];
-            }
-            if (parsedPatients[4]) {
-              parsedPatients[4].requiredTests = ["Lipid Profile", "Blood Glucose", "HbA1c", "Urine Routine"];
-            }
-            localStorage.setItem("lab_patients", JSON.stringify(parsedPatients));
-          }
-          return parsedPatients;
-        }
-
-        return patientsData;
-      } catch {
-        return patientsData;
-      }
-    });
+      return cleanedPatients;
+    } catch {
+      return [];
+    }
+  });
 
   const filteredPatients = useMemo(() => {
     const value =
       search.trim().toLowerCase();
 
+    // Existing Patients shows one row per unique patient, using their latest saved registration.
+    const sourcePatients = showExistingPatients
+      ? patients.reduce<Patient[]>((unique, patient) => {
+          const existingIndex = unique.findIndex(
+            (item) => item.patientId === patient.patientId
+          );
+          if (existingIndex === -1) unique.push(patient);
+          else unique[existingIndex] = patient;
+          return unique;
+        }, [])
+      : patients;
+
     if (!value) {
-      return patients;
+      return sourcePatients;
     }
 
-    return patients.filter((patient) => {
+    return sourcePatients.filter((patient) => {
       const testSearchText =
         Array.isArray(patient.requiredTests)
           ? patient.requiredTests
@@ -274,7 +195,7 @@ const PatientList = () => {
           .includes(value)
       );
     });
-  }, [search, patients]);
+  }, [search, patients, showExistingPatients]);
 
   const currentData =
     filteredPatients.slice(
@@ -363,6 +284,10 @@ const PatientList = () => {
     navigate("/patients/new-registration");
   };
 
+  const handleRegisterNewVisit = (patient: Patient) => {
+    navigate(`/patients/new-registration?patientId=${encodeURIComponent(patient.patientId)}`);
+  };
+
   return (
     <div className="min-h-full w-full px-4 py-5 sm:px-6 lg:px-8">
 
@@ -374,18 +299,39 @@ const PatientList = () => {
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Manage patient registrations, details and history
+            {showExistingPatients
+              ? "Search existing patients and register a new visit without creating a duplicate patient."
+              : "Manage patient registrations, details and history."}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleNewRegistration}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]"
-        >
-          <AddIcon fontSize="small" />
-          New Registration
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={handleNewRegistration}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]"
+          >
+            <AddIcon fontSize="small" />
+            New Registration
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowExistingPatients((current) => !current);
+              setSearch("");
+              setCurrentPage(1);
+              handleCloseDrawer();
+            }}
+            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold transition ${
+              showExistingPatients
+                ? "border-blue-600 bg-blue-50 text-blue-700"
+                : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+            }`}
+          >
+            <PersonSearchOutlinedIcon fontSize="small" />
+            {showExistingPatients ? "Back to Patient List" : "Existing Patients"}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-visible rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -407,7 +353,9 @@ const PatientList = () => {
                 onChange={(e) =>
                   handleSearch(e.target.value)
                 }
-                placeholder="Search by name, phone, Patient ID or Registration ID..."
+                placeholder={showExistingPatients
+                  ? "Search existing patients by name, phone or Patient ID..."
+                  : "Search by name, phone, Patient ID or Registration ID..."}
                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -416,7 +364,7 @@ const PatientList = () => {
               <span className="font-semibold text-slate-700">
                 {filteredPatients.length}
               </span>{" "}
-              patients found
+              {showExistingPatients ? "existing patients found" : "registrations found"}
             </div>
 
           </div>
@@ -556,16 +504,16 @@ const PatientList = () => {
                       <VisibilityOutlinedIcon fontSize="small" />
                     </button>
 
-                    <button
-                      type="button"
-                      title="Edit"
-                      onClick={() =>
-                        handleEdit(patient)
-                      }
-                      className="rounded-lg p-2 text-slate-500 transition hover:bg-amber-50 hover:text-amber-600"
-                    >
-                      <EditOutlinedIcon fontSize="small" />
-                    </button>
+                    {!showExistingPatients && (
+                      <button
+                        type="button"
+                        title="Edit"
+                        onClick={() => handleEdit(patient)}
+                        className="rounded-lg p-2 text-slate-500 transition hover:bg-amber-50 hover:text-amber-600"
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </button>
+                    )}
 
                     <button
                       type="button"
@@ -576,14 +524,25 @@ const PatientList = () => {
                       <HistoryOutlinedIcon fontSize="small" />
                     </button>
 
-                    <button
-                      type="button"
-                      title="Delete"
-                      onClick={() => setDeletingPatient(patient)}
-                      className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
-                    >
-                      <DeleteOutlineOutlinedIcon fontSize="small" />
-                    </button>
+                    {showExistingPatients ? (
+                      <button
+                        type="button"
+                        title="Register new visit"
+                        onClick={() => handleRegisterNewVisit(patient)}
+                        className="rounded-lg px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-50"
+                      >
+                        New Visit
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        title="Delete"
+                        onClick={() => setDeletingPatient(patient)}
+                        className="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                      >
+                        <DeleteOutlineOutlinedIcon fontSize="small" />
+                      </button>
+                    )}
 
                   </div>
                 </td>
@@ -601,12 +560,13 @@ const PatientList = () => {
             </div>
 
             <h3 className="text-base font-semibold text-slate-700">
-              No patients found
+              {showExistingPatients ? "No existing patients found" : "No patient registrations found"}
             </h3>
 
             <p className="mt-1 text-sm text-slate-500">
-              Try searching with a different patient name,
-              phone number or ID.
+              {showExistingPatients
+                ? "Patients registered through this system will appear here. Try a different search, or register a new patient first."
+                : "Register a new patient to begin. You can search by patient name, phone number or ID."}
             </p>
 
           </div>

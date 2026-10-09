@@ -53,12 +53,10 @@ import CorrectiveActions from "../quality-control/CorrectiveActions";
 import NotificationHistory from "../notifications/NotificationHistory";
 import MessageTemplates from "../notifications/MessageTemplates";
 import NotificationSettings from "../notifications/NotificationSettings";
-
+import ReportHistory from "../reports/ReportHistory";
 
 const AppRoutes = () => {
     console.log("CURRENT PATH:", window.location.pathname);
-    console.log("📥 RECEIVED SAMPLES COMPONENT LOADED");
-    console.log("🔥 REJECTED SAMPLES COMPONENT LOADED");
     
     return (
         <Routes>
@@ -112,12 +110,11 @@ const AppRoutes = () => {
                     <Route path="/qc/passed" element={<QCPassed />} />
                     <Route path="/qc/failed" element={<QCFailed />} />
                     <Route path="/quality-control/corrective-actions" element={<CorrectiveActions />} />
-                    <Route path="/qc/corrective-actions" element={<CorrectiveActions />} />
                     <Route path="/verification/pending" element={<VerificationPending />} />
                     <Route path="/verification/verified" element={<VerifiedResults />} />
                     <Route path="/reports/pending" element={<PendingReports />} />
                     <Route path="/reports/final" element={<FinalReports />} />
-                    <Route path="/reports/history" element={<FinalReports />} />
+                    <Route path="/reports/history" element={<ReportHistory />} />
                     <Route path="/notifications/history" element={<NotificationHistory />} />
                     <Route path="/notifications/templates" element={<MessageTemplates />} />
                     <Route path="/notifications/settings" element={<NotificationSettings />} />
