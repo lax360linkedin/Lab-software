@@ -32,7 +32,7 @@ const FinalReports = () => {
     const [selectedSample, setSelectedSample] = useState<StoredSample | null>(null);
     const [showDetails, setShowDetails] = useState(false);
     const [showShareOptions, setShowShareOptions] = useState(false);
-    const [shareText, setShareText] = useState("");
+    const [, setShareText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
