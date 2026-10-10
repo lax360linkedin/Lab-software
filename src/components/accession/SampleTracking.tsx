@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -14,7 +13,6 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import CloseIcon from "@mui/icons-material/Close";
-
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 
@@ -30,42 +28,31 @@ type SampleStatus =
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
-    registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status: SampleStatus;
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
     rejectionReason?: string;
-
     processingDate?: string;
     processingTime?: string;
     processingBy?: string;
-
     completedDate?: string;
     completedTime?: string;
     completedBy?: string;
@@ -74,16 +61,11 @@ interface StoredSample {
 interface TrackedSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
-
     patientId: string;
     patientName: string;
-
     testName: string;
     sampleType: string;
-
     barcode: string;
-
     currentStatus:
         | "Collected"
         | "Received"
@@ -93,16 +75,13 @@ interface TrackedSample {
         | "Rejected";
 
     currentLocation: string;
-
     collectedAt: string;
     receivedAt: string;
     acceptedAt: string;
     processingAt: string;
     completedAt: string;
     rejectedAt: string;
-
     lastUpdated: string;
-
     collector: string;
     receivedBy: string;
     acceptedBy: string;
@@ -115,10 +94,10 @@ interface TrackedSample {
 const SAMPLE_STORAGE_KEY = "lab_samples";
 
 const columns = [
-    "Accession",
-    "Patient",
+    "Sample ID",
+    "Patient & ID",
     "Test",
-    "Sample",
+    "Sample Type",
     "Current Stage",
     "Current Location",
     "Last Updated",
@@ -231,29 +210,13 @@ const getCurrentLocation = (
     sample: StoredSample
 ) => {
     switch (sample.status) {
-        case "Pending Collection":
-            return "Waiting for Collection";
-
-        case "Collected":
-            return "Collection Room";
-
-        case "Received":
-            return "Accession Desk";
-
-        case "Accepted":
-            return "Sample Storage";
-
-        case "Processing":
-            return "Laboratory / Analysis";
-
-        case "Completed":
-            return "Report Section";
-
-        case "Rejected":
-            return "Rejected Sample Area";
-
-        default:
-            return "-";
+        case "Pending Collection": return "Waiting for Collection";
+        case "Collected":return "Collection Room";
+        case "Accepted": return "Sample Storage";
+        case "Processing": return "Laboratory / Analysis";
+        case "Completed": return "Report Section";
+        case "Rejected": return "Rejected Sample Area";
+        default: return "-";
     }
 };
 
@@ -296,46 +259,20 @@ const getLastUpdated = (
 
 const SampleTracking = () => {
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [locationFilter, setLocationFilter] = useState("All");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [selectedSample, setSelectedSample] = useState<TrackedSample | null>(null);
+    const [showTrackingDrawer, setShowTrackingDrawer] = useState(false);
+    const [showBarcode, setShowBarcode] = useState(false);
 
-    const [searchTerm, setSearchTerm] =
-        useState("");
-
-    const [statusFilter, setStatusFilter] =
-        useState("All");
-
-    const [locationFilter, setLocationFilter] =
-        useState("All");
-
-    const [currentPage, setCurrentPage] =
-        useState(1);
-
-    const [rowsPerPage, setRowsPerPage] =
-        useState(5);
-
-    const [selectedSample, setSelectedSample] =
-        useState<TrackedSample | null>(null);
-
-    const [showTrackingDrawer, setShowTrackingDrawer] =
-        useState(false);
-
-    const [showBarcode, setShowBarcode] =
-        useState(false);
-
-    /*
-     * Read the latest samples from localStorage.
-     *
-     * Since this page is normally opened after another
-     * accession/analysis action, reading here ensures the
-     * current stored data is used.
-     */
     const storedSamples = useMemo(
         () => getStoredSamples(),
         []
     );
 
-    /*
-     * Convert StoredSample -> TrackedSample
-     */
     const trackedSamples = useMemo<
         TrackedSample[]
     >(() => {
@@ -349,20 +286,11 @@ const SampleTracking = () => {
                 id: sample.id,
 
                 sampleId: sample.sampleId,
-
-                accessionNumber:
-                    sample.accessionNumber,
-
                 patientId: sample.patientId,
-
                 patientName: sample.patientName,
-
                 testName: sample.testName,
-
                 sampleType: sample.sampleType,
-
                 barcode: sample.barcode,
-
                 currentStatus:
                     sample.status ===
                         "Pending Collection"
@@ -440,9 +368,6 @@ const SampleTracking = () => {
 
             const matchesSearch =
                 !search ||
-                sample.accessionNumber
-                    .toLowerCase()
-                    .includes(search) ||
                 sample.sampleId
                     .toLowerCase()
                     .includes(search) ||
@@ -818,7 +743,7 @@ const SampleTracking = () => {
                                     1
                                 );
                             }}
-                            placeholder="Search accession, patient, test or barcode..."
+                            placeholder="Search patient, test or barcode..."
                             className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:bg-white"
                         />
                     </div>
@@ -970,7 +895,6 @@ const SampleTracking = () => {
                             sample: TrackedSample
                         ) => (
                             <>
-                                {/* Accession */}
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
                                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
@@ -983,7 +907,7 @@ const SampleTracking = () => {
                                         <div>
                                             <p className="whitespace-nowrap text-xs font-semibold text-blue-700">
                                                 {
-                                                    sample.accessionNumber
+                                                    sample.patientId
                                                 }
                                             </p>
 
@@ -999,7 +923,7 @@ const SampleTracking = () => {
                                 {/* Patient */}
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
                                             <PersonIcon
                                                 className="text-gray-500"
                                                 fontSize="small"
@@ -1202,7 +1126,7 @@ const SampleTracking = () => {
 
                                     <p className="mt-0.5 text-xs text-gray-500">
                                         {
-                                            selectedSample.accessionNumber
+                                            selectedSample.patientId
                                         }
                                     </p>
                                 </div>
@@ -1532,7 +1456,7 @@ const SampleTracking = () => {
 
                                 <p className="mt-1 text-xs text-gray-500">
                                     {
-                                        selectedSample.accessionNumber
+                                        selectedSample.patientId
                                     }
                                 </p>
 

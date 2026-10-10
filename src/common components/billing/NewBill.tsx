@@ -742,32 +742,6 @@ const NewBill = () => {
 
                   </div>
 
-                  {/* REGISTRATION ID */}
-
-                  <div>
-
-                    <label
-                      htmlFor="registrationId"
-                      className="mb-1.5 block text-xs font-semibold text-slate-600"
-                    >
-                      Registration ID
-                    </label>
-
-                    <input
-                      id="registrationId"
-                      value={
-                        selectedPatient?.registrationId ||
-                        ""
-                      }
-                      readOnly
-                      placeholder="—"
-                      className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-600 outline-none"
-                    />
-
-                  </div>
-
-                  {/* PATIENT ID */}
-
                   <div>
 
                     <label
@@ -779,10 +753,7 @@ const NewBill = () => {
 
                     <input
                       id="patientId"
-                      value={
-                        selectedPatient?.patientId ||
-                        ""
-                      }
+                      value={ selectedPatient?.patientId ||""}
                       readOnly
                       placeholder="—"
                       className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-600 outline-none"
@@ -1291,12 +1262,12 @@ const NewBill = () => {
                     <div className="mt-3 flex items-center justify-between gap-4">
 
                       <span className="text-xs font-medium text-slate-500">
-                        Registration
+                        Patient ID
                       </span>
 
                       <span className="text-sm font-semibold text-slate-700">
                         {
-                          selectedPatient?.registrationId ||
+                          selectedPatient?.patientId ||
                           "—"
                         }
                       </span>

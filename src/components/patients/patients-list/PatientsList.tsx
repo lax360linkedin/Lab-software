@@ -28,7 +28,6 @@ interface SelectedTest {
 interface Patient {
   id: string;
   patientId: string;
-  registrationId: string;
   patientName: string;
   age: string | number;
   gender: string;
@@ -43,10 +42,8 @@ interface Patient {
 
 const columns = [
   "Patient ID",
-  "Registration ID",
   "Patient Name",
   "Age",
-  "Gender",
   "Phone",
   "Doctor / Referral",
   "Tests",
@@ -182,7 +179,6 @@ const PatientList = () => {
 
       return [
         patient.patientId,
-        patient.registrationId,
         patient.patientName,
         patient.phone,
         patient.doctorReferral || "",
@@ -355,7 +351,7 @@ const PatientList = () => {
                 }
                 placeholder={showExistingPatients
                   ? "Search existing patients by name, phone or Patient ID..."
-                  : "Search by name, phone, Patient ID or Registration ID..."}
+                  : "Search by name, phone, Patient ID..."}
                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -382,10 +378,6 @@ const PatientList = () => {
                   {patient.patientId}
                 </td>
 
-                <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-blue-600">
-                  {patient.registrationId}
-                </td>
-
                 <td className="whitespace-nowrap px-4 py-4">
 
                   <div className="flex items-center gap-3">
@@ -405,10 +397,6 @@ const PatientList = () => {
 
                 <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
                   {patient.age}
-                </td>
-
-                <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                  {patient.gender}
                 </td>
 
                 <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
@@ -652,16 +640,6 @@ const PatientList = () => {
 
                       <p className="mt-1 text-sm font-medium text-slate-700">
                         {selectedPatient.patientId}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-400">
-                        Registration ID
-                      </p>
-
-                      <p className="mt-1 text-sm font-medium text-slate-700">
-                        {selectedPatient.registrationId}
                       </p>
                     </div>
 

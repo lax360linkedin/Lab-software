@@ -12,18 +12,15 @@ import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
-
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 
 interface StoredSample {
   id: string;
   sampleId: string;
-  accessionNumber: string;
   barcode: string;
 
   patientId: string;
-  registrationId: string;
   patientName: string;
 
   testId: string;
@@ -129,7 +126,6 @@ const RejectedSamples = () => {
         !searchValue ||
         sample.patientName.toLowerCase().includes(searchValue) ||
         sample.patientId.toLowerCase().includes(searchValue) ||
-        sample.accessionNumber.toLowerCase().includes(searchValue) ||
         sample.sampleId.toLowerCase().includes(searchValue) ||
         sample.testName.toLowerCase().includes(searchValue) ||
         sample.barcode.toLowerCase().includes(searchValue) ||
@@ -225,10 +221,10 @@ const RejectedSamples = () => {
   };
 
   const columns = [
-    "Accession",
-    "Patient",
+    "Sample ID",
+    "Patient & ID",
     "Test",
-    "Sample",
+    "Sample Type",
     "Rejected",
     "Rejected By",
     "Reason",
@@ -369,7 +365,7 @@ const RejectedSamples = () => {
                 type="text"
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Search patient, accession, test or reason..."
+                placeholder="Search patient, test or reason..."
                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -418,14 +414,9 @@ const RejectedSamples = () => {
               maxHeight="500px"
               renderRow={(sample: StoredSample) => (
                 <>
-                  {/* Accession */}
                   <td className="px-4 py-4">
                     <div>
                       <p className="whitespace-nowrap text-sm font-semibold text-blue-600">
-                        {sample.accessionNumber}
-                      </p>
-
-                      <p className="mt-1 whitespace-nowrap text-xs text-slate-400">
                         {sample.sampleId}
                       </p>
                     </div>
@@ -590,10 +581,6 @@ const RejectedSamples = () => {
                 <h2 className="text-lg font-bold text-slate-800">
                   Rejected Sample Details
                 </h2>
-
-                <p className="mt-1 text-xs text-slate-400">
-                  {selectedSample.accessionNumber}
-                </p>
               </div>
 
               <button
@@ -652,16 +639,6 @@ const RejectedSamples = () => {
 
                   <div className="rounded-xl bg-slate-50 p-3">
                     <p className="text-xs text-slate-400">
-                      Registration ID
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                      {selectedSample.registrationId || "-"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <p className="text-xs text-slate-400">
                       Test
                     </p>
 
@@ -686,16 +663,6 @@ const RejectedSamples = () => {
 
                     <p className="mt-1 text-sm font-semibold text-slate-700">
                       {selectedSample.sampleId}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <p className="text-xs text-slate-400">
-                      Accession Number
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-blue-600">
-                      {selectedSample.accessionNumber}
                     </p>
                   </div>
 
@@ -912,10 +879,6 @@ const RejectedSamples = () => {
                 <h2 className="text-lg font-bold text-slate-800">
                   Sample Barcode
                 </h2>
-
-                <p className="mt-1 text-xs text-slate-400">
-                  {selectedSample.accessionNumber}
-                </p>
               </div>
 
               <button

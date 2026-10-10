@@ -19,7 +19,6 @@ import Pagination from "../../common components/Pagination";
 interface Patient {
     id?: string | number;
     patientId?: string;
-    registrationId?: string;
     patientName?: string;
     name?: string;
     age?: string | number;
@@ -39,7 +38,6 @@ interface Bill {
     billId?: string;
     billNumber?: string;
     patientId?: string;
-    registrationId?: string;
     patientName?: string;
     paymentStatus?: string;
     status?: string;
@@ -62,10 +60,8 @@ interface Test {
 interface Sample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
     patientId: string;
-    registrationId: string;
     patientName: string;
     testId: string;
     testName: string;
@@ -122,26 +118,16 @@ const getCurrentTime = () => {
 const getPatientId = (patient: Patient) => {
     return String(
         patient.patientId ||
-            patient.id ||
-            patient.registrationId ||
-            ""
+        patient.id ||
+        ""
     );
 };
 
 const getPatientName = (patient: Patient) => {
     return String(
         patient.patientName ||
-            patient.name ||
-            "Unknown Patient"
-    );
-};
-
-const getRegistrationId = (patient: Patient) => {
-    return String(
-        patient.registrationId ||
-            patient.patientId ||
-            patient.id ||
-            ""
+        patient.name ||
+        "Unknown Patient"
     );
 };
 
@@ -161,11 +147,11 @@ const getTestNameFromItem = (item: unknown): string => {
 
         return String(
             test.testName ||
-                test.name ||
-                test.test ||
-                test.testCode ||
-                test.code ||
-                ""
+            test.name ||
+            test.test ||
+            test.testCode ||
+            test.code ||
+            ""
         );
     }
 
@@ -182,9 +168,9 @@ const getTestIdFromItem = (item: unknown): string => {
 
         return String(
             test.testId ||
-                test.id ||
-                test.code ||
-                ""
+            test.id ||
+            test.code ||
+            ""
         );
     }
 
@@ -258,162 +244,130 @@ const SampleCollection = () => {
     const [statusFilter, setStatusFilter] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [selectedSample, setSelectedSample] =  useState<Sample | null>(null);
+    const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
     const [showViewDrawer, setShowViewDrawer] = useState(false);
     const [collector, setCollector] = useState("Lab Technician");
+    const patients = useMemo(() => getStoredArray<Patient>(PATIENT_STORAGE_KEY), []);
+    const bills = useMemo(() => getStoredArray<Bill>(BILL_STORAGE_KEY), []);
+    const tests = useMemo(() => getStoredArray<Test>(TEST_STORAGE_KEY), []);
 
-    const patients = useMemo(
-        () => getStoredArray<Patient>(PATIENT_STORAGE_KEY),
-        []
-    );
 
-    const bills = useMemo(
-        () => getStoredArray<Bill>(BILL_STORAGE_KEY),
-        []
-    );
+const collectionSamples = useMemo(() => {
+    const existingSamples =
+        getStoredArray<Sample>(SAMPLE_STORAGE_KEY);
 
-    const tests = useMemo(
-        () => getStoredArray<Test>(TEST_STORAGE_KEY),
-        []
-    );
+    const generatedSamples: Sample[] = [
+        ...existingSamples,
+    ];
 
-    const collectionSamples = useMemo(() => {
-        const existingSamples = getStoredArray<Sample>(
-            SAMPLE_STORAGE_KEY
-        );
+    patients.forEach((patient) => {
+        const patientId = getPatientId(patient);
 
-        const generatedSamples: Sample[] = [
-            ...existingSamples,
-        ];
+        if (!patientId) {
+            return;
+        }
 
-        patients.forEach((patient) => {
-            const patientId = getPatientId(patient);
+        const paidBill = bills.find((bill) => {
+            const billPatientId = String(
+                bill.patientId || ""
+            );
 
-            if (!patientId) {
-                return;
-            }
+            return (
+                billPatientId === patientId &&
+                isBillPaid(bill)
+            );
+        });
 
-            const paidBill = bills.find((bill) => {
-                const billPatientId = String(
-                    bill.patientId ||
-                        bill.registrationId ||
-                        ""
-                );
+        if (!paidBill) {
+            return;
+        }
 
-                return (
-                    billPatientId === patientId &&
-                    isBillPaid(bill)
-                );
-            });
-
-            if (!paidBill) {
-                return;
-            }
-
-            const registrationTests =
-                Array.isArray(patient.requiredTests)
-                    ? patient.requiredTests
-                    : Array.isArray(patient.tests)
+        const registrationTests =
+            Array.isArray(patient.requiredTests)
+                ? patient.requiredTests
+                : Array.isArray(patient.tests)
                     ? patient.tests
                     : [];
 
-            const billTests = getBillTests(paidBill);
-            const sourceTests =
-                registrationTests.length > 0
-                    ? registrationTests
-                    : billTests;
+        const billTests = getBillTests(paidBill);
 
-            sourceTests.forEach((testItem) => {
-                const testName =
-                    getTestNameFromItem(testItem);
+        const sourceTests =
+            registrationTests.length > 0
+                ? registrationTests
+                : billTests;
 
-                if (!testName) {
-                    return;
-                }
+        sourceTests.forEach((testItem) => {
+            const testName =
+                getTestNameFromItem(testItem);
 
-                const existingSample =
-                    generatedSamples.find(
-                        (sample) =>
-                            sample.patientId === patientId &&
-                            normalizeText(
-                                sample.testName
-                            ) === normalizeText(testName)
+            if (!testName) {
+                return;
+            }
+
+            const existingSample =
+                generatedSamples.find(
+                    (sample) =>
+                        sample.patientId === patientId &&
+                        normalizeText(sample.testName) ===
+                            normalizeText(testName)
+                );
+
+            if (existingSample) {
+                return;
+            }
+
+            const existingNumbers = generatedSamples.map(
+                (sample) => {
+                    const match = sample.sampleId.match(
+                        /^SMP-(?:2026-)?(\d+)$/
                     );
 
-                if (existingSample) {
-                    return;
+                    return match
+                        ? Number(match[1])
+                        : 10000;
                 }
+            );
 
-                const sampleNumber =
-                    generatedSamples.length + 1;
+            const sampleNumber =
+                Math.max(10000, ...existingNumbers) + 1;
 
-                const sampleId =
-                    `SMP-2026-${String(
-                        sampleNumber
-                    ).padStart(4, "0")}`;
+            const sampleId = `SMP-${sampleNumber}`;
 
-                const accessionNumber =
-                    `ACC-2026-${String(
-                        sampleNumber
-                    ).padStart(4, "0")}`;
+            const barcode =
+                `BC-${String(100000 + generatedSamples.length + 1)}`;
 
-                const barcode =
-                    `BC-${String(
-                        100000 + sampleNumber
-                    )}`;
-
-                generatedSamples.push({
-                    id: `${Date.now()}-${sampleNumber}`,
-
-                    sampleId,
-                    accessionNumber,
-                    barcode,
-
-                    patientId,
-                    registrationId:
-                        getRegistrationId(patient),
-
-                    patientName:
-                        getPatientName(patient),
-
-                    testId:
-                        getTestIdFromItem(testItem),
-
-                    testName,
-
-                    sampleType:
-                        getSampleType(
-                            testName,
-                            tests
-                        ),
-
-                    collectionDate: "",
-                    collectionTime: "",
-
-                    collector: "",
-
-                    status: "Pending Collection",
-
-                    source: "Patient Registration",
-
-                    createdAt:
-                        new Date().toISOString(),
-                });
+            generatedSamples.push({
+                id: `${Date.now()}-${sampleNumber}`,
+                sampleId,
+                barcode,
+                patientId,
+                patientName: getPatientName(patient),
+                testId: getTestIdFromItem(testItem),
+                testName,
+                sampleType: getSampleType(testName, tests),
+                collectionDate: "",
+                collectionTime: "",
+                collector: "",
+                status: "Pending Collection",
+                source: "Patient Registration",
+                createdAt: new Date().toISOString(),
             });
         });
+    });
 
-        if (
-            generatedSamples.length !==
-            existingSamples.length
-        ) {
-            saveStoredArray(
-                SAMPLE_STORAGE_KEY,
-                generatedSamples
-            );
-        }
+    if (
+        generatedSamples.length !==
+        existingSamples.length
+    ) {
+        saveStoredArray(
+            SAMPLE_STORAGE_KEY,
+            generatedSamples
+        );
+    }
 
-        return generatedSamples;
-    }, [patients, bills, tests]);
+    return generatedSamples;
+}, [patients, bills, tests]);
+
 
     const filteredData = useMemo(() => {
         const searchValue =
@@ -427,16 +381,7 @@ const SampleCollection = () => {
                     sample.patientName
                         .toLowerCase()
                         .includes(searchValue) ||
-                    sample.patientId
-                        .toLowerCase()
-                        .includes(searchValue) ||
-                    sample.registrationId
-                        .toLowerCase()
-                        .includes(searchValue) ||
                     sample.sampleId
-                        .toLowerCase()
-                        .includes(searchValue) ||
-                    sample.accessionNumber
                         .toLowerCase()
                         .includes(searchValue) ||
                     sample.testName
@@ -561,8 +506,8 @@ const SampleCollection = () => {
     };
 
     const columns = [
-        "Sample",
-        "Patient",
+        "Sample ID",
+        "Patient & ID ",
         "Test",
         "Sample Type",
         "Collection",
@@ -824,17 +769,12 @@ const SampleCollection = () => {
                             maxHeight="500px"
                             renderRow={(sample: Sample) => (
                                 <>
-                                    {/* Sample */}
 
                                     <td className="px-4 py-4">
 
                                         <div>
                                             <p className="whitespace-nowrap text-sm font-semibold text-blue-600">
                                                 {sample.sampleId}
-                                            </p>
-
-                                            <p className="mt-1 text-xs text-slate-400">
-                                                {sample.accessionNumber}
                                             </p>
                                         </div>
 
@@ -875,12 +815,11 @@ const SampleCollection = () => {
                                     <td className="px-4 py-4">
 
                                         <span
-                                            className={`inline-flex whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                                                sampleTypeStyles[
-                                                    sample.sampleType
+                                            className={`inline-flex whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold ${sampleTypeStyles[
+                                                sample.sampleType
                                                 ] ||
                                                 "bg-slate-100 text-slate-600"
-                                            }`}
+                                                }`}
                                         >
                                             {sample.sampleType}
                                         </span>
@@ -963,11 +902,10 @@ const SampleCollection = () => {
                                     <td className="px-4 py-4">
 
                                         <span
-                                            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
-                                                statusStyles[
-                                                    sample.status
+                                            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyles[
+                                                sample.status
                                                 ]
-                                            }`}
+                                                }`}
                                         >
                                             {sample.status}
                                         </span>
@@ -998,35 +936,35 @@ const SampleCollection = () => {
 
                                             {sample.status ===
                                                 "Pending Collection" && (
-                                                <button
-                                                    title="Collect Sample"
-                                                    onClick={() =>
-                                                        handleCollectSample(
-                                                            sample
-                                                        )
-                                                    }
-                                                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
-                                                >
-                                                    <CheckCircleIcon fontSize="small" />
-                                                </button>
-                                            )}
+                                                    <button
+                                                        title="Collect Sample"
+                                                        onClick={() =>
+                                                            handleCollectSample(
+                                                                sample
+                                                            )
+                                                        }
+                                                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
+                                                    >
+                                                        <CheckCircleIcon fontSize="small" />
+                                                    </button>
+                                                )}
 
                                             {/* Track */}
 
                                             {sample.status ===
                                                 "Collected" && (
-                                                <button
-                                                    title="Track Sample"
-                                                    onClick={() =>
-                                                        handleTrackSample(
-                                                            sample
-                                                        )
-                                                    }
-                                                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-200 text-purple-600 transition hover:bg-purple-50"
-                                                >
-                                                    <LocalShippingOutlinedIcon fontSize="small" />
-                                                </button>
-                                            )}
+                                                    <button
+                                                        title="Track Sample"
+                                                        onClick={() =>
+                                                            handleTrackSample(
+                                                                sample
+                                                            )
+                                                        }
+                                                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-200 text-purple-600 transition hover:bg-purple-50"
+                                                    >
+                                                        <LocalShippingOutlinedIcon fontSize="small" />
+                                                    </button>
+                                                )}
 
                                         </div>
 
@@ -1062,11 +1000,11 @@ const SampleCollection = () => {
                         <div className="mt-5 border-t border-slate-100 pt-4">
 
                             <Pagination
-                                totalItems={  filteredData.length }
-                                rowsPerPage={ rowsPerPage }
-                                setRowsPerPage={ setRowsPerPage }
-                                currentPage={  currentPage }
-                                setCurrentPage={ setCurrentPage }
+                                totalItems={filteredData.length}
+                                rowsPerPage={rowsPerPage}
+                                setRowsPerPage={setRowsPerPage}
+                                currentPage={currentPage}
+                                setCurrentPage={setCurrentPage}
                             />
 
                         </div>
@@ -1118,12 +1056,11 @@ const SampleCollection = () => {
                                         </span>
 
                                         <span
-                                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                                                statusStyles[
-                                                    selectedSample
-                                                        .status
+                                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyles[
+                                                selectedSample
+                                                    .status
                                                 ]
-                                            }`}
+                                                }`}
                                         >
                                             {
                                                 selectedSample.status
@@ -1162,18 +1099,6 @@ const SampleCollection = () => {
                                             <span className="text-sm font-medium text-slate-700">
                                                 {
                                                     selectedSample.patientId
-                                                }
-                                            </span>
-                                        </div>
-
-                                        <div className="flex justify-between gap-4">
-                                            <span className="text-sm text-slate-400">
-                                                Registration ID
-                                            </span>
-
-                                            <span className="text-sm font-medium text-slate-700">
-                                                {
-                                                    selectedSample.registrationId
                                                 }
                                             </span>
                                         </div>
@@ -1234,18 +1159,6 @@ const SampleCollection = () => {
                                             <span className="text-sm font-semibold text-blue-600">
                                                 {
                                                     selectedSample.sampleId
-                                                }
-                                            </span>
-                                        </div>
-
-                                        <div className="flex justify-between gap-4">
-                                            <span className="text-sm text-slate-400">
-                                                Accession
-                                            </span>
-
-                                            <span className="text-sm font-medium text-slate-700">
-                                                {
-                                                    selectedSample.accessionNumber
                                                 }
                                             </span>
                                         </div>
@@ -1322,37 +1235,37 @@ const SampleCollection = () => {
 
                                 {selectedSample.status ===
                                     "Pending Collection" && (
-                                    <button
-                                        onClick={() => {
-                                            handleCollectSample(
-                                                selectedSample
-                                            );
+                                        <button
+                                            onClick={() => {
+                                                handleCollectSample(
+                                                    selectedSample
+                                                );
 
-                                            setShowViewDrawer(
-                                                false
-                                            );
-                                        }}
-                                        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700"
-                                    >
-                                        <CheckCircleIcon fontSize="small" />
-                                        Collect Sample
-                                    </button>
-                                )}
+                                                setShowViewDrawer(
+                                                    false
+                                                );
+                                            }}
+                                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                        >
+                                            <CheckCircleIcon fontSize="small" />
+                                            Collect Sample
+                                        </button>
+                                    )}
 
                                 {selectedSample.status ===
                                     "Collected" && (
-                                    <button
-                                        onClick={() =>
-                                            handleTrackSample(
-                                                selectedSample
-                                            )
-                                        }
-                                        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 text-sm font-semibold text-white transition hover:bg-purple-700"
-                                    >
-                                        <LocalShippingOutlinedIcon fontSize="small" />
-                                        Track Sample
-                                    </button>
-                                )}
+                                        <button
+                                            onClick={() =>
+                                                handleTrackSample(
+                                                    selectedSample
+                                                )
+                                            }
+                                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 text-sm font-semibold text-white transition hover:bg-purple-700"
+                                        >
+                                            <LocalShippingOutlinedIcon fontSize="small" />
+                                            Track Sample
+                                        </button>
+                                    )}
 
                             </div>
 

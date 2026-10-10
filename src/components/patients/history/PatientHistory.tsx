@@ -380,10 +380,6 @@ const PatientHistory = () => {
               </div>
             </div>
             <div className="space-y-5">
-              <div>
-                <p className="text-xs font-medium text-slate-400">Registration ID</p>
-                <p className="mt-1 text-sm font-semibold text-blue-700">{patient.registrationId}</p>
-              </div>
               <div className="flex items-start gap-3">
                 <CalendarTodayOutlinedIcon className="mt-0.5 text-slate-400" fontSize="small" />
                 <div>
@@ -466,7 +462,7 @@ const PatientHistory = () => {
               {visits.slice(0, 3).map((visit) => (
                 <div key={visit.registrationId} className="flex flex-col gap-2 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{visit.registrationId}</p>
+                    <p className="text-sm font-semibold text-slate-800">{patientId}</p>
                     <p className="mt-1 text-xs text-slate-500">{formatDateTime(visit.registrationDate)}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -495,12 +491,11 @@ const PatientHistory = () => {
           {allVisitTests.length ? (
             <div className="overflow-x-auto">
               <Table
-                columns={["Registration ID", "Test Code", "Test Name", "Category", "Price", "Registration Date & Time", "Visit Status"]}
+                columns={["Test Code", "Test Name", "Category", "Price", "Registration Date & Time", "Visit Status"]}
                 data={allVisitTests}
                 maxHeight="520px"
                 renderRow={(item: (typeof allVisitTests)[number]) => (
                   <>
-                    <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-blue-700">{item.registrationId}</td>
                     <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">{getTestCode(item.test)}</td>
                     <td className="px-4 py-4 text-sm font-semibold text-slate-700">{getTestName(item.test)}</td>
                     <td className="px-4 py-4 text-sm text-slate-600">{typeof item.test === "string" ? "—" : item.test.category || "—"}</td>
@@ -538,13 +533,12 @@ const PatientHistory = () => {
           {reports.length ? (
             <div className="overflow-x-auto">
               <Table
-                columns={["Report ID", "Registration ID", "Test", "Sample ID", "Report Date & Time", "Status", "Action"]}
+                columns={["Report ID", "Test", "Sample ID", "Report Date & Time", "Status", "Action"]}
                 data={reports}
                 maxHeight="520px"
                 renderRow={(report: LabSample) => (
                   <>
                     <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-blue-700">{report.reportId || "—"}</td>
-                    <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">{report.registrationId || "—"}</td>
                     <td className="px-4 py-4 text-sm font-medium text-slate-700">{report.testName || report.testCode || "Test report"}</td>
                     <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">{report.sampleId || report.accessionNumber || "—"}</td>
                     <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">{formatDateTime(getTimeValue(report.reportGeneratedAt, report.reportDate, report.generatedDate))}</td>
@@ -584,13 +578,13 @@ const PatientHistory = () => {
           {visits.length ? (
             <div className="space-y-3">
               {visits.map((visit, index) => (
-                <article key={visit.registrationId || visit.id || index} className="relative rounded-xl border border-slate-200 p-4 sm:p-5">
+                <article key={visit.id || index} className="relative rounded-xl border border-slate-200 p-4 sm:p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><CalendarTodayOutlinedIcon fontSize="small" /></div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="text-sm font-bold text-slate-800">{visit.registrationId}</h4>
+                          <h4 className="text-sm font-bold text-slate-800">{visit.patientId}</h4>
                           {index === 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">Latest visit</span>}
                         </div>
                         <p className="mt-1 text-sm text-slate-500">{formatDateTime(visit.registrationDate)}</p>
