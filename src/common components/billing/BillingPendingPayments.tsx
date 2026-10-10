@@ -193,7 +193,6 @@ const BillingPendingPayments = () => {
 
     const columns = [
         "Bill Number",
-        "Registration ID",
         "Patient ID",
         "Patient Name",
         "Total Amount",
@@ -555,7 +554,7 @@ const BillingPendingPayments = () => {
                                 type="text"
                                 value={searchTerm}
                                 onChange={handleSearch}
-                                placeholder="Search Bill Number, Patient ID, Registration ID or Name"
+                                placeholder="Search Bill Number, Patient ID or Name"
                                 className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-100"
                             />
 
@@ -578,35 +577,24 @@ const BillingPendingPayments = () => {
                                 maxHeight="500px"
                                 renderRow={(bill: Bill) => (
                                     <>
-                                        {/* Bill Number */}
                                         <td className="px-5 py-4">
                                             <p className="whitespace-nowrap text-sm font-semibold text-blue-600">
                                                 {bill.billNumber}
                                             </p>
                                         </td>
 
-                                        {/* Registration ID */}
-                                        <td className="px-5 py-4">
-                                            <p className="whitespace-nowrap text-sm text-slate-600">
-                                                {bill.registrationId}
-                                            </p>
-                                        </td>
-
-                                        {/* Patient ID */}
                                         <td className="px-5 py-4">
                                             <p className="whitespace-nowrap text-sm text-slate-600">
                                                 {bill.patientId}
                                             </p>
                                         </td>
 
-                                        {/* Patient Name */}
                                         <td className="px-5 py-4">
                                             <p className="whitespace-nowrap text-sm text-slate-600">
                                                 {bill.patientName}
                                             </p>
                                         </td>
 
-                                        {/* Total Amount */}
                                         <td className="px-5 py-4">
                                             <p className="whitespace-nowrap text-sm text-slate-600">
                                                 ₹
@@ -787,18 +775,6 @@ const BillingPendingPayments = () => {
                                         <p className="mt-1 font-medium text-slate-800">
                                             {
                                                 selectedBill.patientId
-                                            }
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {
-                                                selectedBill.registrationId
                                             }
                                         </p>
                                     </div>
@@ -1470,16 +1446,6 @@ const BillingPendingPayments = () => {
 
                                             <p className="font-medium text-slate-800">
                                                 {paidBill.patientId}
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-slate-500">
-                                                Registration ID
-                                            </p>
-
-                                            <p className="font-medium text-slate-800">
-                                                {paidBill.registrationId}
                                             </p>
                                         </div>
 

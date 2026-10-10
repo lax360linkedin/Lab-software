@@ -412,7 +412,7 @@ const Tests = () => {
                                 : "border-transparent text-slate-500 hover:text-slate-700"
                                 }`}
                         >
-                            Categories
+                            Categories/ Tests
                         </button>
                     </div>
                 </div>
@@ -442,13 +442,14 @@ const Tests = () => {
                 )}
 
                 {activeTab === "categories" && (
-                    <Categories
-                        categories={categories}
-                        onSaveCategory={handleSaveCategory}
-                        onToggleCategory={handleToggleCategory}
-                        onDeleteCategory={handleDeleteCategory}
-                    />
-                )}
+    <Categories
+        categories={categories}
+        tests={tests}
+        onSaveCategory={handleSaveCategory}
+        onToggleCategory={handleToggleCategory}
+        onDeleteCategory={handleDeleteCategory}
+    />
+)}
             </div>
         </div>
     );

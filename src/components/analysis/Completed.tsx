@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -15,7 +14,6 @@ import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
-
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 import "./completed.css";
@@ -32,46 +30,34 @@ type SampleStatus =
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
-    registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status: SampleStatus;
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
     rejectionReason?: string;
-
     processingDate?: string;
     processingTime?: string;
     processingBy?: string;
-
     completedDate?: string;
     completedTime?: string;
     completedBy?: string;
-
     analyzer?: string;
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
@@ -89,7 +75,6 @@ interface LabTest {
 interface CompletedTest {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     patientId: string;
     patientName: string;
     testName: string;
@@ -106,10 +91,9 @@ interface CompletedTest {
 
 const columns = [
     "Sample ID",
-    "Accession ID",
     "Patient",
     "Test",
-    "Sample",
+    "Sample Type",
     "Completed",
     "Technician",
     "Result Status",
@@ -118,10 +102,6 @@ const columns = [
 
 const Completed = () => {
     const navigate = useNavigate();
-
-    /* -------------------------------------------------------
-       Load Samples
-    ------------------------------------------------------- */
 
     const [samples, ] = useState<StoredSample[]>(() => {
         try {
@@ -138,10 +118,6 @@ const Completed = () => {
             return [];
         }
     });
-
-    /* -------------------------------------------------------
-       Load Test Master Data
-    ------------------------------------------------------- */
 
     const [testMasterData] = useState<LabTest[]>(() => {
         try {
@@ -160,21 +136,12 @@ const Completed = () => {
     });
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [resultStatusFilter, setResultStatusFilter] =
-        useState("All");
-
+    const [resultStatusFilter, setResultStatusFilter] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-
-    const [selectedTest, setSelectedTest] =
-        useState<CompletedTest | null>(null);
-
+    const [selectedTest, setSelectedTest] = useState<CompletedTest | null>(null);
     const [showDetails, setShowDetails] = useState(false);
-    const [showPrintForm, setShowPrintForm] = useState(false);
-
-    /* -------------------------------------------------------
-       Convert Completed Samples
-    ------------------------------------------------------- */
+    const [showPrintForm, setShowPrintForm] = useState(false)
 
     const completedTests = useMemo<CompletedTest[]>(() => {
         return samples
@@ -190,7 +157,6 @@ const Completed = () => {
                 return {
                     id: sample.id,
                     sampleId: sample.sampleId,
-                    accessionNumber: sample.accessionNumber,
                     patientId: sample.patientId,
                     patientName: sample.patientName,
                     testName: sample.testName,
@@ -222,15 +188,6 @@ const Completed = () => {
                         sample.method ||
                         masterTest?.method ||
                         "Standard Laboratory Method",
-
-                    /*
-                     * A newly completed analysis is ready for
-                     * result entry.
-                     *
-                     * Later, when Results module updates the
-                     * sample, this can be changed to
-                     * "Result Entered".
-                     */
                     resultStatus: "Ready for Results",
 
                     status: "Completed",
@@ -240,10 +197,6 @@ const Completed = () => {
             });
     }, [samples, testMasterData]);
 
-    /* -------------------------------------------------------
-       Search & Filters
-    ------------------------------------------------------- */
-
     const filteredTests = useMemo(() => {
         return completedTests.filter((test) => {
             const search = searchTerm.toLowerCase().trim();
@@ -251,9 +204,6 @@ const Completed = () => {
             const matchesSearch =
                 !search ||
                 test.sampleId.toLowerCase().includes(search) ||
-                test.accessionNumber
-                    .toLowerCase()
-                    .includes(search) ||
                 test.patientId.toLowerCase().includes(search) ||
                 test.patientName.toLowerCase().includes(search) ||
                 test.testName.toLowerCase().includes(search) ||
@@ -273,18 +223,10 @@ const Completed = () => {
         resultStatusFilter,
     ]);
 
-    /* -------------------------------------------------------
-       Pagination
-    ------------------------------------------------------- */
-
     const currentData = filteredTests.slice(
         (currentPage - 1) * rowsPerPage,
         currentPage * rowsPerPage
     );
-
-    /* -------------------------------------------------------
-       Summary Counts
-    ------------------------------------------------------- */
 
     const readyForResultsCount = completedTests.filter(
         (test) => test.resultStatus === "Ready for Results"
@@ -293,11 +235,6 @@ const Completed = () => {
     const resultEnteredCount = completedTests.filter(
         (test) => test.resultStatus === "Result Entered"
     ).length;
-
-    /* -------------------------------------------------------
-       Handlers
-    ------------------------------------------------------- */
-
     const handleReset = () => {
         setSearchTerm("");
         setResultStatusFilter("All");
@@ -326,10 +263,6 @@ const Completed = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 px-3 py-4 sm:px-5 lg:px-6">
-
-            {/* -------------------------------------------------------
-                Header
-            ------------------------------------------------------- */}
 
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
@@ -369,13 +302,7 @@ const Completed = () => {
 
             </div>
 
-            {/* -------------------------------------------------------
-                Summary Cards
-            ------------------------------------------------------- */}
-
             <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-
-                {/* Total */}
 
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
 
@@ -399,8 +326,6 @@ const Completed = () => {
 
                 </div>
 
-                {/* Ready for Results */}
-
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
 
                     <div className="flex items-center justify-between">
@@ -423,8 +348,6 @@ const Completed = () => {
 
                 </div>
 
-                {/* Result Entered */}
-
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
 
                     <div className="flex items-center justify-between">
@@ -446,8 +369,6 @@ const Completed = () => {
                     </div>
 
                 </div>
-
-                {/* Workflow Status */}
 
                 <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
 
@@ -472,10 +393,6 @@ const Completed = () => {
                 </div>
 
             </div>
-
-            {/* -------------------------------------------------------
-                Workflow Info
-            ------------------------------------------------------- */}
 
             <div className="mb-5 rounded-2xl border border-green-100 bg-green-50 p-4">
 
@@ -518,10 +435,6 @@ const Completed = () => {
 
             </div>
 
-            {/* -------------------------------------------------------
-                Filters
-            ------------------------------------------------------- */}
-
             <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
 
                 <div className="mb-4 flex items-center gap-2">
@@ -555,13 +468,11 @@ const Completed = () => {
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            placeholder="Search sample, accession, patient or test..."
+                            placeholder="Search sample, patient or test..."
                             className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:bg-white"
                         />
 
                     </div>
-
-                    {/* Result Status */}
 
                     <select
                         value={resultStatusFilter}
@@ -584,8 +495,6 @@ const Completed = () => {
                         </option>
 
                     </select>
-
-                    {/* Completed Status */}
 
                     <div className="flex h-11 items-center rounded-xl border border-gray-200 bg-gray-50 px-3">
 
@@ -611,10 +520,6 @@ const Completed = () => {
                 </div>
 
             </div>
-
-            {/* -------------------------------------------------------
-                Table
-            ------------------------------------------------------- */}
 
             <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
 
@@ -643,18 +548,9 @@ const Completed = () => {
                         maxHeight="380px"
                         renderRow={(test: CompletedTest) => (
                             <>
-                                {/* Sample ID */}
-
                                 <td className="px-4 py-3">
 
                                     <div className="flex items-center gap-2">
-
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50">
-                                            <ScienceOutlinedIcon
-                                                className="text-green-600"
-                                                fontSize="small"
-                                            />
-                                        </div>
 
                                         <div>
 
@@ -662,27 +558,11 @@ const Completed = () => {
                                                 {test.sampleId}
                                             </p>
 
-                                            <p className="text-[11px] text-gray-500">
-                                                {test.sampleType}
-                                            </p>
-
                                         </div>
 
                                     </div>
 
                                 </td>
-
-                                {/* Accession */}
-
-                                <td className="px-4 py-3">
-
-                                    <span className="whitespace-nowrap text-xs font-semibold text-gray-700">
-                                        {test.accessionNumber}
-                                    </span>
-
-                                </td>
-
-                                {/* Patient */}
 
                                 <td className="px-4 py-3">
 
@@ -711,8 +591,6 @@ const Completed = () => {
 
                                 </td>
 
-                                {/* Test */}
-
                                 <td className="px-4 py-3">
 
                                     <p className="whitespace-nowrap text-xs font-medium text-gray-700">
@@ -721,8 +599,6 @@ const Completed = () => {
 
                                 </td>
 
-                                {/* Sample */}
-
                                 <td className="px-4 py-3">
 
                                     <span className="whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
@@ -730,8 +606,6 @@ const Completed = () => {
                                     </span>
 
                                 </td>
-
-                                {/* Completed */}
 
                                 <td className="px-4 py-3">
 
@@ -758,8 +632,6 @@ const Completed = () => {
 
                                 </td>
 
-                                {/* Technician */}
-
                                 <td className="px-4 py-3">
 
                                     <div className="flex items-center gap-2">
@@ -779,8 +651,6 @@ const Completed = () => {
 
                                 </td>
 
-                                {/* Result Status */}
-
                                 <td className="px-4 py-3">
 
 
@@ -798,14 +668,9 @@ const Completed = () => {
 
                                 </td>
 
-                                {/* Actions */}
-
                                 <td className="px-4 py-3">
 
                                     <div className="flex items-center gap-1.5">
-
-                                        {/* View */}
-
                                         <button
                                             onClick={() =>
                                                 handleView(test)
@@ -815,8 +680,6 @@ const Completed = () => {
                                         >
                                             <VisibilityOutlinedIcon fontSize="small" />
                                         </button>
-
-                                        {/* Print */}
 
                                         <button
                                             onClick={() =>
@@ -837,8 +700,6 @@ const Completed = () => {
 
                 </div>
 
-                {/* Pagination */}
-
                 {filteredTests.length > 0 && (
                     <div className="mt-4 border-t border-gray-100 pt-4">
 
@@ -852,8 +713,6 @@ const Completed = () => {
 
                     </div>
                 )}
-
-                {/* Empty State */}
 
                 {filteredTests.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12">
@@ -872,10 +731,6 @@ const Completed = () => {
                 )}
 
             </div>
-
-            {/* =======================================================
-                COMPLETED DETAILS DRAWER
-            ======================================================= */}
 
             {showDetails && selectedTest && (
                 <>
@@ -924,11 +779,7 @@ const Completed = () => {
 
                         </div>
 
-                        {/* Content */}
-
                         <div className="flex-1 overflow-y-auto px-5 py-5">
-
-                            {/* Completed Status */}
 
                             <div className="mb-5 rounded-xl border border-green-200 bg-green-50 p-4">
 
@@ -968,8 +819,6 @@ const Completed = () => {
                                 </div>
 
                             </div>
-
-                            {/* Patient Information */}
 
                             <div className="mb-5">
 
@@ -1020,8 +869,6 @@ const Completed = () => {
 
                             </div>
 
-                            {/* Sample Information */}
-
                             <div className="mb-5">
 
                                 <div className="mb-3 flex items-center gap-2">
@@ -1049,18 +896,6 @@ const Completed = () => {
 
                                             <p className="mt-1 text-xs font-semibold text-blue-700">
                                                 {selectedTest.sampleId}
-                                            </p>
-
-                                        </div>
-
-                                        <div className="p-3">
-
-                                            <p className="text-[11px] text-gray-500">
-                                                Accession ID
-                                            </p>
-
-                                            <p className="mt-1 text-xs font-semibold text-gray-800">
-                                                {selectedTest.accessionNumber}
                                             </p>
 
                                         </div>
@@ -1099,8 +934,6 @@ const Completed = () => {
 
                             </div>
 
-                            {/* Analyzer */}
-
                             <div className="mb-5">
 
                                 <div className="mb-3 flex items-center gap-2">
@@ -1137,8 +970,6 @@ const Completed = () => {
                                 </div>
 
                             </div>
-
-                            {/* Completion Information */}
 
                             <div className="mb-5">
 
@@ -1189,8 +1020,6 @@ const Completed = () => {
 
                             </div>
 
-                            {/* Technician */}
-
                             <div className="mb-5">
 
                                 <div className="mb-3 flex items-center gap-2">
@@ -1228,8 +1057,6 @@ const Completed = () => {
 
                             </div>
 
-                            {/* Result Workflow */}
-
                             <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
 
                                 <div className="flex gap-3">
@@ -1258,8 +1085,6 @@ const Completed = () => {
                             </div>
 
                         </div>
-
-                        {/* Footer */}
 
                         <div className="border-t border-gray-200 bg-white px-5 py-4">
 
@@ -1291,20 +1116,13 @@ const Completed = () => {
                 </>
             )}
 
-            {/* =======================================================
-                PRINT MODAL
-            ======================================================= */}
-
             {showPrintForm && selectedTest && (
                 <>
-                    {/* Backdrop */}
 
                     <div
                         className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm"
                         onClick={handleClosePrintForm}
                     />
-
-                    {/* Print Modal */}
 
                     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5">
 
@@ -1336,16 +1154,12 @@ const Completed = () => {
 
                             </div>
 
-                            {/* Print Content */}
-
                             <div className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6">
 
                                 <div
                                     id="laboratory-print-form"
                                     className="mx-auto w-full max-w-3xl bg-white p-6 shadow-sm sm:p-10"
                                 >
-
-                                    {/* Laboratory Header */}
 
                                     <div className="border-b-2 border-gray-800 pb-5">
 
@@ -1393,8 +1207,6 @@ const Completed = () => {
 
                                     </div>
 
-                                    {/* Patient Details */}
-
                                     <div className="mt-6">
 
                                         <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-800">
@@ -1427,18 +1239,6 @@ const Completed = () => {
 
                                             </div>
 
-                                            <div className="p-3 sm:border-r">
-
-                                                <p className="text-[10px] uppercase text-gray-500">
-                                                    Accession Number
-                                                </p>
-
-                                                <p className="mt-1 text-sm font-semibold text-gray-900">
-                                                    {selectedTest.accessionNumber}
-                                                </p>
-
-                                            </div>
-
                                             <div className="p-3">
 
                                                 <p className="text-[10px] uppercase text-gray-500">
@@ -1454,8 +1254,6 @@ const Completed = () => {
                                         </div>
 
                                     </div>
-
-                                    {/* Test Details */}
 
                                     <div className="mt-6">
 
@@ -1525,8 +1323,6 @@ const Completed = () => {
 
                                     </div>
 
-                                    {/* Completion Details */}
-
                                     <div className="mt-6">
 
                                         <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-800">
@@ -1575,8 +1371,6 @@ const Completed = () => {
 
                                     </div>
 
-                                    {/* Result Section */}
-
                                     <div className="mt-6">
 
                                         <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-800">
@@ -1596,8 +1390,6 @@ const Completed = () => {
                                         </div>
 
                                     </div>
-
-                                    {/* Signature */}
 
                                     <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2">
 
@@ -1631,8 +1423,6 @@ const Completed = () => {
 
                                     </div>
 
-                                    {/* Footer */}
-
                                     <div className="mt-8 border-t border-gray-300 pt-4 text-center">
 
                                         <p className="text-[10px] text-gray-500">
@@ -1648,8 +1438,6 @@ const Completed = () => {
                                 </div>
 
                             </div>
-
-                            {/* Print Footer */}
 
                             <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-5 py-4">
 

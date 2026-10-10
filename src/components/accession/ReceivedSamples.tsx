@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -14,13 +13,8 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
-
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
-
-/* =========================
-   TYPES
-========================= */
 
 type SampleStatus =
     | "Pending Collection"
@@ -32,33 +26,25 @@ type SampleStatus =
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
     registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status: SampleStatus;
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
@@ -68,38 +54,21 @@ interface StoredSample {
 interface ReceivedSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
-
     patientId: string;
     patientName: string;
-
     testName: string;
     sampleType: string;
-
     collectedDate: string;
     collectedTime: string;
-
     receivedDate: string;
     receivedTime: string;
-
     collector: string;
     receivedBy: string;
-
     barcode: string;
-
     status: "Received" | "Awaiting Receipt";
 }
 
-/* =========================
-   STORAGE
-========================= */
-
 const SAMPLE_STORAGE_KEY = "lab_samples";
-
-/* =========================
-   HELPERS
-========================= */
-
 const getStoredArray = <T,>(key: string): T[] => {
     try {
         const stored = localStorage.getItem(key);
@@ -134,10 +103,6 @@ const getCurrentTime = () =>
         minute: "2-digit",
     });
 
-/* =========================
-   STATUS STYLES
-========================= */
-
 const statusStyles: Record<
     ReceivedSample["status"],
     string
@@ -149,10 +114,6 @@ const statusStyles: Record<
         "bg-amber-50 text-amber-700 border border-amber-200",
 };
 
-/* =========================
-   SAMPLE TYPE STYLES
-========================= */
-
 const sampleTypeStyles: Record<string, string> = {
     Blood: "bg-red-50 text-red-600",
     "Whole Blood": "bg-red-50 text-red-600",
@@ -163,43 +124,19 @@ const sampleTypeStyles: Record<string, string> = {
     Stool: "bg-amber-50 text-amber-700",
 };
 
-/* =========================
-   COMPONENT
-========================= */
-
 const ReceivedSamples = () => {
     const navigate = useNavigate();
-
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
-
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-
-    const [selectedSample, setSelectedSample] =
-        useState<ReceivedSample | null>(null);
-
-    const [showViewDrawer, setShowViewDrawer] =
-        useState(false);
-
-    const [receivedBy, setReceivedBy] =
-        useState("Lab Technician");
-
-    const [acceptedBy, setAcceptedBy] =
-        useState("Lab Technician");
-
-    const [rejectedBy, setRejectedBy] =
-        useState("Lab Technician");
-
-    const [rejectionReason, setRejectionReason] =
-        useState("");
-
-    const [showRejectForm, setShowRejectForm] =
-        useState(false);
-
-    /* =========================
-       LOAD ACTUAL SAMPLES
-    ========================= */
+    const [selectedSample, setSelectedSample] = useState<ReceivedSample | null>(null);
+    const [showViewDrawer, setShowViewDrawer] = useState(false);
+    const [receivedBy, setReceivedBy] = useState("Lab Technician");
+    const [acceptedBy, setAcceptedBy] = useState("Lab Technician");
+    const [rejectedBy, setRejectedBy] = useState("Lab Technician");
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [showRejectForm, setShowRejectForm] = useState(false);
 
     const storedSamples = useMemo(
         () =>
@@ -208,17 +145,6 @@ const ReceivedSamples = () => {
             ),
         []
     );
-
-    /* =========================
-       CONVERT COLLECTED / RECEIVED
-       SAMPLES INTO TABLE DATA
-
-       Collected:
-       Awaiting Receipt
-
-       Received:
-       Ready for Acceptance
-    ========================= */
 
     const receivedSamples = useMemo<ReceivedSample[]>(() => {
         return storedSamples
@@ -231,49 +157,23 @@ const ReceivedSamples = () => {
                 id: sample.id,
 
                 sampleId: sample.sampleId,
-
-                accessionNumber:
-                    sample.accessionNumber,
-
                 patientId: sample.patientId,
-
                 patientName: sample.patientName,
-
                 testName: sample.testName,
-
                 sampleType: sample.sampleType,
-
-                collectedDate:
-                    sample.collectionDate || "-",
-
-                collectedTime:
-                    sample.collectionTime || "-",
-
-                receivedDate:
-                    sample.receivedDate || "-",
-
-                receivedTime:
-                    sample.receivedTime || "-",
-
-                collector:
-                    sample.collector || "-",
-
-                receivedBy:
-                    sample.receivedBy || "-",
-
-                barcode:
-                    sample.barcode || "-",
-
+                collectedDate: sample.collectionDate || "-",
+                collectedTime: sample.collectionTime || "-",
+                receivedDate: sample.receivedDate || "-",
+                receivedTime: sample.receivedTime || "-",
+                collector:sample.collector || "-",
+                receivedBy: sample.receivedBy || "-",
+                barcode: sample.barcode || "-",
                 status:
                     sample.status === "Received"
                         ? "Received"
                         : "Awaiting Receipt",
             }));
     }, [storedSamples]);
-
-    /* =========================
-       FILTER
-    ========================= */
 
     const filteredData = useMemo(() => {
         const searchValue =
@@ -286,9 +186,6 @@ const ReceivedSamples = () => {
                     .toLowerCase()
                     .includes(searchValue) ||
                 sample.patientId
-                    .toLowerCase()
-                    .includes(searchValue) ||
-                sample.accessionNumber
                     .toLowerCase()
                     .includes(searchValue) ||
                 sample.testName
@@ -315,19 +212,10 @@ const ReceivedSamples = () => {
         search,
         statusFilter,
     ]);
-
-    /* =========================
-       PAGINATION
-    ========================= */
-
     const currentData = filteredData.slice(
         (currentPage - 1) * rowsPerPage,
         currentPage * rowsPerPage
     );
-
-    /* =========================
-       COUNTS
-    ========================= */
 
     const totalCount =
         receivedSamples.length;
@@ -345,18 +233,10 @@ const ReceivedSamples = () => {
                 "Awaiting Receipt"
         ).length;
 
-    /* =========================
-       SEARCH
-    ========================= */
-
     const handleSearch = (value: string) => {
         setSearch(value);
         setCurrentPage(1);
     };
-
-    /* =========================
-       STATUS FILTER
-    ========================= */
 
     const handleStatusChange = (
         value: string
@@ -365,19 +245,11 @@ const ReceivedSamples = () => {
         setCurrentPage(1);
     };
 
-    /* =========================
-       RESET
-    ========================= */
-
     const handleReset = () => {
         setSearch("");
         setStatusFilter("All");
         setCurrentPage(1);
     };
-
-    /* =========================
-       VIEW SAMPLE
-    ========================= */
 
     const handleViewSample = (
         sample: ReceivedSample
@@ -391,19 +263,11 @@ const ReceivedSamples = () => {
         );
 
         setAcceptedBy("Lab Technician");
-
         setRejectedBy("Lab Technician");
-
         setRejectionReason("");
-
         setShowRejectForm(false);
-
         setShowViewDrawer(true);
     };
-
-    /* =========================
-       CLOSE DRAWER
-    ========================= */
 
     const handleCloseDrawer = () => {
         setShowViewDrawer(false);
@@ -411,10 +275,6 @@ const ReceivedSamples = () => {
         setShowRejectForm(false);
         setRejectionReason("");
     };
-
-    /* =========================
-       RECEIVE SAMPLE
-    ========================= */
 
     const handleReceiveSample = (
         sample: ReceivedSample
@@ -453,15 +313,9 @@ const ReceivedSamples = () => {
             SAMPLE_STORAGE_KEY,
             updated
         );
-
         handleCloseDrawer();
-
        window.location.reload();
     };
-
-    /* =========================
-       ACCEPT SAMPLE
-    ========================= */
 
     const handleAcceptSample = (
         sample: ReceivedSample
@@ -481,15 +335,9 @@ const ReceivedSamples = () => {
 
                 return {
                     ...item,
-
                     status: "Accepted" as SampleStatus,
-
-                    acceptedDate:
-                        getToday(),
-
-                    acceptedTime:
-                        getCurrentTime(),
-
+                    acceptedDate: getToday(),
+                    acceptedTime: getCurrentTime(),
                     acceptedBy:
                         acceptedBy.trim() ||
                         "Lab Technician",
@@ -500,15 +348,9 @@ const ReceivedSamples = () => {
             SAMPLE_STORAGE_KEY,
             updated
         );
-
         handleCloseDrawer();
-
         navigate("/accession/accepted-samples");
     };
-
-    /* =========================
-       REJECT SAMPLE
-    ========================= */
 
     const handleRejectSample = (
         sample: ReceivedSample
@@ -533,14 +375,11 @@ const ReceivedSamples = () => {
             return {
                 ...item,
                 status: "Rejected" as SampleStatus,
-
                 rejectedDate: getToday(),
                 rejectedTime: getCurrentTime(),
-
                 rejectedBy:
                     rejectedBy.trim() ||
                     "Lab Technician",
-
                 rejectionReason: reason,
             };
         });
@@ -549,26 +388,13 @@ const ReceivedSamples = () => {
             SAMPLE_STORAGE_KEY,
             updated
         );
-
-        /*
-         * Clear drawer/form state first.
-         */
         setShowRejectForm(false);
         setRejectionReason("");
         setSelectedSample(null);
         setShowViewDrawer(false);
-
-        /*
-         * Force the rejected page to mount again
-         * and read the latest localStorage data.
-         */
         window.location.href =
             "/accession/rejected-samples";
     };
-
-    /* =========================
-       TRACK SAMPLE
-    ========================= */
 
     const handleTrackSample = (
         sample: ReceivedSample
@@ -580,15 +406,11 @@ const ReceivedSamples = () => {
         );
     };
 
-    /* =========================
-       TABLE COLUMNS
-    ========================= */
-
     const columns = [
-        "Accession",
-        "Patient",
+        "Sample ID",
+        "Patient & ID",
         "Test",
-        "Sample",
+        "Sample Type",
         "Collected",
         "Received",
         "Received By",
@@ -596,14 +418,8 @@ const ReceivedSamples = () => {
         "Actions",
     ];
 
-    /* =========================
-       UI
-    ========================= */
-
     return (
         <div className="min-h-screen bg-slate-50 p-4 sm:p-5 lg:p-6">
-
-            {/* ================= HEADER ================= */}
 
             <div className="mb-6 flex items-center gap-3">
 
@@ -766,7 +582,7 @@ const ReceivedSamples = () => {
                                         e.target.value
                                     )
                                 }
-                                placeholder="Search patient, accession, test or barcode..."
+                                placeholder="Search patient, test or barcode..."
                                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
                             />
 
@@ -837,19 +653,11 @@ const ReceivedSamples = () => {
                             ) => (
                                 <>
 
-                                    {/* ACCESSION */}
-
                                     <td className="px-4 py-4">
                                         <div>
                                             <p className="whitespace-nowrap text-sm font-semibold text-blue-600">
                                                 {
-                                                    sample.accessionNumber
-                                                }
-                                            </p>
-
-                                            <p className="mt-1 text-xs text-slate-400">
-                                                {
-                                                    sample.sampleId
+                                                     sample.sampleId
                                                 }
                                             </p>
                                         </div>
@@ -1166,12 +974,6 @@ const ReceivedSamples = () => {
                                     <h2 className="text-lg font-bold text-slate-800">
                                         Sample Details
                                     </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        {
-                                            selectedSample.sampleId
-                                        }
-                                    </p>
                                 </div>
 
                                 <button
@@ -1267,18 +1069,6 @@ const ReceivedSamples = () => {
                                     </p>
 
                                     <div className="space-y-3 rounded-xl border border-slate-200 p-4">
-
-                                        <div className="flex justify-between gap-4">
-                                            <span className="text-sm text-slate-500">
-                                                Accession
-                                            </span>
-
-                                            <span className="text-right text-sm font-semibold text-blue-600">
-                                                {
-                                                    selectedSample.accessionNumber
-                                                }
-                                            </span>
-                                        </div>
 
                                         <div className="flex justify-between gap-4">
                                             <span className="text-sm text-slate-500">

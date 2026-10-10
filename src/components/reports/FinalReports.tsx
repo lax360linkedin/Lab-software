@@ -14,10 +14,11 @@ import type { StoredSample } from "./ReportPrint";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 import ReportPrint from "./ReportPrint";
+import PersonIcon from "@mui/icons-material/Person";
 
 const FinalReports = () => {
     const navigate = useNavigate();
-    const [samples, ] = useState<StoredSample[]>(() => {
+    const [samples,] = useState<StoredSample[]>(() => {
         try {
             const stored = localStorage.getItem("lab_samples");
             const parsed = stored ? JSON.parse(stored) : [];
@@ -54,9 +55,7 @@ const FinalReports = () => {
                 sample.patientName?.toLowerCase().includes(search) ||
                 sample.patientId?.toLowerCase().includes(search) ||
                 sample.sampleId?.toLowerCase().includes(search) ||
-                sample.accessionNumber?.toLowerCase().includes(search) ||
-                sample.testName?.toLowerCase().includes(search) ||
-                sample.registrationId?.toLowerCase().includes(search);
+                sample.testName?.toLowerCase().includes(search);
 
             const matchesPriority =
                 priorityFilter === "All" ||
@@ -104,29 +103,23 @@ const FinalReports = () => {
             return;
         }
 
-        const reportText = `
-Laboratory Report
-
-Report ID: ${selectedSample.reportId || "-"}
-Patient: ${selectedSample.patientName}
-Patient ID: ${selectedSample.patientId}
-Registration ID: ${selectedSample.registrationId}
-Test: ${selectedSample.testName}
-Sample ID: ${selectedSample.sampleId}
-Accession No: ${selectedSample.accessionNumber}
-Report Date: ${selectedSample.reportGeneratedDate || "-"}
+        const reportText = `Laboratory Report
+                         Report ID: ${selectedSample.reportId || "-"}
+                         Patient: ${selectedSample.patientName}
+                         Patient ID: ${selectedSample.patientId}
+                         Test: ${selectedSample.testName}
+                         Sample ID: ${selectedSample.sampleId}
+                         Report Date: ${selectedSample.reportGeneratedDate || "-"}
 
 Result:
-${
-    selectedSample.resultParameters
-        ?.map(
-            (parameter) =>
-                `${parameter.name}: ${parameter.value} ${
-                    parameter.unit || ""
-                }`
-        )
-        .join("\n") || "-"
-}
+${selectedSample.resultParameters
+                ?.map(
+                    (parameter) =>
+                        `${parameter.name}: ${parameter.value} ${parameter.unit || ""
+                        }`
+                )
+                .join("\n") || "-"
+            }
 
 Remarks:
 ${selectedSample.resultRemarks || "-"}
@@ -138,7 +131,7 @@ ${selectedSample.resultRemarks || "-"}
 
     const columns = [
         "Report ID",
-        "Patient",
+        "Patient & ID",
         "Test",
         "Sample",
         "Priority",
@@ -188,7 +181,7 @@ ${selectedSample.resultRemarks || "-"}
                                     setSearchTerm(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                placeholder="Search report, patient, sample, accession or test..."
+                                placeholder="Search report, patient, sample or test..."
                                 className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
@@ -235,14 +228,23 @@ ${selectedSample.resultRemarks || "-"}
                                         </td>
 
                                         <td className="px-4 py-4">
-                                            <div>
-                                                <p className="whitespace-nowrap font-medium text-slate-800">
-                                                    {sample.patientName}
-                                                </p>
+                                            <div className="flex min-w-[170px] items-center gap-2">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                                    <PersonIcon
+                                                        fontSize="small"
+                                                        className="text-slate-500"
+                                                    />
+                                                </div>
 
-                                                <p className="text-xs text-slate-500">
-                                                    {sample.patientId}
-                                                </p>
+                                                <div>
+                                                    <p className="whitespace-nowrap text-sm font-medium text-slate-700">
+                                                        {sample.patientName}
+                                                    </p>
+
+                                                    <p className="mt-0.5 whitespace-nowrap text-xs text-slate-400">
+                                                        {sample.patientId}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </td>
 
@@ -257,23 +259,18 @@ ${selectedSample.resultRemarks || "-"}
                                                 <p className="whitespace-nowrap text-sm font-medium text-slate-700">
                                                     {sample.sampleId}
                                                 </p>
-
-                                                <p className="whitespace-nowrap text-xs text-slate-500">
-                                                    {sample.accessionNumber}
-                                                </p>
                                             </div>
                                         </td>
 
                                         <td className="px-4 py-4">
                                             <span
-                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                    sample.priority === "STAT"
+                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${sample.priority === "STAT"
                                                         ? "bg-red-100 text-red-700"
                                                         : sample.priority ===
                                                             "Urgent"
-                                                          ? "bg-orange-100 text-orange-700"
-                                                          : "bg-slate-100 text-slate-700"
-                                                }`}
+                                                            ? "bg-orange-100 text-orange-700"
+                                                            : "bg-slate-100 text-slate-700"
+                                                    }`}
                                             >
                                                 {sample.priority || "Normal"}
                                             </span>
@@ -307,18 +304,18 @@ ${selectedSample.resultRemarks || "-"}
                         </div>
 
                         {filteredReports.length > 0 && (
-                    <div className="mt-4 border-t border-gray-100 pt-4">
+                            <div className="mt-4 border-t border-gray-100 pt-4">
 
-                        <Pagination
-                            totalItems={filteredReports.length}
-                            rowsPerPage={rowsPerPage}
-                            setRowsPerPage={setRowsPerPage}
-                            currentPage={currentPage}
-                            setCurrentPage={setCurrentPage}
-                        />
+                                <Pagination
+                                    totalItems={filteredReports.length}
+                                    rowsPerPage={rowsPerPage}
+                                    setRowsPerPage={setRowsPerPage}
+                                    currentPage={currentPage}
+                                    setCurrentPage={setCurrentPage}
+                                />
 
-                    </div>
-                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -407,15 +404,6 @@ ${selectedSample.resultRemarks || "-"}
 
                                         <div>
                                             <p className="text-xs text-slate-500">
-                                                Registration ID
-                                            </p>
-                                            <p className="mt-1 font-medium text-slate-800">
-                                                {selectedSample.registrationId}
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-slate-500">
                                                 Report Date
                                             </p>
                                             <p className="mt-1 font-medium text-slate-800">
@@ -457,17 +445,6 @@ ${selectedSample.resultRemarks || "-"}
                                             </p>
                                             <p className="mt-1 font-medium text-slate-800">
                                                 {selectedSample.sampleId}
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-slate-500">
-                                                Accession Number
-                                            </p>
-                                            <p className="mt-1 font-medium text-slate-800">
-                                                {
-                                                    selectedSample.accessionNumber
-                                                }
                                             </p>
                                         </div>
                                     </div>

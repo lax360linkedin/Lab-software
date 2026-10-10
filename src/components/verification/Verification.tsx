@@ -22,10 +22,8 @@ interface ResultParameter {
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
     patientId: string;
-    registrationId: string;
     patientName: string;
     testId: string;
     testName: string;
@@ -34,13 +32,13 @@ interface StoredSample {
     collectionTime: string;
     collector: string;
     status:
-        | "Pending Collection"
-        | "Collected"
-        | "Received"
-        | "Accepted"
-        | "Processing"
-        | "Completed"
-        | "Rejected";
+    | "Pending Collection"
+    | "Collected"
+    | "Received"
+    | "Accepted"
+    | "Processing"
+    | "Completed"
+    | "Rejected";
 
     source: "Patient Registration";
     createdAt: string;
@@ -60,12 +58,12 @@ interface StoredSample {
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
     resultStatus?:
-        | "Pending"
-        | "Entered"
-        | "QC Pending"
-        | "QC Passed"
-        | "QC Failed"
-        | "Verified";
+    | "Pending"
+    | "Entered"
+    | "QC Pending"
+    | "QC Passed"
+    | "QC Failed"
+    | "Verified";
 
     resultParameters?: ResultParameter[];
     resultRemarks?: string;
@@ -106,7 +104,7 @@ const VerificationPending = () => {
     const [priorityFilter, setPriorityFilter] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [selectedSample, setSelectedSample] =useState<StoredSample | null>(null);
+    const [selectedSample, setSelectedSample] = useState<StoredSample | null>(null);
     const [showDetails, setShowDetails] = useState(false);
     const [verificationRemarks, setVerificationRemarks] = useState("");
 
@@ -123,7 +121,6 @@ const VerificationPending = () => {
             const matchesSearch =
                 !search ||
                 sample.sampleId.toLowerCase().includes(search) ||
-                sample.accessionNumber.toLowerCase().includes(search) ||
                 sample.patientName.toLowerCase().includes(search) ||
                 sample.testName.toLowerCase().includes(search) ||
                 sample.barcode.toLowerCase().includes(search);
@@ -170,71 +167,66 @@ const VerificationPending = () => {
         setVerificationRemarks("");
     };
 
-const handleVerify = () => {
-    if (!selectedSample) return;
+    const handleVerify = () => {
+        if (!selectedSample) return;
 
-    const now = new Date();
+        const now = new Date();
 
-    const verificationDate = now.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
+        const verificationDate = now.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
 
-    const verificationTime = now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+        const verificationTime = now.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
 
-    let verificationBy = "Laboratory Technician";
+        let verificationBy = "Laboratory Technician";
 
-    try {
-        const user = JSON.parse(
-            localStorage.getItem("lab_user") || "null"
-        );
+        try {
+            const user = JSON.parse(
+                localStorage.getItem("lab_user") || "null"
+            );
 
-        verificationBy =
-            user?.name ||
-            user?.fullName ||
-            user?.username ||
-            "Laboratory Technician";
-    } catch {
-        // fallback
-    }
-
-    const updatedSamples = samples.map((sample) => {
-        if (
-            sample.id === selectedSample.id ||
-            sample.sampleId === selectedSample.sampleId
-        ) {
-            return {
-                ...sample,
-                resultStatus: "Verified" as StoredSample["resultStatus"],
-                verificationDate,
-                verificationTime,
-                verificationBy,
-                verificationRemarks: verificationRemarks.trim(),
-            };
+            verificationBy =
+                user?.name ||
+                user?.fullName ||
+                user?.username ||
+                "Laboratory Technician";
+        } catch {
+            // fallback
         }
 
-        return sample;
-    });
+        const updatedSamples = samples.map((sample) => {
+            if (
+                sample.id === selectedSample.id ||
+                sample.sampleId === selectedSample.sampleId
+            ) {
+                return {
+                    ...sample,
+                    resultStatus: "Verified" as StoredSample["resultStatus"],
+                    verificationDate,
+                    verificationTime,
+                    verificationBy,
+                    verificationRemarks: verificationRemarks.trim(),
+                };
+            }
 
-    // Save updated result
-    localStorage.setItem(
-        "lab_samples",
-        JSON.stringify(updatedSamples)
-    );
+            return sample;
+        });
 
-    // Update local state
-    setSamples(updatedSamples);
+        // Save updated result
+        localStorage.setItem(
+            "lab_samples",
+            JSON.stringify(updatedSamples)
+        );
 
-    // Close drawer
-    handleCloseDrawer();
-
-    // Go to Verified Results
-    navigate("/verification/verified");
-};
+        setSamples(updatedSamples);
+        handleCloseDrawer();
+        navigate("/verification/verified");
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
@@ -275,7 +267,7 @@ const handleVerify = () => {
                             onChange={(e) =>
                                 handleSearch(e.target.value)
                             }
-                            placeholder="Search sample, accession, patient or test..."
+                            placeholder="Search sample, patient or test..."
                             className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
@@ -301,9 +293,8 @@ const handleVerify = () => {
                 <div className="overflow-x-auto">
                     <Table
                         columns={[
-                            "Sample",
-                            "Accession",
-                            "Patient",
+                            "Sample ID",
+                            "Patient & ID",
                             "Test",
                             "Sample Type",
                             "Priority",
@@ -318,7 +309,7 @@ const handleVerify = () => {
                                 {/* Sample */}
                                 <td className="px-4 py-4">
                                     <div>
-                                        <p className="whitespace-nowrap font-semibold text-slate-800">
+                                        <p className="whitespace-nowrap font-semibold text-blue-600">
                                             {sample.sampleId}
                                         </p>
 
@@ -328,23 +319,25 @@ const handleVerify = () => {
                                     </div>
                                 </td>
 
-                                {/* Accession */}
-                                <td className="px-4 py-4">
-                                    <span className="whitespace-nowrap text-sm font-medium text-slate-700">
-                                        {sample.accessionNumber}
-                                    </span>
-                                </td>
-
                                 {/* Patient */}
                                 <td className="px-4 py-4">
-                                    <div>
-                                        <p className="whitespace-nowrap font-medium text-slate-800">
-                                            {sample.patientName}
-                                        </p>
+                                    <div className="flex min-w-[170px] items-center gap-2">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                            <PersonIcon
+                                                fontSize="small"
+                                                className="text-slate-500"
+                                            />
+                                        </div>
 
-                                        <p className="mt-1 text-xs text-slate-500">
-                                            {sample.patientId}
-                                        </p>
+                                        <div>
+                                            <p className="whitespace-nowrap text-sm font-medium text-slate-700">
+                                                {sample.patientName}
+                                            </p>
+
+                                            <p className="mt-0.5 whitespace-nowrap text-xs text-slate-400">
+                                                {sample.patientId}
+                                            </p>
+                                        </div>
                                     </div>
                                 </td>
 
@@ -365,14 +358,13 @@ const handleVerify = () => {
                                 {/* Priority */}
                                 <td className="px-4 py-4">
                                     <span
-                                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                            sample.priority === "STAT"
+                                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${sample.priority === "STAT"
                                                 ? "bg-red-100 text-red-700"
                                                 : sample.priority ===
                                                     "Urgent"
-                                                  ? "bg-orange-100 text-orange-700"
-                                                  : "bg-slate-100 text-slate-700"
-                                        }`}
+                                                    ? "bg-orange-100 text-orange-700"
+                                                    : "bg-slate-100 text-slate-700"
+                                            }`}
                                     >
                                         {sample.priority || "Normal"}
                                     </span>
@@ -405,7 +397,7 @@ const handleVerify = () => {
                 </div>
 
                 {/* Pagination */}
-                 {filteredSamples.length > 0 && (
+                {filteredSamples.length > 0 && (
                     <div className="mt-4 border-t border-gray-100 pt-4">
 
                         <Pagination
@@ -502,26 +494,6 @@ const handleVerify = () => {
                                             {selectedSample.patientId}
                                         </p>
                                     </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.registrationId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Accession Number
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.accessionNumber}
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
 
@@ -587,7 +559,7 @@ const handleVerify = () => {
                                 </div>
 
                                 {selectedSample.resultParameters &&
-                                selectedSample.resultParameters.length > 0 ? (
+                                    selectedSample.resultParameters.length > 0 ? (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
                                             <thead>

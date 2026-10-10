@@ -22,7 +22,6 @@ interface BillTest {
 interface Bill {
     billNumber: string;
     patientId: string;
-    registrationId: string;
     patientName: string;
     doctorReferral?: string;
     tests: BillTest[];
@@ -315,23 +314,9 @@ const printPaymentReceipt = (bill: Bill) => {
                     </div>
 
                     <div class="info-item">
-                        <span class="label">Payment ID:</span>
-                        <span class="value">
-                            ${bill.paymentId || "-"}
-                        </span>
-                    </div>
-
-                    <div class="info-item">
                         <span class="label">Patient ID:</span>
                         <span class="value">
                             ${bill.patientId}
-                        </span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Registration ID:</span>
-                        <span class="value">
-                            ${bill.registrationId}
                         </span>
                     </div>
 
@@ -479,9 +464,6 @@ const Payments = () => {
                 payment.patientId
                     ?.toLowerCase()
                     .includes(search) ||
-                payment.registrationId
-                    ?.toLowerCase()
-                    .includes(search) ||
                 payment.patientName
                     ?.toLowerCase()
                     .includes(search)
@@ -515,10 +497,9 @@ const Payments = () => {
     );
 
     const columns = [
-        "Payment ID",
+        "Patient ID",
         "Bill Number",
         "Patient",
-        "Registration ID",
         "Amount",
         "Payment Method",
         "Payment Date",
@@ -589,7 +570,7 @@ const Payments = () => {
                         type="text"
                         value={searchTerm}
                         onChange={handleSearchChange}
-                        placeholder="Search bill, patient or registration..."
+                        placeholder="Search bill number or Patient ID"
                         className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                 </div>
@@ -605,41 +586,26 @@ const Payments = () => {
                                 maxHeight="500px"
                                 renderRow={(payment: Bill) => (
                                     <>
-                                        {/* Payment ID */}
                                         <td className="px-4 py-4">
                                             <span className="whitespace-nowrap font-medium text-slate-700">
-                                                {payment.paymentId || "-"}
+                                                {payment.patientId || "-"}
                                             </span>
                                         </td>
 
-                                        {/* Bill Number */}
                                         <td className="px-4 py-4">
                                             <span className="whitespace-nowrap font-medium text-blue-700">
                                                 {payment.billNumber}
                                             </span>
                                         </td>
 
-                                        {/* Patient */}
                                         <td className="px-4 py-4">
                                             <div>
                                                 <p className="whitespace-nowrap font-medium text-slate-800">
                                                     {payment.patientName}
                                                 </p>
-
-                                                <p className="mt-1 text-xs text-slate-500">
-                                                    {payment.patientId}
-                                                </p>
                                             </div>
                                         </td>
 
-                                        {/* Registration ID */}
-                                        <td className="px-4 py-4">
-                                            <span className="whitespace-nowrap text-sm text-slate-600">
-                                                {payment.registrationId}
-                                            </span>
-                                        </td>
-
-                                        {/* Amount */}
                                         <td className="px-4 py-4">
                                             <span className="whitespace-nowrap font-semibold text-slate-800">
                                                 ₹
@@ -649,7 +615,6 @@ const Payments = () => {
                                             </span>
                                         </td>
 
-                                        {/* Payment Method */}
                                         <td className="px-4 py-4">
                                             <span className="whitespace-nowrap text-sm text-slate-600">
                                                 {payment.paymentMethod ||
@@ -657,7 +622,6 @@ const Payments = () => {
                                             </span>
                                         </td>
 
-                                        {/* Payment Date */}
                                         <td className="px-4 py-4">
                                             <span className="whitespace-nowrap text-sm text-slate-600">
                                                 {formatDateTime(
@@ -666,17 +630,14 @@ const Payments = () => {
                                             </span>
                                         </td>
 
-                                        {/* Status */}
                                         <td className="px-4 py-4">
                                             <span className="inline-flex whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                                                 Paid
                                             </span>
                                         </td>
 
-                                        {/* Actions */}
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-2">
-                                                {/* View */}
                                                 <button
                                                     type="button"
                                                     onClick={() =>
@@ -820,16 +781,6 @@ const Payments = () => {
 
                                     <div>
                                         <p className="text-xs text-slate-500">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 text-sm font-medium text-slate-800">
-                                            {selectedBill.registrationId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
                                             Doctor / Referral
                                         </p>
 
@@ -855,17 +806,6 @@ const Payments = () => {
 
                                         <p className="mt-1 text-sm font-medium text-slate-800">
                                             {selectedBill.billNumber}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Payment ID
-                                        </p>
-
-                                        <p className="mt-1 text-sm font-medium text-slate-800">
-                                            {selectedBill.paymentId ||
-                                                "-"}
                                         </p>
                                     </div>
 

@@ -11,21 +11,15 @@ export interface ResultParameter {
 export interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
-    registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status:
         | "Pending Collection"
         | "Collected"
@@ -37,33 +31,25 @@ export interface StoredSample {
 
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
     rejectionReason?: string;
-
     processingDate?: string;
     processingTime?: string;
     processingBy?: string;
-
     completedDate?: string;
     completedTime?: string;
     completedBy?: string;
-
     analyzer?: string;
     method?: string;
-
     priority?: "Normal" | "Urgent" | "STAT";
-
     resultStatus?:
         | "Pending"
         | "Entered"
@@ -73,24 +59,19 @@ export interface StoredSample {
         | "Verified";
 
     resultParameters?: ResultParameter[];
-
     resultRemarks?: string;
-
     resultEnteredDate?: string;
     resultEnteredTime?: string;
     resultEnteredBy?: string;
-
     qcDate?: string;
     qcTime?: string;
     qcBy?: string;
     qcRemarks?: string;
     qcStatus?: "Passed" | "Failed";
-
     verificationDate?: string;
     verificationTime?: string;
     verificationBy?: string;
     verificationRemarks?: string;
-
     reportId?: string;
     reportStatus?: "Pending" | "Final";
     reportGeneratedDate?: string;
@@ -198,11 +179,6 @@ const ReportPrint = ({ sample }: ReportPrintProps) => {
                 </div>
 
                 <div>
-                    <span>Accession</span>
-                    <strong>{sample.accessionNumber}</strong>
-                </div>
-
-                <div>
                     <span>Priority</span>
 
                     <strong
@@ -226,11 +202,6 @@ const ReportPrint = ({ sample }: ReportPrintProps) => {
                     <InfoItem
                         label="Patient ID"
                         value={sample.patientId}
-                    />
-
-                    <InfoItem
-                        label="Registration ID"
-                        value={sample.registrationId}
                     />
 
                     <InfoItem

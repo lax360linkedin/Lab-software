@@ -15,7 +15,6 @@ import Pagination from "../../common components/Pagination";
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
     patientId: string;
     registrationId: string;
@@ -109,7 +108,6 @@ const PendingResults = () => {
             const matchesSearch =
                 !search ||
                 sample.sampleId.toLowerCase().includes(search) ||
-                sample.accessionNumber.toLowerCase().includes(search) ||
                 sample.patientName.toLowerCase().includes(search) ||
                 sample.patientId.toLowerCase().includes(search) ||
                 sample.testName.toLowerCase().includes(search);
@@ -133,10 +131,9 @@ const PendingResults = () => {
 
     const columns = [
         "Sample ID",
-        "Accession ID",
-        "Patient",
+        "Patient & ID",
         "Test",
-        "Sample",
+        "Sample Type",
         "Completed",
         "Priority",
         "Status",
@@ -288,7 +285,7 @@ const PendingResults = () => {
                                 onChange={(e) =>
                                     handleSearchChange(e.target.value)
                                 }
-                                placeholder="Search sample, patient, accession or test..."
+                                placeholder="Search sample, patient, or test..."
                                 className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
@@ -360,13 +357,6 @@ const PendingResults = () => {
                                                     </p>
                                                 )}
                                             </div>
-                                        </td>
-
-                                        {/* Accession */}
-                                        <td className="px-4 py-4">
-                                            <p className="whitespace-nowrap text-sm font-medium text-slate-700">
-                                                {sample.accessionNumber}
-                                            </p>
                                         </td>
 
                                         {/* Patient */}

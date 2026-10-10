@@ -462,26 +462,6 @@ export default function NewRegistration() {
     setRegistrationSuccess(true);
   };
 
-  const handleNewRegistration = () => {
-    setFormData({
-      patientName: "",
-      age: "",
-      gender: "",
-      phone: "",
-      address: "",
-      doctorId: "",
-      doctorReferral: "",
-      requiredTests: [],
-    });
-
-    setErrors({});
-    setRegisteredPatient(null);
-    setRegistrationSuccess(false);
-  };
-
-  /*
-   * SUCCESS SCREEN
-   */
   if (registrationSuccess && registeredPatient) {
     const totalTestAmount = registeredPatient.tests.reduce(
       (total, test) => total + test.price,
@@ -613,40 +593,34 @@ export default function NewRegistration() {
 
               <button
                 type="button"
-                onClick={() => navigate("/patients")}
-                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                onClick={() => { alert("WhatsApp notification API will be connected here."); }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
               >
-                View Patients
+                Send WhatsApp
               </button>
 
               <button
                 type="button"
-                onClick={() =>
-                  navigate("/doctors?tab=referred")
-                }
-                className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                onClick={() => { alert("SMS notification API will be connected here."); }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover"
               >
-                View Referral
+                Send SMS
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  if (isExistingPatient) {
-                    navigate("/patients/new-registration");
-                    return;
-                  }
-                  handleNewRegistration();
+                  alert("Email notification API will be connected here.");
                 }}
-                className="rounded-lg border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-3 text-sm font-semibold text-white transition hover"
               >
-                New Registration
+                Email
               </button>
 
             </div>
           </div>
         </div>
-      </div>
+      </div >
     );
   }
 
@@ -955,16 +929,16 @@ export default function NewRegistration() {
                         )
                       }
                       className={`rounded-xl border p-4 text-left transition ${selected
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
                         }`}
                     >
                       <div className="flex items-center justify-between gap-3">
 
                         <span
                           className={`text-sm font-semibold ${selected
-                              ? "text-blue-700"
-                              : "text-slate-800"
+                            ? "text-blue-700"
+                            : "text-slate-800"
                             }`}
                         >
                           {test.testCode}
@@ -972,8 +946,8 @@ export default function NewRegistration() {
 
                         <span
                           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${selected
-                              ? "border-blue-600 bg-blue-600"
-                              : "border-slate-300"
+                            ? "border-blue-600 bg-blue-600"
+                            : "border-slate-300"
                             }`}
                         >
                           {selected && (

@@ -19,7 +19,6 @@ type HistoryRecord = {
     id: string;
     patientId: string;
     patientName: string;
-    registrationId: string;
     date: string;
     title: string;
     category: "Billing" | "Analysis" | "Final Report";
@@ -190,7 +189,7 @@ const ReportHistory = () => {
     const patients = useMemo(() => {
         const map = new Map<
             string,
-            { patientId: string; patientName: string; registrationId: string }
+            { patientId: string; patientName: string; }
         >();
 
         const addPatient = (record: RecordData | StoredSample) => {
@@ -206,10 +205,6 @@ const ReportHistory = () => {
                     getText(record, "patientName", "name") ||
                     existing?.patientName ||
                     "Unknown Patient",
-                registrationId:
-                    getText(record, "registrationId") ||
-                    existing?.registrationId ||
-                    "",
             });
         };
 
@@ -228,8 +223,7 @@ const ReportHistory = () => {
             return (
                 !search ||
                 patient.patientName.toLowerCase().includes(search) ||
-                patient.patientId.toLowerCase().includes(search) ||
-                patient.registrationId.toLowerCase().includes(search)
+                patient.patientId.toLowerCase().includes(search)
             );
         });
     }, [patients, searchTerm]);
@@ -264,7 +258,6 @@ const ReportHistory = () => {
                     patients.find((p) => p.patientId === selectedPatientId)
                         ?.patientName ||
                     "Unknown Patient",
-                registrationId: getText(bill, "registrationId"),
                 date: getDate(bill),
                 title: billId || "Billing Record",
                 category: "Billing",
@@ -287,7 +280,6 @@ const ReportHistory = () => {
                     id: `analysis-${sample.sampleId || index}`,
                     patientId: selectedPatientId,
                     patientName: sample.patientName || "Unknown Patient",
-                    registrationId: sample.registrationId || "",
                     date: getDate(sample),
                     title: sample.testName || "Completed Analysis",
                     category: "Analysis",
@@ -301,7 +293,6 @@ const ReportHistory = () => {
                     id: sample.reportId || `report-${sample.sampleId || index}`,
                     patientId: selectedPatientId,
                     patientName: sample.patientName || "Unknown Patient",
-                    registrationId: sample.registrationId || "",
                     date: sample.reportGeneratedDate || "",
                     title: sample.reportId || sample.testName || "Final Report",
                     category: "Final Report",
@@ -400,7 +391,7 @@ const ReportHistory = () => {
                             setSelectedPatientId("");
                             setSelectedRecord(null);
                         }}
-                        placeholder="Search by patient name, patient ID or registration ID..."
+                        placeholder="Search by patient name or patient ID"
                         className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                 </div>
@@ -425,12 +416,6 @@ const ReportHistory = () => {
                                     <span className="min-w-0 flex-1">
                                         <span className="block font-semibold text-slate-800">
                                             {patient.patientName}
-                                        </span>
-                                        <span className="block text-xs text-slate-500">
-                                            {patient.patientId}
-                                            {patient.registrationId
-                                                ? ` · ${patient.registrationId}`
-                                                : ""}
                                         </span>
                                     </span>
 
@@ -463,12 +448,6 @@ const ReportHistory = () => {
                                     <p className="text-sm text-slate-500">
                                         Patient ID: {selectedPatient.patientId}
                                     </p>
-                                    {selectedPatient.registrationId && (
-                                        <p className="text-sm text-slate-500">
-                                            Registration ID:{" "}
-                                            {selectedPatient.registrationId}
-                                        </p>
-                                    )}
                                 </div>
                             </div>
 
@@ -655,7 +634,6 @@ const ReportHistory = () => {
                                             "Date",
                                             "Record ID / Test",
                                             "Record Type",
-                                            "Registration ID",
                                             "Status",
                                             "Action",
                                         ].map((heading) => (
@@ -715,10 +693,6 @@ const ReportHistory = () => {
                                                 >
                                                     {record.category}
                                                 </span>
-                                            </td>
-
-                                            <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                                                {record.registrationId || "-"}
                                             </td>
 
                                             <td className="px-4 py-4 text-sm text-slate-600">
@@ -828,11 +802,6 @@ const ReportHistory = () => {
                                                 value: selectedRecord.patientId,
                                             },
                                             {
-                                                label: "Registration ID",
-                                                value:
-                                                    selectedRecord.registrationId,
-                                            },
-                                            {
                                                 label: "Record ID",
                                                 value: selectedRecord.title,
                                             },
@@ -885,13 +854,6 @@ const ReportHistory = () => {
                                                 value: getText(
                                                     selectedRecord.source,
                                                     "sampleId"
-                                                ),
-                                            },
-                                            {
-                                                label: "Accession Number",
-                                                value: getText(
-                                                    selectedRecord.source,
-                                                    "accessionNumber"
                                                 ),
                                             },
                                         ].map((item) => (
