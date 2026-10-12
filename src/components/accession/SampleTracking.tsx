@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -257,7 +256,6 @@ const getLastUpdated = (
 };
 
 const SampleTracking = () => {
-    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
     const [locationFilter, setLocationFilter] = useState("All");

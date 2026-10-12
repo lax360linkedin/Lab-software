@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -19,36 +18,28 @@ interface StoredSample {
   id: string;
   sampleId: string;
   barcode: string;
-
   patientId: string;
   patientName: string;
-
   testId: string;
   testName: string;
   sampleType: string;
-
   collectionDate: string;
   collectionTime: string;
   collector: string;
-
   status:
   | "Pending Collection"
   | "Collected"
   | "Received"
   | "Accepted"
   | "Rejected";
-
   source: "Patient Registration";
   createdAt: string;
-
   receivedDate?: string;
   receivedTime?: string;
   receivedBy?: string;
-
   acceptedDate?: string;
   acceptedTime?: string;
   acceptedBy?: string;
-
   rejectionReason?: string;
   rejectedDate?: string;
   rejectedTime?: string;
@@ -71,20 +62,12 @@ const sampleTypeStyles: Record<string, string> = {
 };
 
 const RejectedSamples = () => {
-  console.log("🔥 ACTUAL REJECTED COMPONENT");
-  const navigate = useNavigate();
-
   const [search, setSearch] = useState("");
   const [reasonFilter, setReasonFilter] = useState("All");
-
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const [selectedSample, setSelectedSample] =
-    useState<StoredSample | null>(null);
-
+  const [selectedSample, setSelectedSample] = useState<StoredSample | null>(null);
   const [showDrawer, setShowDrawer] = useState(false);
-
   const [showBarcode, setShowBarcode] = useState(false);
 
   const loadSamples = (): StoredSample[] => {
