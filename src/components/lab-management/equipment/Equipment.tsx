@@ -1738,24 +1738,23 @@ export default function Equipment() {
                   setActiveDepartmentCard(dept.name);
                   setCurrentPage(1);
                 }}
-                className={`group cursor-pointer rounded-2xl border ${dept.border} ${dept.bg} p-6 flex flex-col justify-between h-[180px] transition-all duration-200 hover:-translate-y-1 hover:shadow-md`}
+                className={`group cursor-pointer rounded-2xl border ${dept.border} ${dept.bg} p-6 flex items-start justify-between gap-4 h-[180px] transition-all duration-200 hover:-translate-y-1 hover:shadow-md`}
               >
-                <div>
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${dept.iconBg} shadow-sm`}>
-                    <BiotechOutlinedIcon sx={{ fontSize: 24 }} />
+                <div className="flex h-full min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 leading-snug">
+                      {dept.name}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 font-medium">
+                      {dept.total} {dept.total === 1 ? "Equipment" : "Equipments"}
+                    </p>
                   </div>
-                  <h3 className="mt-3.5 text-base font-bold text-slate-900 leading-snug">
-                    {dept.name}
-                  </h3>
-                  <p className="mt-0.5 text-xs text-slate-500 font-medium">
-                    {dept.total} {dept.total === 1 ? "Equipment" : "Equipments"}
-                  </p>
-                </div>
-
-                <div>
                   <span className={`text-xs font-semibold ${dept.linkColor} group-hover:underline flex items-center gap-1`}>
                     View Equipments
                   </span>
+                </div>
+                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${dept.iconBg} shadow-sm`}>
+                  <BiotechOutlinedIcon sx={{ fontSize: 24 }} />
                 </div>
               </div>
             ))}

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
@@ -171,18 +170,13 @@ const PendingResults = () => {
             <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => navigate("/analysis/completed")}
-                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
-                        >
-                            <ArrowBackIcon fontSize="small" />
-                        </button>
+                        <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600">
+                            <ScienceOutlinedIcon fontSize="small" />
+                        </div>
 
                         <div>
-                            <div className="flex items-center gap-2">
-                                <ScienceOutlinedIcon className="text-blue-600" />
-                                <h1 className="text-xl font-semibold text-slate-800">
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                                     Pending Results
                                 </h1>
                             </div>

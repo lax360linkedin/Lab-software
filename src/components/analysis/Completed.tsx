@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
@@ -335,15 +334,12 @@ const Completed = () => {
 
                 <div className="flex items-center gap-3">
 
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
-                    >
-                        <ArrowBackIcon fontSize="small" />
-                    </button>
+                    <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm">
+                        <ScienceOutlinedIcon fontSize="small" />
+                    </div>
 
                     <div>
-                        <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                             Completed Tests
                         </h1>
 

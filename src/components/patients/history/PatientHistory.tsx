@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonIcon from "@mui/icons-material/Person";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -177,23 +176,16 @@ const PatientHistory = () => {
     return (
       <div className="min-h-full w-full px-4 py-5 sm:px-6 lg:px-8">
 
-        <div className="mx-auto max-w-3xl">
+        <div className="w-full">
 
           <div className="mb-6 flex items-center gap-3">
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate("/patients")
-              }
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
-              title="Back to Patients"
-            >
-              <ArrowBackIcon fontSize="small" />
-            </button>
+            <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
+              <PersonIcon fontSize="small" />
+            </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                 Patient History
               </h1>
 
@@ -252,20 +244,13 @@ const PatientHistory = () => {
     <div className="min-h-full w-full px-4 py-5 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/patients")
-            }
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
-            title="Back to Patients"
-          >
-            <ArrowBackIcon fontSize="small" />
-          </button>
+          <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
+            <PersonIcon fontSize="small" />
+          </div>
 
           <div>
 
-            <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Patient History
             </h1>
 

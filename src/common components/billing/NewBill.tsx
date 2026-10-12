@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
@@ -563,15 +562,9 @@ const NewBill = () => {
 
             <div className="flex items-center gap-3">
 
-              <button
-                type="button"
-                onClick={() =>
-                  navigate("/dashboard")
-                }
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
-              >
-                <ArrowBackOutlinedIcon fontSize="small" />
-              </button>
+              <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
+                <ReceiptLongOutlinedIcon fontSize="small" />
+              </div>
 
               <div>
 

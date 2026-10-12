@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import type { Doctor, Referral } from "../../doctors/Doctor";
@@ -463,53 +463,53 @@ export default function NewRegistration() {
     );
 
     return (
-      <div className="min-h-screen bg-slate-50 p-6">
-        <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="min-h-full bg-slate-50 px-6 py-3">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <div className="mb-6 flex flex-col items-center text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <div className="mb-4 flex flex-col items-center text-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
                 <CheckCircleOutlineOutlinedIcon
                   className="text-green-600"
-                  sx={{ fontSize: 40 }}
+                  sx={{ fontSize: 34 }}
                 />
               </div>
 
-              <h1 className="text-2xl font-bold text-slate-800">
+              <h1 className="text-xl font-bold text-slate-800">
                 Patient Registered Successfully
               </h1>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500">
                 Patient and referral records have been created.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
 
               {/* Patient ID */}
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs font-medium text-slate-500">
                   Patient ID
                 </p>
 
-                <p className="mt-1 text-lg font-semibold text-slate-800">
+                <p className="mt-1 text-base font-semibold text-slate-800">
                   {registeredPatient.patientId}
                 </p>
               </div>
 
               {/* Registration ID */}
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs font-medium text-slate-500">
                   Registration ID
                 </p>
 
-                <p className="mt-1 text-lg font-semibold text-slate-800">
+                <p className="mt-1 text-base font-semibold text-slate-800">
                   {registeredPatient.registrationId}
                 </p>
               </div>
 
               {/* Patient Name */}
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs font-medium text-slate-500">
                   Patient Name
                 </p>
@@ -520,7 +520,7 @@ export default function NewRegistration() {
               </div>
 
               {/* Doctor */}
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs font-medium text-slate-500">
                   Concerned Doctor
                 </p>
@@ -531,7 +531,7 @@ export default function NewRegistration() {
               </div>
 
               {/* Selected Tests */}
-              <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
+              <div className="rounded-xl bg-slate-50 p-3 sm:col-span-2">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-medium text-slate-500">
@@ -558,11 +558,11 @@ export default function NewRegistration() {
                   </div>
                 </div>
 
-                <div className="mt-4 space-y-2">
+                <div className="mt-3 max-h-36 space-y-2 overflow-y-auto pr-1">
                   {registeredPatient.tests.map((test) => (
                     <div
                       key={test.testId}
-                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2"
+                      className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-1.5"
                     >
                       <div>
                         <p className="text-sm font-medium text-slate-800">
@@ -583,12 +583,12 @@ export default function NewRegistration() {
               </div>
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
 
               <button
                 type="button"
                 onClick={() => navigate("/patients")}
-                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 View Patients
               </button>
@@ -598,7 +598,7 @@ export default function NewRegistration() {
                 onClick={() =>
                   navigate("/doctors?tab=referred")
                 }
-                className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
                 View Referral
               </button>
@@ -606,7 +606,7 @@ export default function NewRegistration() {
               <button
                 type="button"
                 onClick={handleNewRegistration}
-                className="rounded-lg border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+                className="rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
               >
                 New Registration
               </button>
@@ -622,21 +622,20 @@ export default function NewRegistration() {
    * REGISTRATION FORM
    */
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-5xl">
+    <div className="min-h-screen bg-slate-50 px-6 pb-6 pt-4">
+      <div className="w-full">
 
         {/* HEADER */}
         <div className="mb-6 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/patients")}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
+          <div
+            aria-hidden="true"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600"
           >
-            <ArrowBackOutlinedIcon />
-          </button>
+            <PeopleAltOutlinedIcon />
+          </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               New Patient Registration
             </h1>
 

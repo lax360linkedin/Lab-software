@@ -25,6 +25,8 @@ export type Doctor = {
     status: DoctorStatus;
     createdAt: string;
     hospitalClinic?: string;
+    photoUrl?: string;
+    rating?: number;
 };
 
 export type ReferralStatus =
@@ -440,6 +442,8 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
                         selectedDoctor={selectedReferralDoctor}
                         onSelectDoctor={(doctor) => setSelectedReferralDoctor(doctor)}
                         onUpdateReferrals={handleUpdateReferrals}
+                        onEditDoctor={handleEditDoctor}
+                        onDeleteDoctor={handleDeleteDoctor}
                     />
                 )}
 
