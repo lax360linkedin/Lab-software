@@ -437,6 +437,7 @@ const BillingPendingPayments = () => {
             setCurrentPage(1);
             setPaidBill(paidBillData);
             setShowPrintForm(true);
+            navigate("/billing/payments");
         } catch (error) {
             console.error(
                 "Failed to collect payment:",
