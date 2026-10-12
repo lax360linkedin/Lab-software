@@ -4,7 +4,6 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
@@ -479,18 +478,12 @@ const BillingPendingPayments = () => {
 
                             <div className="flex items-start gap-3">
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate("/billing")
-                                    }
-                                    className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-100"
-                                >
-                                    <ArrowBackOutlinedIcon fontSize="small" />
-                                </button>
+                                <div aria-hidden="true" className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600">
+                                    <PaymentsOutlinedIcon fontSize="small" />
+                                </div>
 
                                 <div>
-                                    <h1 className="text-xl font-semibold text-slate-800 sm:text-2xl">
+                                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                                         Pending Payments
                                     </h1>
 

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
@@ -97,20 +96,16 @@ export default function AddExpense() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/expenses")}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-800"
-          >
-            <ArrowBackIcon fontSize="small" />
-          </button>
+          <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm">
+            <ReceiptLongOutlinedIcon fontSize="small" />
+          </div>
           <div>
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
               <span>Expenses</span>
               <span>•</span>
               <span className="text-blue-600 font-semibold">New Voucher</span>
             </div>
-            <h1 className="mt-0.5 text-2xl font-bold text-slate-900 sm:text-3xl">
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
               Add Expense
             </h1>
             <p className="mt-0.5 text-xs text-slate-500">

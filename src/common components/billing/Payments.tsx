@@ -538,22 +538,22 @@ const Payments = () => {
             </div>
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <p className="text-sm font-medium text-slate-500">
+                <div className="flex min-h-[128px] items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-semibold text-slate-900">
                         Total Received
                     </p>
 
-                    <p className="mt-2 text-2xl font-bold text-slate-800">
+                    <p className="text-right text-2xl font-bold text-red-600">
                         ₹{formatAmount(totalReceived)}
                     </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <p className="text-sm font-medium text-slate-500">
+                <div className="flex min-h-[128px] items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-semibold text-slate-900">
                         Completed Payments
                     </p>
 
-                    <p className="mt-2 text-2xl font-bold text-slate-800">
+                    <p className="text-right text-2xl font-bold text-red-600">
                         {payments.length}
                     </p>
                 </div>

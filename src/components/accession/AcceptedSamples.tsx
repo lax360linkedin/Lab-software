@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -267,17 +266,12 @@ const AcceptedSamples = () => {
 
             <div className="mb-6 flex items-center gap-3">
 
-                <button
-                    onClick={() =>
-                        navigate(-1)
-                    }
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
-                >
-                    <ArrowBackIcon fontSize="small" />
-                </button>
+                <div aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
+                    <CheckCircleOutlineIcon fontSize="small" />
+                </div>
 
                 <div>
-                    <h1 className="text-xl font-bold text-slate-800 sm:text-2xl">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                         Accepted Samples
                     </h1>
 

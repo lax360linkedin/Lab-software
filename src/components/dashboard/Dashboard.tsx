@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
@@ -17,16 +18,103 @@ interface DashboardProps {
   role?: UserRole;
 }
 
+interface DashboardMetrics {
+  totalPatients: number;
+  todayPatients: number;
+  todayTests: number;
+  pendingSamples: number;
+  processing: number;
+  pendingVerification: number;
+  pendingReports: number;
+  todayCollection: number;
+  pendingPayments: number;
+  pendingTests: number;
+  qualityChecks: number;
+  referralFollowups: number;
+}
+
+const getStoredArray = (key: string): Record<string, unknown>[] => {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value)
+      ? value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const isToday = (value: unknown) => {
+  if (typeof value !== "string" || !value) return false;
+
+  const date = new Date(value);
+  const today = new Date();
+
+  return !Number.isNaN(date.getTime()) &&
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate();
+};
+
+const readDashboardMetrics = (): DashboardMetrics => {
+  const patients = getStoredArray("lab_patients");
+  const samples = getStoredArray("lab_samples");
+  const bills = getStoredArray("lab_bills");
+  const referrals = getStoredArray("lab_referrals");
+  const todayPaidBills = bills.filter(
+    (bill) => bill.paymentStatus === "Paid" && isToday(bill.paymentDate || bill.billDate)
+  );
+
+  return {
+    totalPatients: patients.length,
+    todayPatients: patients.filter((patient) => isToday(patient.registrationDate)).length,
+    todayTests: samples.filter((sample) => isToday(sample.createdAt)).length,
+    pendingSamples: samples.filter((sample) =>
+      ["Pending Collection", "Collected", "Received"].includes(String(sample.status))
+    ).length,
+    processing: samples.filter((sample) => sample.status === "Processing").length,
+    pendingVerification: samples.filter((sample) => sample.resultStatus === "QC Passed").length,
+    pendingReports: samples.filter(
+      (sample) => sample.resultStatus === "Verified" && sample.reportStatus !== "Final"
+    ).length,
+    todayCollection: todayPaidBills.reduce(
+      (total, bill) => total + (Number(bill.grandTotal) || 0),
+      0
+    ),
+    pendingPayments: bills.filter((bill) => bill.paymentStatus === "Pending").length,
+    pendingTests: samples.filter((sample) => sample.status === "Accepted").length,
+    qualityChecks: samples.filter((sample) => sample.resultStatus === "QC Pending").length,
+    referralFollowups: referrals.filter((referral) => referral.status === "Registered").length,
+  };
+};
+
 const Dashboard = ({ role }: DashboardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentRole: UserRole = role || user?.role || "admin";
+  const [metrics, setMetrics] = useState(readDashboardMetrics);
+
+  useEffect(() => {
+    const refreshMetrics = () => setMetrics(readDashboardMetrics());
+    const intervalId = window.setInterval(refreshMetrics, 2000);
+
+    window.addEventListener("storage", refreshMetrics);
+    window.addEventListener("focus", refreshMetrics);
+    document.addEventListener("visibilitychange", refreshMetrics);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("storage", refreshMetrics);
+      window.removeEventListener("focus", refreshMetrics);
+      document.removeEventListener("visibilitychange", refreshMetrics);
+    };
+  }, []);
 
   const allStatistics = [
     {
       id: "total_patients",
       title: "Total Patients",
-      value: "1,248",
+      value: metrics.totalPatients.toLocaleString("en-IN"),
       description: "Registered patients",
       icon: PeopleAltOutlinedIcon,
       roles: ["admin", "receptionist"] as UserRole[],
@@ -34,7 +122,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "today_patients",
       title: "Today's Patients",
-      value: "42",
+      value: String(metrics.todayPatients),
       description: "Today's registrations",
       icon: PersonAddAltOutlinedIcon,
       roles: ["admin", "receptionist"] as UserRole[],
@@ -42,7 +130,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "today_tests",
       title: "Today's Tests",
-      value: "86",
+      value: String(metrics.todayTests),
       description: "Tests scheduled today",
       icon: ScienceOutlinedIcon,
       roles: ["admin", "lab_technician"] as UserRole[],
@@ -50,7 +138,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "pending_samples",
       title: "Pending Samples",
-      value: "18",
+      value: String(metrics.pendingSamples),
       description: "Waiting for processing",
       icon: Inventory2OutlinedIcon,
       roles: ["admin", "lab_technician"] as UserRole[],
@@ -58,7 +146,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "processing",
       title: "Processing",
-      value: "24",
+      value: String(metrics.processing),
       description: "Samples under analysis",
       icon: PendingActionsOutlinedIcon,
       roles: ["admin", "lab_technician"] as UserRole[],
@@ -66,7 +154,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "pending_verification",
       title: "Pending Verification",
-      value: "12",
+      value: String(metrics.pendingVerification),
       description: "Results awaiting review",
       icon: VerifiedOutlinedIcon,
       roles: ["admin", "lab_technician"] as UserRole[],
@@ -74,7 +162,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "pending_reports",
       title: "Pending Reports",
-      value: "8",
+      value: String(metrics.pendingReports),
       description: "Reports to generate",
       icon: DescriptionOutlinedIcon,
       roles: ["admin", "receptionist"] as UserRole[],
@@ -82,7 +170,7 @@ const Dashboard = ({ role }: DashboardProps) => {
     {
       id: "today_collection",
       title: "Today's Collection",
-      value: "₹48,650",
+      value: `₹${metrics.todayCollection.toLocaleString("en-IN")}`,
       description: "Collected today",
       icon: PaymentsOutlinedIcon,
       roles: ["admin", "receptionist"] as UserRole[],
@@ -265,21 +353,21 @@ const Dashboard = ({ role }: DashboardProps) => {
         {
           id: "pending_payments",
           label: "Pending Payments",
-          count: 5,
+          count: metrics.pendingPayments,
           path: "/billing/pending-payments",
           dotColor: "bg-rose-500",
         },
         {
           id: "pending_reports",
           label: "Reports Pending",
-          count: 8,
+          count: metrics.pendingReports,
           path: "/reports/pending",
           dotColor: "bg-emerald-500",
         },
         {
           id: "referral_followups",
           label: "Referral Follow-ups",
-          count: 14,
+          count: metrics.referralFollowups,
           path: "/doctors?tab=referred",
           dotColor: "bg-cyan-500",
         },
@@ -291,21 +379,21 @@ const Dashboard = ({ role }: DashboardProps) => {
         {
           id: "pending_samples",
           label: "Pending Samples",
-          count: 18,
+          count: metrics.pendingSamples,
           path: "/accession/sample-tracking",
           dotColor: "bg-amber-500",
         },
         {
           id: "pending_tests",
           label: "Pending Tests",
-          count: 15,
+          count: metrics.pendingTests,
           path: "/analysis/pending",
           dotColor: "bg-indigo-500",
         },
         {
           id: "result_processing",
           label: "Result Processing",
-          count: 24,
+          count: metrics.processing,
           path: "/results/pending-verification",
           dotColor: "bg-blue-500",
         },
@@ -317,35 +405,35 @@ const Dashboard = ({ role }: DashboardProps) => {
       {
         id: "pending_samples",
         label: "Pending Samples",
-        count: 18,
+        count: metrics.pendingSamples,
         path: "/accession/sample-tracking",
         dotColor: "bg-amber-500",
       },
       {
         id: "pending_tests",
         label: "Pending Tests",
-        count: 15,
+        count: metrics.pendingTests,
         path: "/analysis/pending",
         dotColor: "bg-indigo-500",
       },
       {
         id: "result_processing",
         label: "Result Processing",
-        count: 24,
+        count: metrics.processing,
         path: "/results/pending-verification",
         dotColor: "bg-blue-500",
       },
       {
         id: "quality_check",
         label: "Quality Check",
-        count: 12,
+        count: metrics.qualityChecks,
         path: "/quality-control/checks",
         dotColor: "bg-teal-500",
       },
       {
         id: "pending_reports",
         label: "Reports Pending",
-        count: 8,
+        count: metrics.pendingReports,
         path: "/reports/pending",
         dotColor: "bg-emerald-500",
       },

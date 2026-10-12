@@ -3,8 +3,10 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
-import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import LocalHospitalOutlinedIcon from "@mui/icons-material/LocalHospitalOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import StarOutlinedIcon from "@mui/icons-material/StarOutlined";
 import type { Doctor, Referral, ReferralStatus } from "./Doctor";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
@@ -17,6 +19,8 @@ type ReferredPatientsProps = {
   selectedDoctor: Doctor | null;
   onSelectDoctor: (doctor: Doctor | null) => void;
   onUpdateReferrals: (referrals: Referral[]) => void;
+  onEditDoctor: (doctor: Doctor) => void;
+  onDeleteDoctor: (doctorId: string) => void;
 };
 
 const ALL_DOCTORS_SENTINEL: Doctor = {
@@ -39,6 +43,8 @@ const ReferredPatients = ({
   selectedDoctor,
   onSelectDoctor,
   onUpdateReferrals,
+  onEditDoctor,
+  onDeleteDoctor,
 }: ReferredPatientsProps) => {
 
 
@@ -204,31 +210,61 @@ const ReferredPatients = ({
           {doctors.filter((doctor) => doctor.status === "Active").length > 0 ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {doctors.filter((doctor) => doctor.status === "Active").map((doctor) => {
-                const patientCount = referrals.filter((referral) => referral.doctorId === doctor.id).length;
+                const doctorReferrals = referrals.filter((referral) => referral.doctorId === doctor.id);
+                const patientCount = doctorReferrals.length;
+                const referredAmount = doctorReferrals.reduce(
+                  (total, referral) => total + Number(referral.billAmount || 0),
+                  0
+                );
+                const initials = doctor.doctorName
+                  .replace("Dr. ", "")
+                  .replace("Dr ", "")
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part.charAt(0))
+                  .join("")
+                  .toUpperCase();
 
                 return (
-                  <button
-                    key={doctor.id}
-                    type="button"
-                    onClick={() => onSelectDoctor(doctor)}
-                    className="group flex min-h-40 items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
-                  >
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-50 to-blue-100 text-xl font-bold text-blue-700 ring-1 ring-inset ring-blue-200">
-                      {doctor.doctorName?.replace("Dr. ", "").charAt(0).toUpperCase() || "D"}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-slate-900">{doctor.doctorName}</span>
-                      <span className="mt-1 block truncate text-xs text-slate-500">{doctor.specialization || "Department not specified"}</span>
-                      <span className="mt-2 inline-flex rounded bg-slate-100 px-2 py-1 font-mono text-[11px] font-medium text-slate-600">{doctor.doctorCode || doctor.id}</span>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-center border-l border-slate-100 pl-4 text-center">
-                      <span className="text-xl font-semibold leading-none text-blue-700">{patientCount}</span>
-                      <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Patients</span>
-                      <span className="mt-2 flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-blue-700 transition group-hover:bg-blue-600 group-hover:text-white">
-                        <ArrowForwardOutlinedIcon style={{ fontSize: 15 }} />
+                  <article key={doctor.id} className="group relative min-h-[220px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+                    <button type="button" onClick={() => onSelectDoctor(doctor)} aria-label={`View referred patients for ${doctor.doctorName}`} className="flex min-h-[178px] w-full flex-col justify-between text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                    <span className="flex min-w-0 items-start gap-4">
+                      {doctor.photoUrl ? <img src={doctor.photoUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-slate-200" /> : <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg font-bold text-blue-700 ring-1 ring-inset ring-blue-100">{initials || "DR"}</span>}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-base font-bold text-slate-900">{doctor.doctorName}</span>
+                        <span className="mt-1 block truncate text-sm font-medium text-blue-700">{doctor.specialization || "Specialty not specified"}</span>
+                        <span className="mt-2 flex min-w-0 items-center gap-1.5 text-xs text-slate-500">
+                          <LocalHospitalOutlinedIcon sx={{ fontSize: 15 }} />
+                          <span className="truncate">{doctor.hospitalClinic || doctor.address || "Clinic not specified"}</span>
+                        </span>
+                        <span className="mt-1 block truncate font-mono text-[11px] text-slate-500">{doctor.doctorCode || doctor.id}{doctor.phone ? ` · ${doctor.phone}` : ""}</span>
+                      </span>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:text-blue-700">
+                        <VisibilityOutlinedIcon sx={{ fontSize: 17 }} />
                       </span>
                     </span>
-                  </button>
+
+                    <span className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-4 text-center">
+                      <span className="rounded-lg bg-slate-50 px-2 py-2">
+                        <span className="block text-[10px] font-medium uppercase text-slate-500">Patients</span>
+                        <span className="mt-1 block text-sm font-bold text-slate-900">{patientCount}</span>
+                      </span>
+                      <span className="rounded-lg bg-slate-50 px-2 py-2">
+                        <span className="block text-[10px] font-medium uppercase text-slate-500">Referred Billing</span>
+                        <span className="mt-1 block truncate text-sm font-bold text-emerald-700">₹{referredAmount.toLocaleString("en-IN")}</span>
+                      </span>
+                      <span className="rounded-lg bg-slate-50 px-2 py-2">
+                        <span className="block text-[10px] font-medium uppercase text-slate-500">Rating</span>
+                        <span className="mt-1 flex items-center justify-center gap-1 text-sm font-bold text-amber-600"><StarOutlinedIcon sx={{ fontSize: 15 }} />{typeof doctor.rating === "number" ? doctor.rating.toFixed(1) : "Not rated"}</span>
+                      </span>
+                    </span>
+                    </button>
+                    <div className="absolute right-4 top-4 flex gap-2">
+                      <button type="button" title="Edit doctor" aria-label={`Edit ${doctor.doctorName}`} onClick={() => onEditDoctor(doctor)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><EditOutlinedIcon sx={{ fontSize: 17 }} /></button>
+                      <button type="button" title="Delete doctor" aria-label={`Delete ${doctor.doctorName}`} onClick={() => { if (window.confirm(`Delete ${doctor.doctorName}?`)) onDeleteDoctor(doctor.id); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"><DeleteOutlineOutlinedIcon sx={{ fontSize: 17 }} /></button>
+                    </div>
+                  </article>
                 );
               })}
             </div>
