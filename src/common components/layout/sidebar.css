@@ -8,30 +8,6 @@
   @apply flex h-[76px] shrink-0 items-center justify-between border-b border-white/10 px-5;
 }
 
-.sidebar-brand {
-  @apply flex min-w-0 items-center gap-3;
-}
-
-.sidebar-brand-icon {
-  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600;
-}
-
-.sidebar-brand-icon svg {
-  @apply text-xl;
-}
-
-.sidebar-brand-text {
-  @apply flex min-w-0 flex-col;
-}
-
-.sidebar-brand-text strong {
-  @apply text-sm font-bold text-white;
-}
-
-.sidebar-brand-text span {
-  @apply mt-0.5 text-[9px] text-slate-400;
-}
-
 .sidebar-close {
   @apply hidden h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-slate-400;
 }
@@ -61,7 +37,7 @@
 }
 
 .sidebar-navigation {
-  @apply flex-1 overflow-y-auto px-3 py-4;
+  @apply flex-1 overflow-y-auto px-3 py-2;
 }
 
 .sidebar-navigation::-webkit-scrollbar {

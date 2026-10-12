@@ -24,10 +24,8 @@ interface ResultParameter {
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
     patientId: string;
-    registrationId: string;
     patientName: string;
     testId: string;
     testName: string;
@@ -36,13 +34,13 @@ interface StoredSample {
     collectionTime: string;
     collector: string;
     status:
-        | "Pending Collection"
-        | "Collected"
-        | "Received"
-        | "Accepted"
-        | "Processing"
-        | "Completed"
-        | "Rejected";
+    | "Pending Collection"
+    | "Collected"
+    | "Received"
+    | "Accepted"
+    | "Processing"
+    | "Completed"
+    | "Rejected";
     source: "Patient Registration";
     createdAt: string;
     receivedDate?: string;
@@ -65,12 +63,12 @@ interface StoredSample {
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
     resultStatus?:
-        | "Pending"
-        | "Entered"
-        | "QC Pending"
-        | "QC Passed"
-        | "QC Failed"
-        | "Verified";
+    | "Pending"
+    | "Entered"
+    | "QC Pending"
+    | "QC Passed"
+    | "QC Failed"
+    | "Verified";
     resultParameters?: ResultParameter[];
     resultRemarks?: string;
     resultEnteredDate?: string;
@@ -137,10 +135,8 @@ export default function PendingReports() {
             const matchesSearch =
                 !search ||
                 sample.sampleId.toLowerCase().includes(search) ||
-                sample.accessionNumber.toLowerCase().includes(search) ||
                 sample.patientName.toLowerCase().includes(search) ||
-                sample.testName.toLowerCase().includes(search) ||
-                sample.registrationId.toLowerCase().includes(search);
+                sample.testName.toLowerCase().includes(search);
 
             const matchesPriority =
                 priorityFilter === "All" ||
@@ -206,20 +202,25 @@ export default function PendingReports() {
             // fallback
         }
 
-        const reportId = `RPT-${Date.now()
-            .toString()
-            .slice(-6)}`;
+        const existingNumbers = samples.map((sample) => {
+            const match = sample.reportId?.match(/^RPT-(\d+)$/);
+            return match ? Number(match[1]) : 0;
+        });
+
+        const reportId =
+            selectedSample.reportId ||
+            `RPT-${Math.max(10000, ...existingNumbers) + 1}`;
 
         const updatedSamples = samples.map((sample) =>
             sample.id === selectedSample.id
                 ? {
-                      ...sample,
-                      reportId,
-                      reportStatus: "Final" as const,
-                      reportGeneratedDate,
-                      reportGeneratedTime,
-                      reportGeneratedBy,
-                  }
+                    ...sample,
+                    reportId,
+                    reportStatus: "Final" as const,
+                    reportGeneratedDate,
+                    reportGeneratedTime,
+                    reportGeneratedBy,
+                }
                 : sample
         );
 
@@ -236,9 +237,8 @@ export default function PendingReports() {
     };
 
     const columns = [
-        "Sample",
-        "Accession",
-        "Patient",
+        "Sample ID",
+        "Patient & ID",
         "Test",
         "Sample Type",
         "Priority",
@@ -292,7 +292,7 @@ export default function PendingReports() {
                             onChange={(e) =>
                                 handleSearch(e.target.value)
                             }
-                            placeholder="Search sample, accession, patient or test..."
+                            placeholder="Search sample, patient or test..."
                             className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
@@ -350,7 +350,7 @@ export default function PendingReports() {
                                     {/* Sample */}
                                     <td className="px-4 py-4">
                                         <div>
-                                            <p className="whitespace-nowrap font-medium text-slate-800">
+                                            <p className="whitespace-nowrap font-medium text-blue-600">
                                                 {sample.sampleId}
                                             </p>
 
@@ -360,23 +360,25 @@ export default function PendingReports() {
                                         </div>
                                     </td>
 
-                                    {/* Accession */}
-                                    <td className="px-4 py-4">
-                                        <p className="whitespace-nowrap text-sm text-slate-700">
-                                            {sample.accessionNumber}
-                                        </p>
-                                    </td>
-
                                     {/* Patient */}
                                     <td className="px-4 py-4">
-                                        <div>
-                                            <p className="whitespace-nowrap font-medium text-slate-800">
-                                                {sample.patientName}
-                                            </p>
+                                        <div className="flex min-w-[170px] items-center gap-2">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                                <PersonIcon
+                                                    fontSize="small"
+                                                    className="text-slate-500"
+                                                />
+                                            </div>
 
-                                            <p className="text-xs text-slate-500">
-                                                {sample.patientId}
-                                            </p>
+                                            <div>
+                                                <p className="whitespace-nowrap text-sm font-medium text-slate-700">
+                                                    {sample.patientName}
+                                                </p>
+
+                                                <p className="mt-0.5 whitespace-nowrap text-xs text-slate-400">
+                                                    {sample.patientId}
+                                                </p>
+                                            </div>
                                         </div>
                                     </td>
 
@@ -403,14 +405,13 @@ export default function PendingReports() {
                                     {/* Priority */}
                                     <td className="px-4 py-4">
                                         <span
-                                            className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                sample.priority === "STAT"
-                                                    ? "bg-red-100 text-red-700"
-                                                    : sample.priority ===
-                                                        "Urgent"
-                                                      ? "bg-orange-100 text-orange-700"
-                                                      : "bg-slate-100 text-slate-600"
-                                            }`}
+                                            className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${sample.priority === "STAT"
+                                                ? "bg-red-100 text-red-700"
+                                                : sample.priority ===
+                                                    "Urgent"
+                                                    ? "bg-orange-100 text-orange-700"
+                                                    : "bg-slate-100 text-slate-600"
+                                                }`}
                                         >
                                             {formatPriority(
                                                 sample.priority
@@ -460,18 +461,18 @@ export default function PendingReports() {
                     </div>
 
                     {filteredSamples.length > 0 && (
-                    <div className="mt-4 border-t border-gray-100 pt-4">
+                        <div className="mt-4 border-t border-gray-100 pt-4">
 
-                        <Pagination
-                            totalItems={filteredSamples.length}
-                            rowsPerPage={rowsPerPage}
-                            setRowsPerPage={setRowsPerPage}
-                            currentPage={currentPage}
-                            setCurrentPage={setCurrentPage}
-                        />
+                            <Pagination
+                                totalItems={filteredSamples.length}
+                                rowsPerPage={rowsPerPage}
+                                setRowsPerPage={setRowsPerPage}
+                                currentPage={currentPage}
+                                setCurrentPage={setCurrentPage}
+                            />
 
-                    </div>
-                )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -568,16 +569,6 @@ export default function PendingReports() {
                                             {selectedSample.patientId}
                                         </p>
                                     </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.registrationId}
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
 
@@ -599,16 +590,6 @@ export default function PendingReports() {
 
                                         <p className="mt-1 font-medium text-slate-800">
                                             {selectedSample.sampleId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Accession Number
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.accessionNumber}
                                         </p>
                                     </div>
 
@@ -666,7 +647,7 @@ export default function PendingReports() {
 
                                 <div className="p-4">
                                     {selectedSample.resultParameters &&
-                                    selectedSample.resultParameters.length >
+                                        selectedSample.resultParameters.length >
                                         0 ? (
                                         <div className="overflow-x-auto">
                                             <table className="w-full min-w-[430px] text-left text-sm">

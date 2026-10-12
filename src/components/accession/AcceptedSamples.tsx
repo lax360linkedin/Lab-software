@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -12,13 +11,8 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircle";
 import VisibilityIcon from "@mui/icons-material/VisibilityOutlined";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import CloseIcon from "@mui/icons-material/Close";
-
 import Pagination from "../../common components/Pagination";
 import Table from "../../common components/Table";
-
-/* =========================
-   TYPES
-========================= */
 
 type SampleStatus =
     | "Pending Collection"
@@ -30,34 +24,25 @@ type SampleStatus =
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
     registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status: SampleStatus;
-
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
@@ -67,38 +52,22 @@ interface StoredSample {
 interface AcceptedSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
-
     patientId: string;
-    registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     receivedDate: string;
     receivedTime: string;
     receivedBy: string;
-
     acceptedDate: string;
     acceptedTime: string;
     acceptedBy: string;
-
     barcode: string;
-
     status: "Accepted";
 }
 
-/* =========================
-   STORAGE
-========================= */
-
 const SAMPLE_STORAGE_KEY = "lab_samples";
-
-/* =========================
-   HELPERS
-========================= */
 
 const getStoredArray = <T,>(key: string): T[] => {
     try {
@@ -117,10 +86,6 @@ const getStoredArray = <T,>(key: string): T[] => {
     }
 };
 
-/* =========================
-   STATUS STYLES
-========================= */
-
 const statusStyles: Record<
     AcceptedSample["status"],
     string
@@ -128,10 +93,6 @@ const statusStyles: Record<
     Accepted:
         "bg-emerald-50 text-emerald-700 border border-emerald-200",
 };
-
-/* =========================
-   SAMPLE TYPE STYLES
-========================= */
 
 const sampleTypeStyles: Record<string, string> = {
     Blood: "bg-red-50 text-red-600",
@@ -143,33 +104,14 @@ const sampleTypeStyles: Record<string, string> = {
     Stool: "bg-amber-50 text-amber-700",
 };
 
-/* =========================
-   COMPONENT
-========================= */
-
 const AcceptedSamples = () => {
     const navigate = useNavigate();
-
     const [search, setSearch] = useState("");
-
-    const [statusFilter, setStatusFilter] =
-        useState("All");
-
-    const [currentPage, setCurrentPage] =
-        useState(1);
-
-    const [rowsPerPage, setRowsPerPage] =
-        useState(5);
-
-    const [selectedSample, setSelectedSample] =
-        useState<AcceptedSample | null>(null);
-
-    const [showViewDrawer, setShowViewDrawer] =
-        useState(false);
-
-    /* =========================
-       LOAD ACTUAL SAMPLES
-    ========================= */
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [selectedSample, setSelectedSample] = useState<AcceptedSample | null>(null);
+    const [showViewDrawer, setShowViewDrawer] = useState(false);
 
     const storedSamples = useMemo(
         () =>
@@ -178,13 +120,6 @@ const AcceptedSamples = () => {
             ),
         []
     );
-
-    /* =========================
-       ACCEPTED SAMPLES
-
-       Only samples with:
-       status === "Accepted"
-    ========================= */
 
     const acceptedSamples = useMemo<
         AcceptedSample[]
@@ -196,56 +131,22 @@ const AcceptedSamples = () => {
             )
             .map((sample) => ({
                 id: sample.id,
-
                 sampleId: sample.sampleId,
-
-                accessionNumber:
-                    sample.accessionNumber,
-
                 patientId: sample.patientId,
-
-                registrationId:
-                    sample.registrationId,
-
-                patientName:
-                    sample.patientName,
-
+                patientName: sample.patientName,
                 testId: sample.testId,
-
-                testName:
-                    sample.testName,
-
-                sampleType:
-                    sample.sampleType,
-
-                receivedDate:
-                    sample.receivedDate || "-",
-
-                receivedTime:
-                    sample.receivedTime || "-",
-
-                receivedBy:
-                    sample.receivedBy || "-",
-
-                acceptedDate:
-                    sample.acceptedDate || "-",
-
-                acceptedTime:
-                    sample.acceptedTime || "-",
-
-                acceptedBy:
-                    sample.acceptedBy || "-",
-
-                barcode:
-                    sample.barcode || "-",
-
+                testName: sample.testName,
+                sampleType: sample.sampleType,
+                receivedDate: sample.receivedDate || "-",
+                receivedTime: sample.receivedTime || "-",
+                receivedBy: sample.receivedBy || "-",
+                acceptedDate: sample.acceptedDate || "-",
+                acceptedTime: sample.acceptedTime || "-",
+                acceptedBy: sample.acceptedBy || "-",
+                barcode: sample.barcode || "-",
                 status: "Accepted",
             }));
     }, [storedSamples]);
-
-    /* =========================
-       FILTER
-    ========================= */
 
     const filteredData = useMemo(() => {
         const searchValue =
@@ -259,12 +160,6 @@ const AcceptedSamples = () => {
                         .toLowerCase()
                         .includes(searchValue) ||
                     sample.patientId
-                        .toLowerCase()
-                        .includes(searchValue) ||
-                    sample.registrationId
-                        .toLowerCase()
-                        .includes(searchValue) ||
-                    sample.accessionNumber
                         .toLowerCase()
                         .includes(searchValue) ||
                     sample.testName
@@ -294,20 +189,12 @@ const AcceptedSamples = () => {
         statusFilter,
     ]);
 
-    /* =========================
-       PAGINATION
-    ========================= */
-
     const currentData =
         filteredData.slice(
             (currentPage - 1) *
                 rowsPerPage,
             currentPage * rowsPerPage
         );
-
-    /* =========================
-       COUNTS
-    ========================= */
 
     const totalCount =
         acceptedSamples.length;
@@ -318,20 +205,12 @@ const AcceptedSamples = () => {
                 sample.status === "Accepted"
         ).length;
 
-    /* =========================
-       SEARCH
-    ========================= */
-
     const handleSearch = (
         value: string
     ) => {
         setSearch(value);
         setCurrentPage(1);
     };
-
-    /* =========================
-       STATUS FILTER
-    ========================= */
 
     const handleStatusChange = (
         value: string
@@ -340,19 +219,11 @@ const AcceptedSamples = () => {
         setCurrentPage(1);
     };
 
-    /* =========================
-       RESET
-    ========================= */
-
     const handleReset = () => {
         setSearch("");
         setStatusFilter("All");
         setCurrentPage(1);
     };
-
-    /* =========================
-       VIEW SAMPLE
-    ========================= */
 
     const handleViewSample = (
         sample: AcceptedSample
@@ -361,18 +232,10 @@ const AcceptedSamples = () => {
         setShowViewDrawer(true);
     };
 
-    /* =========================
-       CLOSE DRAWER
-    ========================= */
-
     const handleCloseDrawer = () => {
         setShowViewDrawer(false);
         setSelectedSample(null);
     };
-
-    /* =========================
-       SEND TO ANALYSIS
-    ========================= */
 
     const handleSendToAnalysis = (
         sample: AcceptedSample
@@ -386,15 +249,11 @@ const AcceptedSamples = () => {
         );
     };
 
-    /* =========================
-       TABLE COLUMNS
-    ========================= */
-
     const columns = [
-        "Accession",
-        "Patient",
+        "Sample ID",
+        "Patient & ID",
         "Test",
-        "Sample",
+        "Sample Type",
         "Received",
         "Accepted",
         "Accepted By",
@@ -402,14 +261,8 @@ const AcceptedSamples = () => {
         "Actions",
     ];
 
-    /* =========================
-       UI
-    ========================= */
-
     return (
         <div className="min-h-screen bg-slate-50 p-4 sm:p-5 lg:p-6">
-
-            {/* ================= HEADER ================= */}
 
             <div className="mb-6 flex items-center gap-3">
 
@@ -431,12 +284,7 @@ const AcceptedSamples = () => {
 
             </div>
 
-            {/* ================= SUMMARY CARDS ================= */}
-
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-                {/* TOTAL */}
-
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
                     <div className="flex items-center justify-between">
@@ -462,8 +310,6 @@ const AcceptedSamples = () => {
                     </div>
 
                 </div>
-
-                {/* ACCEPTED */}
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
@@ -491,8 +337,6 @@ const AcceptedSamples = () => {
 
                 </div>
 
-                {/* READY */}
-
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
                     <div className="flex items-center justify-between">
@@ -518,8 +362,6 @@ const AcceptedSamples = () => {
                     </div>
 
                 </div>
-
-                {/* NEXT STEP */}
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
@@ -549,17 +391,11 @@ const AcceptedSamples = () => {
 
             </div>
 
-            {/* ================= MAIN CARD ================= */}
-
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-                {/* TOOLBAR */}
 
                 <div className="border-b border-slate-100 p-4 sm:p-5">
 
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-
-                        {/* SEARCH */}
 
                         <div className="relative w-full xl:max-w-md">
 
@@ -576,13 +412,11 @@ const AcceptedSamples = () => {
                                         e.target.value
                                     )
                                 }
-                                placeholder="Search patient, accession, test or barcode..."
+                                placeholder="Search patient, test or barcode..."
                                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
                             />
 
                         </div>
-
-                        {/* FILTER */}
 
                         <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
 
@@ -630,8 +464,6 @@ const AcceptedSamples = () => {
 
                 </div>
 
-                {/* ================= TABLE ================= */}
-
                 <div className="p-3 sm:p-5">
 
                     <div className="overflow-x-auto">
@@ -645,19 +477,11 @@ const AcceptedSamples = () => {
                             ) => (
                                 <>
 
-                                    {/* ACCESSION */}
-
                                     <td className="px-4 py-4">
 
                                         <div>
 
                                             <p className="whitespace-nowrap text-sm font-semibold text-blue-600">
-                                                {
-                                                    sample.accessionNumber
-                                                }
-                                            </p>
-
-                                            <p className="mt-1 text-xs text-slate-400">
                                                 {
                                                     sample.sampleId
                                                 }
@@ -666,8 +490,6 @@ const AcceptedSamples = () => {
                                         </div>
 
                                     </td>
-
-                                    {/* PATIENT */}
 
                                     <td className="px-4 py-4">
 
@@ -697,8 +519,6 @@ const AcceptedSamples = () => {
 
                                     </td>
 
-                                    {/* TEST */}
-
                                     <td className="px-4 py-4">
 
                                         <p className="min-w-[170px] text-sm font-medium text-slate-700">
@@ -708,8 +528,6 @@ const AcceptedSamples = () => {
                                         </p>
 
                                     </td>
-
-                                    {/* SAMPLE TYPE */}
 
                                     <td className="px-4 py-4">
 
@@ -727,8 +545,6 @@ const AcceptedSamples = () => {
                                         </span>
 
                                     </td>
-
-                                    {/* RECEIVED */}
 
                                     <td className="px-4 py-4">
 
@@ -776,8 +592,6 @@ const AcceptedSamples = () => {
 
                                     </td>
 
-                                    {/* ACCEPTED */}
-
                                     <td className="px-4 py-4">
 
                                         <div className="min-w-[145px]">
@@ -824,8 +638,6 @@ const AcceptedSamples = () => {
 
                                     </td>
 
-                                    {/* ACCEPTED BY */}
-
                                     <td className="px-4 py-4">
 
                                         <p className="whitespace-nowrap text-sm text-slate-600">
@@ -835,8 +647,6 @@ const AcceptedSamples = () => {
                                         </p>
 
                                     </td>
-
-                                    {/* STATUS */}
 
                                     <td className="px-4 py-4">
 
@@ -854,13 +664,9 @@ const AcceptedSamples = () => {
 
                                     </td>
 
-                                    {/* ACTIONS */}
-
                                     <td className="px-4 py-4">
 
                                         <div className="flex items-center gap-2">
-
-                                            {/* VIEW */}
 
                                             <button
                                                 title="View Sample"
@@ -874,8 +680,6 @@ const AcceptedSamples = () => {
                                                 <VisibilityIcon fontSize="small" />
                                             </button>
 
-                                            {/* BARCODE / DETAILS */}
-
                                             <button
                                                 title="Sample Details"
                                                 onClick={() =>
@@ -887,8 +691,6 @@ const AcceptedSamples = () => {
                                             >
                                                 <QrCode2Icon fontSize="small" />
                                             </button>
-
-                                            {/* SEND TO ANALYSIS */}
 
                                             <button
                                                 title="Send to Analysis"
@@ -912,8 +714,6 @@ const AcceptedSamples = () => {
 
                     </div>
 
-                    {/* EMPTY STATE */}
-
                     {currentData.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
 
@@ -934,27 +734,14 @@ const AcceptedSamples = () => {
                         </div>
                     )}
 
-                    {/* PAGINATION */}
-
                     {filteredData.length > 0 && (
                         <div className="mt-5 border-t border-slate-100 pt-4">
-
                             <Pagination
-                                totalItems={
-                                    filteredData.length
-                                }
-                                rowsPerPage={
-                                    rowsPerPage
-                                }
-                                setRowsPerPage={
-                                    setRowsPerPage
-                                }
-                                currentPage={
-                                    currentPage
-                                }
-                                setCurrentPage={
-                                    setCurrentPage
-                                }
+                                totalItems={ filteredData.length}
+                                rowsPerPage={ rowsPerPage }
+                                setRowsPerPage={setRowsPerPage }
+                                currentPage={ currentPage }
+                                setCurrentPage={ setCurrentPage }
                             />
 
                         </div>
@@ -964,15 +751,9 @@ const AcceptedSamples = () => {
 
             </div>
 
-            {/* =========================
-                VIEW DRAWER
-            ========================= */}
-
             {showViewDrawer &&
                 selectedSample && (
                     <div className="fixed inset-0 z-50">
-
-                        {/* BACKDROP */}
 
                         <div
                             className="absolute inset-0 bg-black/30"
@@ -981,11 +762,7 @@ const AcceptedSamples = () => {
                             }
                         />
 
-                        {/* DRAWER */}
-
                         <div className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
-
-                            {/* HEADER */}
 
                             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
 
@@ -994,12 +771,6 @@ const AcceptedSamples = () => {
                                     <h2 className="text-lg font-bold text-slate-800">
                                         Sample Details
                                     </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        {
-                                            selectedSample.sampleId
-                                        }
-                                    </p>
 
                                 </div>
 
@@ -1014,11 +785,7 @@ const AcceptedSamples = () => {
 
                             </div>
 
-                            {/* BODY */}
-
                             <div className="flex-1 overflow-y-auto p-5">
-
-                                {/* STATUS */}
 
                                 <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
 
@@ -1043,8 +810,6 @@ const AcceptedSamples = () => {
                                     </div>
 
                                 </div>
-
-                                {/* PATIENT */}
 
                                 <div className="mb-5">
 
@@ -1074,13 +839,6 @@ const AcceptedSamples = () => {
                                                     }
                                                 </p>
 
-                                                <p className="mt-1 text-xs text-slate-400">
-                                                    Registration:{" "}
-                                                    {
-                                                        selectedSample.registrationId
-                                                    }
-                                                </p>
-
                                             </div>
 
                                         </div>
@@ -1089,8 +847,6 @@ const AcceptedSamples = () => {
 
                                 </div>
 
-                                {/* SAMPLE INFORMATION */}
-
                                 <div className="mb-5">
 
                                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -1098,18 +854,6 @@ const AcceptedSamples = () => {
                                     </p>
 
                                     <div className="space-y-3 rounded-xl border border-slate-200 p-4">
-
-                                        <div className="flex justify-between gap-4">
-                                            <span className="text-sm text-slate-500">
-                                                Accession
-                                            </span>
-
-                                            <span className="text-right text-sm font-semibold text-blue-600">
-                                                {
-                                                    selectedSample.accessionNumber
-                                                }
-                                            </span>
-                                        </div>
 
                                         <div className="flex justify-between gap-4">
                                             <span className="text-sm text-slate-500">
@@ -1175,8 +919,6 @@ const AcceptedSamples = () => {
 
                                 </div>
 
-                                {/* LABORATORY RECEIPT */}
-
                                 <div className="mb-5">
 
                                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -1225,8 +967,6 @@ const AcceptedSamples = () => {
 
                                 </div>
 
-                                {/* ACCEPTANCE */}
-
                                 <div className="mb-5">
 
                                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -1274,8 +1014,6 @@ const AcceptedSamples = () => {
                                     </div>
 
                                 </div>
-
-                                {/* ACTION */}
 
                                 <div>
 

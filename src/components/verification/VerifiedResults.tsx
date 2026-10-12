@@ -23,21 +23,15 @@ interface ResultParameter {
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
-    registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status:
     | "Pending Collection"
     | "Collected"
@@ -46,35 +40,27 @@ interface StoredSample {
     | "Processing"
     | "Completed"
     | "Rejected";
-
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
     rejectionReason?: string;
-
     processingDate?: string;
     processingTime?: string;
     processingBy?: string;
-
     completedDate?: string;
     completedTime?: string;
     completedBy?: string;
-
     analyzer?: string;
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
-
     resultStatus?:
     | "Pending"
     | "Entered"
@@ -82,20 +68,16 @@ interface StoredSample {
     | "QC Passed"
     | "QC Failed"
     | "Verified";
-
     resultParameters?: ResultParameter[];
     resultRemarks?: string;
-
     resultEnteredDate?: string;
     resultEnteredTime?: string;
     resultEnteredBy?: string;
-
     qcDate?: string;
     qcTime?: string;
     qcBy?: string;
     qcRemarks?: string;
     qcStatus?: "Passed" | "Failed";
-
     verificationDate?: string;
     verificationTime?: string;
     verificationBy?: string;
@@ -132,19 +114,13 @@ const formatPriority = (priority?: StoredSample["priority"]) => {
 
 export default function VerifiedResults() {
     const navigate = useNavigate();
-
     const [samples] = useState<StoredSample[]>(getStoredSamples);
-
     const [searchTerm, setSearchTerm] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("All");
-
-    const [selectedSample, setSelectedSample] =
-        useState<StoredSample | null>(null);
-
+    const [selectedSample, setSelectedSample] = useState<StoredSample | null>(null);
     const [showDetails, setShowDetails] = useState(false);
-
     const [currentPage, setCurrentPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     const verifiedSamples = useMemo(() => {
         return samples.filter(
@@ -159,10 +135,8 @@ export default function VerifiedResults() {
             const matchesSearch =
                 !search ||
                 sample.sampleId.toLowerCase().includes(search) ||
-                sample.accessionNumber.toLowerCase().includes(search) ||
                 sample.patientName.toLowerCase().includes(search) ||
-                sample.testName.toLowerCase().includes(search) ||
-                sample.registrationId.toLowerCase().includes(search);
+                sample.testName.toLowerCase().includes(search);
 
             const matchesPriority =
                 priorityFilter === "All" ||
@@ -197,9 +171,8 @@ export default function VerifiedResults() {
     };
 
     const columns = [
-        "Sample",
-        "Accession",
-        "Patient",
+        "Sample ID",
+        "Patient & ID",
         "Test",
         "Sample Type",
         "Priority",
@@ -256,7 +229,7 @@ export default function VerifiedResults() {
                             onChange={(e) =>
                                 handleSearch(e.target.value)
                             }
-                            placeholder="Search sample, accession, patient or test..."
+                            placeholder="Search sample, patient or test..."
                             className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
@@ -315,7 +288,7 @@ export default function VerifiedResults() {
                                     {/* Sample */}
                                     <td className="px-4 py-4">
                                         <div>
-                                            <p className="whitespace-nowrap font-medium text-slate-800">
+                                            <p className="whitespace-nowrap font-medium text-blue-600">
                                                 {sample.sampleId}
                                             </p>
 
@@ -325,23 +298,25 @@ export default function VerifiedResults() {
                                         </div>
                                     </td>
 
-                                    {/* Accession */}
-                                    <td className="px-4 py-4">
-                                        <p className="whitespace-nowrap text-sm text-slate-700">
-                                            {sample.accessionNumber}
-                                        </p>
-                                    </td>
-
                                     {/* Patient */}
                                     <td className="px-4 py-4">
-                                        <div>
-                                            <p className="whitespace-nowrap font-medium text-slate-800">
-                                                {sample.patientName}
-                                            </p>
+                                        <div className="flex min-w-[170px] items-center gap-2">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                                <PersonIcon
+                                                    fontSize="small"
+                                                    className="text-slate-500"
+                                                />
+                                            </div>
 
-                                            <p className="text-xs text-slate-500">
-                                                {sample.patientId}
-                                            </p>
+                                            <div>
+                                                <p className="whitespace-nowrap text-sm font-medium text-slate-700">
+                                                    {sample.patientName}
+                                                </p>
+
+                                                <p className="mt-0.5 whitespace-nowrap text-xs text-slate-400">
+                                                    {sample.patientId}
+                                                </p>
+                                            </div>
                                         </div>
                                     </td>
 
@@ -369,11 +344,11 @@ export default function VerifiedResults() {
                                     <td className="px-4 py-4">
                                         <span
                                             className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${sample.priority === "STAT"
-                                                    ? "bg-red-100 text-red-700"
-                                                    : sample.priority ===
-                                                        "Urgent"
-                                                        ? "bg-orange-100 text-orange-700"
-                                                        : "bg-slate-100 text-slate-600"
+                                                ? "bg-red-100 text-red-700"
+                                                : sample.priority ===
+                                                    "Urgent"
+                                                    ? "bg-orange-100 text-orange-700"
+                                                    : "bg-slate-100 text-slate-600"
                                                 }`}
                                         >
                                             {formatPriority(
@@ -534,16 +509,6 @@ export default function VerifiedResults() {
                                             {selectedSample.patientId}
                                         </p>
                                     </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.registrationId}
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
 
@@ -559,22 +524,12 @@ export default function VerifiedResults() {
 
                                 <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-800">
                                             Sample ID
                                         </p>
 
                                         <p className="mt-1 font-medium text-slate-800">
                                             {selectedSample.sampleId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Accession Number
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.accessionNumber}
                                         </p>
                                     </div>
 

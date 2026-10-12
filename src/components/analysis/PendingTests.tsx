@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
@@ -11,7 +10,6 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
-
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 
@@ -27,46 +25,35 @@ type SampleStatus =
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
-
     patientId: string;
     registrationId: string;
     patientName: string;
-
     testId: string;
     testName: string;
     sampleType: string;
-
     collectionDate: string;
     collectionTime: string;
     collector: string;
-
     status: SampleStatus;
     source: "Patient Registration";
     createdAt: string;
-
     receivedDate?: string;
     receivedTime?: string;
     receivedBy?: string;
-
     acceptedDate?: string;
     acceptedTime?: string;
     acceptedBy?: string;
-
     rejectedDate?: string;
     rejectedTime?: string;
     rejectedBy?: string;
     rejectionReason?: string;
-
     processingDate?: string;
     processingTime?: string;
     processingBy?: string;
-
     completedDate?: string;
     completedTime?: string;
     completedBy?: string;
-
     analyzer?: string;
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
@@ -84,7 +71,6 @@ interface LabTest {
 interface PendingTest {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     patientId: string;
     patientName: string;
     testName: string;
@@ -99,11 +85,10 @@ interface PendingTest {
 
 const columns = [
     "Sample ID",
-    "Accession ID",
-    "Patient",
+    "Patient & ID",
     "Test",
     "Category",
-    "Sample",
+    "Sample Type",
     "Received",
     "Priority",
     "Status",
@@ -222,7 +207,6 @@ const PendingTests = () => {
                 return {
                     id: sample.id,
                     sampleId: sample.sampleId,
-                    accessionNumber: sample.accessionNumber,
                     patientId: sample.patientId,
                     patientName: sample.patientName,
                     testName: sample.testName,
@@ -251,7 +235,6 @@ const PendingTests = () => {
             const matchesSearch =
                 !search ||
                 test.sampleId.toLowerCase().includes(search) ||
-                test.accessionNumber.toLowerCase().includes(search) ||
                 test.patientId.toLowerCase().includes(search) ||
                 test.patientName.toLowerCase().includes(search) ||
                 test.testName.toLowerCase().includes(search) ||
@@ -516,7 +499,7 @@ const PendingTests = () => {
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            placeholder="Search sample, accession, patient or test..."
+                            placeholder="Search sample, patient or test..."
                             className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:bg-white"
                         />
                     </div>
@@ -594,34 +577,17 @@ const PendingTests = () => {
                         maxHeight="380px"
                         renderRow={(test: PendingTest) => (
                             <>
-                                <td className="px-4 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
-                                            <ScienceOutlinedIcon
-                                                className="text-blue-600"
-                                                fontSize="small"
-                                            />
-                                        </div>
-
+                                <td className="px-2 py-3">
+                                    <div className="flex items-center">
                                         <div>
                                             <p className="whitespace-nowrap text-xs font-semibold text-blue-700">
                                                 {test.sampleId}
-                                            </p>
-
-                                            <p className="text-[11px] text-gray-500">
-                                                {test.sampleType}
                                             </p>
                                         </div>
                                     </div>
                                 </td>
 
-                                <td className="px-4 py-3">
-                                    <span className="whitespace-nowrap text-xs font-semibold text-gray-700">
-                                        {test.accessionNumber}
-                                    </span>
-                                </td>
-
-                                <td className="px-4 py-3">
+                                <td className="px-2 py-3">
                                     <div className="flex items-center gap-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
                                             <PersonIcon
@@ -868,16 +834,6 @@ const PendingTests = () => {
 
                                             <p className="mt-1 text-xs font-semibold text-gray-800">
                                                 {selectedTest.sampleId}
-                                            </p>
-                                        </div>
-
-                                        <div className="p-3">
-                                            <p className="text-[11px] text-gray-500">
-                                                Accession ID
-                                            </p>
-
-                                            <p className="mt-1 text-xs font-semibold text-blue-700">
-                                                {selectedTest.accessionNumber}
                                             </p>
                                         </div>
                                     </div>

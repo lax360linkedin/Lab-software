@@ -24,10 +24,8 @@ interface ResultParameter {
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
     patientId: string;
-    registrationId: string;
     patientName: string;
     testId: string;
     testName: string;
@@ -123,7 +121,6 @@ const PendingQC = () => {
             const matchesSearch =
                 !search ||
                 sample.sampleId.toLowerCase().includes(search) ||
-                sample.accessionNumber.toLowerCase().includes(search) ||
                 sample.patientName.toLowerCase().includes(search) ||
                 sample.patientId.toLowerCase().includes(search) ||
                 sample.testName.toLowerCase().includes(search);
@@ -380,7 +377,7 @@ const PendingQC = () => {
                                 onChange={(e) =>
                                     handleSearch(e.target.value)
                                 }
-                                placeholder="Search sample, patient, accession or test..."
+                                placeholder="Search sample, patient, or test..."
                                 className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
@@ -457,10 +454,6 @@ const PendingQC = () => {
                                             <div>
                                                 <p className="whitespace-nowrap text-sm font-semibold text-blue-600">
                                                     {sample.sampleId}
-                                                </p>
-
-                                                <p className="mt-1 whitespace-nowrap text-xs text-slate-400">
-                                                    {sample.accessionNumber}
                                                 </p>
                                             </div>
                                         </td>
@@ -663,16 +656,6 @@ const PendingQC = () => {
 
                                         <p className="mt-1 text-sm font-medium text-slate-700">
                                             {selectedSample.patientId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-400">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 text-sm font-medium text-slate-700">
-                                            {selectedSample.registrationId}
                                         </p>
                                     </div>
 
@@ -933,18 +916,6 @@ const PendingQC = () => {
 
                                         <div>
                                             <p className="text-xs text-slate-400">
-                                                Registration ID
-                                            </p>
-
-                                            <p className="mt-1 text-sm font-medium text-slate-700">
-                                                {
-                                                    selectedSample.registrationId
-                                                }
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-slate-400">
                                                 Sample Type
                                             </p>
 
@@ -981,18 +952,6 @@ const PendingQC = () => {
                                             <p className="mt-1 text-sm font-semibold text-blue-600">
                                                 {
                                                     selectedSample.sampleId
-                                                }
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <p className="text-xs text-slate-400">
-                                                Accession Number
-                                            </p>
-
-                                            <p className="mt-1 text-sm font-medium text-slate-700">
-                                                {
-                                                    selectedSample.accessionNumber
                                                 }
                                             </p>
                                         </div>

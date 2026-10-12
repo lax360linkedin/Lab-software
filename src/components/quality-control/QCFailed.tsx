@@ -22,10 +22,8 @@ interface ResultParameter {
 interface StoredSample {
     id: string;
     sampleId: string;
-    accessionNumber: string;
     barcode: string;
     patientId: string;
-    registrationId: string;
     patientName: string;
     testId: string;
     testName: string;
@@ -122,7 +120,6 @@ const QCFailed = () => {
             const matchesSearch =
                 !search ||
                 sample.sampleId.toLowerCase().includes(search) ||
-                sample.accessionNumber.toLowerCase().includes(search) ||
                 sample.patientName.toLowerCase().includes(search) ||
                 sample.testName.toLowerCase().includes(search) ||
                 sample.barcode.toLowerCase().includes(search);
@@ -168,13 +165,6 @@ const QCFailed = () => {
     };
 
     const handleReanalysis = (sample: StoredSample) => {
-        /*
-         * For now, move the failed result back to analysis processing.
-         *
-         * Later this can be connected to a dedicated
-         * Corrective Action / Re-analysis page.
-         */
-
         const updatedSamples = samples.map((item) => {
             if (
                 item.id === sample.id ||
@@ -241,7 +231,7 @@ const QCFailed = () => {
                             onChange={(e) =>
                                 handleSearch(e.target.value)
                             }
-                            placeholder="Search sample, accession, patient or test..."
+                            placeholder="Search sample, patient or test..."
                             className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
@@ -267,9 +257,8 @@ const QCFailed = () => {
                 <div className="overflow-x-auto">
                     <Table
                         columns={[
-                            "Sample",
-                            "Accession",
-                            "Patient",
+                            "Sample ID",
+                            "Patient & ID",
                             "Test",
                             "Sample Type",
                             "Priority",
@@ -285,7 +274,7 @@ const QCFailed = () => {
                                 {/* Sample */}
                                 <td className="px-4 py-4">
                                     <div>
-                                        <p className="whitespace-nowrap font-semibold text-slate-800">
+                                        <p className="whitespace-nowrap font-semibold text-blue-600">
                                             {sample.sampleId}
                                         </p>
 
@@ -293,13 +282,6 @@ const QCFailed = () => {
                                             {sample.barcode}
                                         </p>
                                     </div>
-                                </td>
-
-                                {/* Accession */}
-                                <td className="px-4 py-4">
-                                    <span className="whitespace-nowrap text-sm font-medium text-slate-700">
-                                        {sample.accessionNumber}
-                                    </span>
                                 </td>
 
                                 {/* Patient */}
@@ -481,26 +463,6 @@ const QCFailed = () => {
 
                                         <p className="mt-1 font-medium text-slate-800">
                                             {selectedSample.patientId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Registration ID
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.registrationId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Accession Number
-                                        </p>
-
-                                        <p className="mt-1 font-medium text-slate-800">
-                                            {selectedSample.accessionNumber}
                                         </p>
                                     </div>
                                 </div>

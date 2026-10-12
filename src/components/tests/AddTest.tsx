@@ -1,9 +1,5 @@
 import { useState } from "react";
-import type {
-    LabTest,
-    TestCategory,
-    TestParameter,
-} from "./Tests";
+import type { LabTest, Status, TestCategory, TestParameter } from "./Tests";
 
 type AddTestProps = {
     categories: TestCategory[];
@@ -11,6 +7,15 @@ type AddTestProps = {
     onSave: (test: LabTest) => void;
     onCancel: () => void;
 };
+
+type SampleType = {
+    id: string;
+    name: string;
+    description: string;
+    status: Status;
+};
+
+
 
 const createEmptyParameter = (): TestParameter => ({
     name: "",
@@ -54,7 +59,6 @@ const AddTest = ({
     onCancel,
 }: AddTestProps) => {
     const initialForm = getInitialFormData(editingTest);
-
     const [testName, setTestName] = useState(initialForm.testName);
     const [testCode, setTestCode] = useState(initialForm.testCode);
     const [category, setCategory] = useState(initialForm.category);
@@ -158,6 +162,16 @@ const AddTest = ({
         onSave(test);
     };
 
+    const [sampleTypes] = useState<SampleType[]>(() => {
+        try {
+            return JSON.parse(
+                localStorage.getItem("lab_sample_types") || "[]"
+            ) as SampleType[];
+        } catch {
+            return [];
+        }
+    });
+
     return (
         <div className="space-y-6">
             {/* Page Header */}
@@ -240,10 +254,9 @@ const AddTest = ({
 
                             <select
                                 value={category}
-                                onChange={(event) =>
-                                    setCategory(event.target.value)
-                                }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                onChange={(event) => setCategory(event.target.value)}
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                required
                             >
                                 <option value="">Select category</option>
 
@@ -265,21 +278,19 @@ const AddTest = ({
 
                             <select
                                 value={sampleType}
-                                onChange={(event) =>
-                                    setSampleType(event.target.value)
-                                }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                onChange={(event) => setSampleType(event.target.value)}
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                required
                             >
                                 <option value="">Select sample type</option>
-                                <option value="Whole Blood">Whole Blood</option>
-                                <option value="Serum">Serum</option>
-                                <option value="Plasma">Plasma</option>
-                                <option value="Urine">Urine</option>
-                                <option value="Stool">Stool</option>
-                                <option value="Sputum">Sputum</option>
-                                <option value="Swab">Swab</option>
-                                <option value="CSF">CSF</option>
-                                <option value="Other">Other</option>
+
+                                {sampleTypes
+                                    .filter((item) => item.status === "Active")
+                                    .map((item) => (
+                                        <option key={item.id} value={item.name}>
+                                            {item.name}
+                                        </option>
+                                    ))}
                             </select>
                         </div>
 
