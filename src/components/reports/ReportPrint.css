@@ -1,22 +1,11 @@
-/* ============================================================
-   SCREEN
-   ============================================================ */
-
 .report-print-container {
     display: none;
 }
 
-/* ============================================================
-   PRINT DOCUMENT
-   ============================================================ */
-
 @media print {
-    /* Hide application */
     body * {
         visibility: hidden !important;
     }
-
-    /* Show print document only */
     .report-print-container,
     .report-print-container * {
         visibility: visible !important;
@@ -53,10 +42,6 @@
         color: #172033 !important;
     }
 
-    /* ========================================================
-       PAGE
-       ======================================================== */
-
     @page {
         size: A4 portrait;
         margin: 9mm;
@@ -72,10 +57,6 @@
         font-size: 9px !important;
         line-height: 1.4 !important;
     }
-
-    /* ========================================================
-       HEADER
-       ======================================================== */
 
     .report-header {
         display: flex !important;
@@ -170,10 +151,6 @@
         font-weight: 700 !important;
     }
 
-    /* ========================================================
-       SUMMARY STRIP
-       ======================================================== */
-
     .report-summary-strip {
         display: grid !important;
         grid-template-columns:
@@ -229,10 +206,6 @@
         color: #b91c1c !important;
     }
 
-    /* ========================================================
-       SECTION
-       ======================================================== */
-
     .report-section {
         margin-top: 12px !important;
         page-break-inside: avoid !important;
@@ -263,10 +236,6 @@
         text-transform: uppercase !important;
         letter-spacing: 0.06em !important;
     }
-
-    /* ========================================================
-       INFORMATION GRID
-       ======================================================== */
 
     .report-info-grid {
         display: grid !important;
@@ -299,10 +268,6 @@
         font-weight: 700 !important;
         word-break: break-word !important;
     }
-
-    /* ========================================================
-       RESULT TABLE
-       ======================================================== */
 
     .result-table-wrapper {
         width: 100% !important;
@@ -389,10 +354,6 @@
         color: #64748b !important;
     }
 
-    /* ========================================================
-       REMARKS
-       ======================================================== */
-
     .remarks-box {
         margin-top: 7px !important;
         padding: 7px 9px !important;
@@ -414,10 +375,6 @@
         color: #334155 !important;
         font-size: 8px !important;
     }
-
-    /* ========================================================
-       INTERPRETATION
-       ======================================================== */
 
     .interpretation-box {
         display: flex !important;
@@ -459,10 +416,6 @@
         margin-top: 4px !important;
     }
 
-    /* ========================================================
-       QC + VERIFICATION
-       ======================================================== */
-
     .two-column-sections {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
@@ -478,10 +431,6 @@
         grid-template-columns: 1fr 1fr !important;
         gap: 6px 12px !important;
     }
-
-    /* ========================================================
-       SIGNATURES
-       ======================================================== */
 
     .signature-section {
         display: grid !important;
@@ -518,10 +467,6 @@
         color: #64748b !important;
         font-size: 7px !important;
     }
-
-    /* ========================================================
-       FOOTER
-       ======================================================== */
 
     .report-footer {
         margin-top: 18px !important;
@@ -568,10 +513,6 @@
         color: #64748b !important;
         font-size: 6.5px !important;
     }
-
-    /* ========================================================
-       PAGE BREAK CONTROL
-       ======================================================== */
 
     .report-section,
     .report-summary-strip,

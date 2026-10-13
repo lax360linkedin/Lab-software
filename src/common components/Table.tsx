@@ -7,6 +7,7 @@ interface TableProps<T> {
   maxHeight?: string;
   emptyMessage?: string;
   minWidth?: string;
+  maxWidth?: string;
 }
 
 const Table = <T,>({
@@ -16,23 +17,28 @@ const Table = <T,>({
   maxHeight = "430px",
   emptyMessage = "No records found",
   minWidth = "1200px",
+  maxWidth = "100%",
 }: TableProps<T>) => {
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full min-w-0 overflow-hidden">
       <div
-        className="w-full overflow-x-auto overflow-y-auto"
+        className="w-full min-w-0 overflow-x-auto overflow-y-auto"
         style={{ maxHeight }}
       >
         <table
-          className="w-full min-w-max border-collapse"
-          style={{ minWidth: minWidth || "1200px" }}
+          className="w-full border-collapse"
+          style={{
+            minWidth,
+            maxWidth,
+            tableLayout: "auto",
+          }}
         >
           <thead className="sticky top-0 z-20 bg-slate-700 shadow-sm">
             <tr className="border-b border-slate-600">
               {columns.map((column, index) => (
                 <th
                   key={`${column}-${index}`}
-                  className="sticky top-0 z-20 bg-slate-700 whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-white border-b border-slate-600"
+                  className="sticky top-0 z-20 whitespace-nowrap border-b border-slate-600 bg-slate-700 px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-white"
                 >
                   {column}
                 </th>

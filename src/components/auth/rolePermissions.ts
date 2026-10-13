@@ -36,5 +36,6 @@ export const rolePermissions: Record<UserRole, string[]> = {
     "accession",
     "analysis",
     "results",
+    "reports",
   ],
 };
