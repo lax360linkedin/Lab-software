@@ -217,7 +217,7 @@ const menuItems: MenuItem[] = [
   {
     label: "Reports",
     icon: <DescriptionOutlinedIcon />,
-    roles: ["admin", "receptionist"],
+    roles: ["admin", "receptionist", "lab_technician"],
     children: [
       {
         label: "Pending Reports",

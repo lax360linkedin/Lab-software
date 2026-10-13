@@ -1,0 +1,366 @@
+@reference "../../index.css";
+
+.report-history-page {
+  @apply min-w-0 bg-slate-50 p-6 text-slate-800;
+}
+
+/* Header */
+.rh-header {
+  @apply mb-5 flex items-center gap-4;
+}
+
+.rh-heading-icon {
+  @apply grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-blue-100 bg-white text-blue-600;
+}
+
+.rh-heading-text {
+  @apply min-w-0 flex-1;
+}
+
+.rh-heading-text h1 {
+  @apply m-0 text-2xl font-bold tracking-tight text-slate-900;
+}
+
+.rh-heading-text p {
+  @apply mt-1 text-xs text-slate-500;
+}
+
+.rh-print-page {
+  @apply inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50;
+}
+
+/* Summary cards */
+.rh-summary {
+  @apply mb-4 grid grid-cols-1 gap-3 md:grid-cols-2;
+}
+
+.rh-summary article {
+  @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+}
+
+.rh-summary-icon {
+  @apply grid h-11 w-11 shrink-0 place-items-center rounded-full;
+}
+
+.rh-summary-icon.blue {
+  @apply bg-blue-50 text-blue-600;
+}
+
+.rh-summary-icon.purple {
+  @apply bg-violet-50 text-violet-600;
+}
+
+.rh-summary small {
+  @apply block text-xs text-slate-500;
+}
+
+.rh-summary strong {
+  @apply mt-1 block text-2xl font-bold text-slate-900;
+}
+
+/* Main panel */
+.rh-panel {
+  @apply min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+}
+
+/* Search and filters */
+.rh-toolbar {
+  @apply mb-5 flex flex-wrap items-start justify-between gap-3;
+}
+
+.rh-search {
+  @apply flex min-h-10 min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100;
+}
+
+.rh-search input {
+  @apply w-full min-w-0 border-0 bg-transparent py-2 text-xs text-slate-800 outline-none placeholder:text-slate-400;
+}
+
+.rh-filters {
+  @apply flex flex-wrap items-center gap-1.5;
+}
+
+.rh-pill {
+  @apply whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 transition hover:border-blue-300 hover:text-blue-600;
+}
+
+.rh-pill.active {
+  @apply border-blue-600 bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.rh-date-inputs {
+  @apply flex w-full flex-wrap justify-end gap-3;
+}
+
+.rh-date-inputs label {
+  @apply grid gap-1 text-[11px] text-slate-500;
+}
+
+.rh-date-inputs input {
+  @apply rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-blue-400;
+}
+
+/* Section headings */
+.rh-section-title {
+  @apply mb-3 flex items-center justify-between gap-3;
+}
+
+.rh-section-title h2 {
+  @apply m-0 text-base font-bold text-slate-900;
+}
+
+.rh-section-title p {
+  @apply mt-1 text-xs text-slate-500;
+}
+
+.rh-section-title > span {
+  @apply whitespace-nowrap rounded-full bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700;
+}
+
+/* Tables */
+.rh-table-scroll {
+  @apply w-full overflow-x-auto rounded-lg border border-slate-200;
+}
+
+.rh-table {
+  @apply w-full min-w-[1020px] border-collapse text-left text-[11px];
+}
+
+.rh-table th {
+  @apply whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3 py-3 font-bold text-slate-600;
+}
+
+.rh-table td {
+  @apply whitespace-nowrap border-b border-slate-100 px-3 py-3 text-slate-600;
+}
+
+.rh-table tbody tr {
+  @apply transition-colors hover:bg-blue-50/40;
+}
+
+.rh-table tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+.rh-name {
+  @apply font-semibold text-slate-800;
+}
+
+.rh-empty {
+  @apply whitespace-normal px-6 py-8 text-center text-slate-500;
+}
+
+/* Status badges */
+.rh-status {
+  @apply inline-flex rounded-md px-2 py-1 text-[10px] font-bold;
+}
+
+.rh-status.completed {
+  @apply bg-emerald-100 text-emerald-700;
+}
+
+.rh-status.pending {
+  @apply bg-amber-100 text-amber-700;
+}
+
+.rh-status.in-progress {
+  @apply bg-blue-100 text-blue-700;
+}
+
+.rh-status.unknown {
+  @apply bg-slate-100 text-slate-600;
+}
+
+/* Row actions */
+.rh-actions {
+  @apply flex items-center gap-1;
+}
+
+.rh-actions button {
+  @apply grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-blue-600 transition hover:bg-blue-50;
+}
+
+/* Pagination */
+.rh-pagination {
+  @apply mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-500;
+}
+
+.rh-pagination > div {
+  @apply flex items-center gap-2;
+}
+
+.rh-pagination button {
+  @apply grid h-7 w-7 place-items-center rounded-md border border-slate-200 bg-white text-lg text-slate-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+/* Patient-specific history */
+.rh-patient-section {
+  @apply mt-5 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4;
+}
+
+.rh-clear {
+  @apply rounded-lg border border-transparent bg-transparent px-2 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50;
+}
+
+.rh-patient-card {
+  @apply mb-3 flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4;
+}
+
+.rh-avatar {
+  @apply grid h-11 w-11 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600;
+}
+
+.rh-patient-info {
+  @apply min-w-0 flex-1;
+}
+
+.rh-patient-info h3 {
+  @apply m-0 mb-1 text-base font-bold text-slate-900;
+}
+
+.rh-patient-info p {
+  @apply my-1 text-[11px] text-slate-500;
+}
+
+.rh-patient-info b {
+  @apply text-slate-700;
+}
+
+.rh-patient-info i {
+  @apply mx-2 inline-block h-3 border-l border-slate-300;
+}
+
+.rh-six-month {
+  @apply flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-blue-600;
+}
+
+.rh-six-month b {
+  @apply block text-[11px] font-bold;
+}
+
+.rh-six-month small {
+  @apply mt-1 block text-[10px] text-slate-500;
+}
+
+.rh-lower-panel {
+  @apply p-3;
+}
+
+/* Help and empty state */
+.rh-help {
+  @apply mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4 text-xs text-blue-700;
+}
+
+.rh-help p {
+  @apply mt-1 leading-relaxed text-slate-600;
+}
+
+.rh-no-data {
+  @apply mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-4 text-xs leading-relaxed text-slate-600;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .report-history-page {
+    @apply p-4;
+  }
+
+  .rh-toolbar {
+    @apply items-stretch;
+  }
+
+  .rh-patient-card {
+    @apply flex-wrap items-start;
+  }
+
+  .rh-six-month {
+    @apply ml-14;
+  }
+}
+
+@media (max-width: 600px) {
+  .report-history-page {
+    @apply p-3;
+  }
+
+  .rh-heading-text h1 {
+    @apply text-xl;
+  }
+
+  .rh-heading-text p {
+    @apply leading-relaxed;
+  }
+
+  .rh-heading-icon {
+    @apply h-10 w-10;
+  }
+
+  .rh-print-page {
+    @apply px-2 py-2;
+  }
+
+  .rh-section-title {
+    @apply items-start;
+  }
+
+  .rh-filters {
+    @apply w-full;
+  }
+
+  .rh-pill {
+    @apply px-2 py-2;
+  }
+
+  .rh-date-inputs {
+    @apply justify-start;
+  }
+
+  .rh-pagination {
+    @apply flex-col items-start;
+  }
+
+  .rh-patient-card {
+    @apply gap-2.5 p-3;
+  }
+
+  .rh-avatar {
+    @apply h-10 w-10;
+  }
+
+  .rh-patient-info p {
+    @apply break-words leading-relaxed;
+  }
+
+  .rh-six-month {
+    @apply ml-0 w-full;
+  }
+}
+
+/* Print styles */
+@media print {
+  .report-history-page {
+    @apply bg-white p-0;
+  }
+
+  .rh-print-page,
+  .rh-toolbar,
+  .rh-actions,
+  .rh-pagination,
+  .rh-clear,
+  .rh-help {
+    @apply hidden;
+  }
+
+  .rh-table-scroll {
+    @apply overflow-visible;
+  }
+
+  .rh-table {
+    @apply min-w-0 text-[8px];
+  }
+
+  .rh-table th,
+  .rh-table td {
+    @apply whitespace-normal px-1.5 py-1.5;
+  }
+}
