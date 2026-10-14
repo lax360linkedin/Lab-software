@@ -61,7 +61,9 @@ interface LabTest {
     category?: string;
     sampleType?: string;
     method?: string;
-    parameters?: string[];
+    parameters?: Array<
+        string | { name?: string; unit?: string; referenceRange?: string }
+    >;
 }
 
 interface ResultParameter {
@@ -131,12 +133,21 @@ const ResultEntry = () => {
             return [];
         }
 
-        return masterTest.parameters.map((parameter) => ({
-            name: parameter,
-            value: "",
-            unit: "",
-            referenceRange: "",
-        }));
+        return masterTest.parameters.map((parameter) =>
+            typeof parameter === "string"
+                ? {
+                      name: parameter,
+                      value: "",
+                      unit: "",
+                      referenceRange: "",
+                  }
+                : {
+                      name: parameter.name ?? "",
+                      value: "",
+                      unit: parameter.unit ?? "",
+                      referenceRange: parameter.referenceRange ?? "",
+                  }
+        );
     }, [masterTest]);
 
     const [parameters, setParameters] =
@@ -144,12 +155,14 @@ const ResultEntry = () => {
 
     const [remarks, setRemarks] = useState("");
     const [showSuccess, setShowSuccess] = useState(false);
+    const [saveError, setSaveError] = useState("");
 
     const updateParameter = (
         index: number,
         field: keyof ResultParameter,
         value: string
     ) => {
+        setSaveError("");
         setParameters((previous) =>
             previous.map((parameter, parameterIndex) =>
                 parameterIndex === index
@@ -163,6 +176,7 @@ const ResultEntry = () => {
     };
 
     const addParameter = () => {
+        setSaveError("");
         setParameters((previous) => [
             ...previous,
             {
@@ -175,6 +189,7 @@ const ResultEntry = () => {
     };
 
     const removeParameter = (index: number) => {
+        setSaveError("");
         setParameters((previous) =>
             previous.filter(
                 (_, parameterIndex) => parameterIndex !== index
@@ -184,6 +199,7 @@ const ResultEntry = () => {
 
     const handleSaveResult = () => {
         if (!selectedSample) {
+            setSaveError("The selected sample could not be found. Please return to pending results and open it again.");
             return;
         }
 
@@ -192,8 +208,8 @@ const ResultEntry = () => {
                 !parameter.name.trim() || !parameter.value.trim()
         );
 
-        if (hasEmptyParameter) {
-            alert("Please enter the parameter name and result value.");
+        if (parameters.length === 0 || hasEmptyParameter) {
+            setSaveError("Enter a parameter name and result value for every row before saving.");
             return;
         }
 
@@ -239,13 +255,17 @@ const ResultEntry = () => {
                 : sample
         );
 
-        localStorage.setItem(
-            "lab_samples",
-            JSON.stringify(updatedSamples)
-        );
-
-        setSamples(updatedSamples);
-        setShowSuccess(true);
+        try {
+            localStorage.setItem(
+                "lab_samples",
+                JSON.stringify(updatedSamples)
+            );
+            setSamples(updatedSamples);
+            setSaveError("");
+            setShowSuccess(true);
+        } catch {
+            setSaveError("Could not save the result to this browser. Check available storage and try again.");
+        }
     };
 
     if (!selectedSample) {
@@ -523,7 +543,7 @@ const ResultEntry = () => {
                                         {parameters.map(
                                             (parameter, index) => (
                                                 <tr
-                                                    key={`${parameter.name}-${index}`}
+                                                    key={index}
                                                     className="border-b border-slate-100 last:border-b-0"
                                                 >
                                                     <td className="px-4 py-3">
@@ -660,6 +680,12 @@ const ResultEntry = () => {
                                 className="w-full rounded-lg border border-slate-300 px-3 py-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
+
+                        {saveError && (
+                            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                {saveError}
+                            </p>
+                        )}
                     </div>
 
                     {/* Footer */}

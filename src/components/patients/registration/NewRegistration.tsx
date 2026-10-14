@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import type { Doctor, Referral } from "../../doctors/Doctor";
@@ -209,7 +208,7 @@ export default function NewRegistration() {
     patientName: existingPatient?.patientName ?? "",
     age: String(existingPatient?.age ?? ""),
     gender: existingPatient?.gender ?? "",
-    phone: existingPatient?.phone ?? "",
+    phone: (existingPatient?.phone ?? "").replace(/\D/g, "").slice(0, 10),
     address: existingPatient?.address ?? "",
     doctorId: existingPatient?.doctorId ?? "",
     doctorReferral: existingPatient?.doctorReferral ?? "",
@@ -298,6 +297,8 @@ export default function NewRegistration() {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Enter exactly 10 digits";
     }
 
     if (!formData.doctorId) {
@@ -629,17 +630,14 @@ export default function NewRegistration() {
    */
   return (
     <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-5xl">
-
-        {/* HEADER */}
+      {/* HEADER */}
         <div className="mb-6 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/patients")}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600"
+            aria-hidden="true"
           >
-            <ArrowBackOutlinedIcon />
-          </button>
+            <PersonAddOutlinedIcon />
+          </div>
 
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
@@ -651,6 +649,8 @@ export default function NewRegistration() {
             </p>
           </div>
         </div>
+
+      <div className="mx-auto max-w-5xl">
 
         {existingPatientId && !existingPatient && (
           <div
@@ -689,7 +689,7 @@ export default function NewRegistration() {
               {/* Patient Name */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Patient Name *
+                  Patient Name <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -715,7 +715,7 @@ export default function NewRegistration() {
               {/* Age */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Age *
+                  Age <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -742,7 +742,7 @@ export default function NewRegistration() {
               {/* Gender */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Gender *
+                  Gender <span className="text-red-500">*</span>
                 </label>
 
                 <select
@@ -774,18 +774,16 @@ export default function NewRegistration() {
               {/* Phone */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Phone *
+                  Phone <span className="text-red-500">*</span>
                 </label>
 
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   value={formData.phone}
-                  onChange={(event) =>
-                    handleChange(
-                      "phone",
-                      event.target.value
-                    )
-                  }
+                  onChange={(event) => handleChange("phone", event.target.value.replace(/\D/g, "").slice(0, 10))}
                   placeholder="Enter phone number"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
@@ -827,7 +825,7 @@ export default function NewRegistration() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Concerned Doctor *
+                Concerned Doctor <span className="text-red-500">*</span>
               </label>
 
               <select

@@ -37,6 +37,20 @@ const ALL_DOCTORS_SENTINEL: Doctor = {
   status: "Active",
   createdAt: "",
 };
+
+const FEMALE_DOCTOR_PORTRAIT =
+  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=112&h=112&q=80";
+const MALE_DOCTOR_PORTRAIT =
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=112&h=112&q=80";
+const FEMALE_DOCTOR_NAMES = new Set(["meena", "priya"]);
+const MALE_DOCTOR_NAMES = new Set(["arun", "suresh", "tamil"]);
+
+const getDefaultDoctorPortrait = (doctorName: string) => {
+  const firstName = doctorName.replace(/^dr\.?\s*/i, "").trim().split(/\s+/)[0]?.toLowerCase();
+  if (FEMALE_DOCTOR_NAMES.has(firstName)) return FEMALE_DOCTOR_PORTRAIT;
+  if (MALE_DOCTOR_NAMES.has(firstName)) return MALE_DOCTOR_PORTRAIT;
+  return "";
+};
 const ReferredPatients = ({
   referrals,
   doctors,
@@ -230,7 +244,20 @@ const ReferredPatients = ({
                   <article key={doctor.id} className="group relative min-h-[220px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
                     <button type="button" onClick={() => onSelectDoctor(doctor)} aria-label={`View referred patients for ${doctor.doctorName}`} className="flex min-h-[178px] w-full flex-col justify-between text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                     <span className="flex min-w-0 items-start gap-4">
-                      {doctor.photoUrl ? <img src={doctor.photoUrl} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-slate-200" /> : <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg font-bold text-blue-700 ring-1 ring-inset ring-blue-100">{initials || "DR"}</span>}
+                      <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-blue-50 ring-1 ring-inset ring-blue-100">
+                        <img
+                          src={doctor.photoUrl || getDefaultDoctorPortrait(doctor.doctorName)}
+                          alt={`Portrait of ${doctor.doctorName}`}
+                          className="h-full w-full object-cover"
+                          onError={(event) => {
+                            event.currentTarget.classList.add("hidden");
+                            const fallback = event.currentTarget.nextElementSibling;
+                            fallback?.classList.remove("hidden");
+                            fallback?.classList.add("flex");
+                          }}
+                        />
+                        <span className="absolute inset-0 hidden items-center justify-center text-lg font-bold text-blue-700">{initials || "DR"}</span>
+                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-base font-bold text-slate-900">{doctor.doctorName}</span>
                         <span className="mt-1 block truncate text-sm font-medium text-blue-700">{doctor.specialization || "Specialty not specified"}</span>

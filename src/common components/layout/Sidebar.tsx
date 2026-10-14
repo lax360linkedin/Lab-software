@@ -17,6 +17,8 @@ import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
 import ScienceIcon from "@mui/icons-material/Science";
 import VerifiedIcon from "@mui/icons-material/Verified";
@@ -27,6 +29,9 @@ import { useAuth } from "../../components/auth/useAuth";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapsed: () => void;
+  onHoverExpandedChange: (expanded: boolean) => void;
 }
 
 interface MenuItem {
@@ -376,9 +381,11 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapsed, onHoverExpandedChange }: SidebarProps) => {
   const { user } = useAuth();
   const location = useLocation();
+  const [hoverExpanded, setHoverExpanded] = useState(false);
+  const showIconsOnly = isCollapsed && !hoverExpanded;
 
   const [openMenus, setOpenMenus] = useState<string[]>(() => {
     const initial = ["Patients"];
@@ -414,6 +421,16 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     );
   };
 
+  const toggleSidebarWidth = () => {
+    if (isCollapsed && hoverExpanded) {
+      setHoverExpanded(false);
+      onHoverExpandedChange(false);
+      return;
+    }
+
+    onToggleCollapsed();
+  };
+
   const visibleItems = menuItems.filter((item) =>
     item.roles.includes(user.role)
   );
@@ -427,7 +444,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         />
       )}
 
-      <aside className={`app-sidebar ${isOpen ? "sidebar-open" : ""}`}>
+      <aside
+        className={`app-sidebar ${isOpen ? "sidebar-open" : ""} ${showIconsOnly ? "sidebar-collapsed" : ""}`}
+        onMouseEnter={() => {
+          if (isCollapsed) {
+            setHoverExpanded(true);
+            onHoverExpandedChange(true);
+          }
+        }}
+        onMouseLeave={() => {
+          setHoverExpanded(false);
+          onHoverExpandedChange(false);
+        }}
+      >
         <div className="sidebar-header">
           <div className="sidebar-lab">
             <div className="sidebar-lab-icon">
@@ -445,6 +474,16 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               </span>
             </div>
           </div>
+
+          <button
+            type="button"
+            className="sidebar-collapse-toggle"
+            onClick={toggleSidebarWidth}
+            aria-label={showIconsOnly ? "Expand sidebar" : "Collapse sidebar"}
+            title={showIconsOnly ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {showIconsOnly ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+          </button>
 
           <button
             type="button"

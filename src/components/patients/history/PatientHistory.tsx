@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -212,21 +211,16 @@ const PatientHistory = () => {
   if (!patient) {
     return (
       <div className="min-h-full w-full px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-6 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/patients")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50"
-              title="Back to Patients"
-            >
-              <ArrowBackIcon fontSize="small" />
-            </button>
+        <div className="mb-6 flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600" aria-hidden="true">
+              <PersonOutlineOutlinedIcon fontSize="small" />
+            </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">Patient History</h1>
               <p className="mt-1 text-sm text-slate-500">Patient record could not be found</p>
             </div>
           </div>
+        <div className="mx-auto max-w-3xl">
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <PersonOutlineOutlinedIcon sx={{ fontSize: 42 }} className="text-slate-300" />
             <h2 className="mt-3 text-lg font-semibold text-slate-700">Patient Not Found</h2>
@@ -262,14 +256,9 @@ const PatientHistory = () => {
     <div className="min-h-full w-full px-4 py-5 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/patients")}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-blue-600"
-            title="Back to Patients"
-          >
-            <ArrowBackIcon fontSize="small" />
-          </button>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600" aria-hidden="true">
+            <PersonOutlineOutlinedIcon fontSize="small" />
+          </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">Patient History</h1>
             <p className="mt-1 text-sm text-slate-500">

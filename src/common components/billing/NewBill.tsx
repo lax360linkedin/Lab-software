@@ -691,7 +691,7 @@ const NewBill = () => {
                     >
                       Patient{" "}
                       <span className="text-red-500">
-                        *
+                        <span className="text-red-500">*</span>
                       </span>
                     </label>
 
