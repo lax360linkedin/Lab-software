@@ -29,6 +29,8 @@ const Layout = ({ children }: LayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarHoverExpanded, setSidebarHoverExpanded] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [globalToast, setGlobalToast] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState("");
@@ -207,6 +209,13 @@ const Layout = ({ children }: LayoutProps) => {
   const handleSearchKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
+    if (event.key === "Escape") {
+      setGlobalSearch("");
+      setSearchResults([]);
+      setSearchOpen(false);
+      return;
+    }
+
     if (event.key !== "Enter") {
       return;
     }
@@ -223,9 +232,12 @@ const Layout = ({ children }: LayoutProps) => {
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapsed={() => setSidebarCollapsed((collapsed) => !collapsed)}
+        onHoverExpandedChange={setSidebarHoverExpanded}
       />
 
-      <div className="app-main">
+      <div className={`app-main ${sidebarCollapsed && !sidebarHoverExpanded ? "sidebar-main-collapsed" : ""}`}>
         <header className="app-header">
           <div className="header-left">
             <button
@@ -257,11 +269,19 @@ const Layout = ({ children }: LayoutProps) => {
               <input
                 type="text"
                 value={globalSearch}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
                 onChange={(event) =>
                   handleGlobalSearch(
                     event.target.value
                   )
                 }
+                onBlur={() => {
+                  setGlobalSearch("");
+                  setSearchResults([]);
+                  setSearchOpen(false);
+                }}
                 onKeyDown={
                   handleSearchKeyDown
                 }
@@ -270,10 +290,9 @@ const Layout = ({ children }: LayoutProps) => {
               />
             </div>
 
-            {searchOpen && globalSearch.trim() && (
+            {searchOpen && globalSearch.trim() && searchResults.length > 0 && (
               <div className="global-search-results">
-                {searchResults.length > 0 ? (
-                  searchResults.map(
+                {searchResults.map(
                     (patient, index) => {
                       const patientId =
                         patient.patientId ?? "";
@@ -290,6 +309,7 @@ const Layout = ({ children }: LayoutProps) => {
                             `patient-${index}`
                           }
                           type="button"
+                          onMouseDown={(event) => event.preventDefault()}
                           className="global-search-result"
                           onClick={() =>
                             handlePatientSearch(
@@ -317,12 +337,7 @@ const Layout = ({ children }: LayoutProps) => {
                         </button>
                       );
                     }
-                  )
-                ) : (
-                  <div className="global-search-empty">
-                    No patient found
-                  </div>
-                )}
+                  )}
               </div>
             )}
           </div>

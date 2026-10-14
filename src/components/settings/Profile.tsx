@@ -5,6 +5,7 @@ import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutli
 import { useTheme, DEFAULT_AVATAR } from "../../context/ThemeContext";
 
 interface ProfileData {
+  avatarUrl: string;
   fullName: string;
   gender: string;
   dob: string;
@@ -18,6 +19,7 @@ interface ProfileData {
 }
 
 const DEFAULT_PROFILE: ProfileData = {
+  avatarUrl: DEFAULT_AVATAR,
   fullName: "Dr. John Smith",
   gender: "Male",
   dob: "12 May 1985",
@@ -37,7 +39,12 @@ export default function Profile() {
     const saved = localStorage.getItem("app_user_profile");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved) as Partial<ProfileData>;
+        return {
+          ...DEFAULT_PROFILE,
+          ...parsed,
+          avatarUrl: parsed.avatarUrl || DEFAULT_AVATAR,
+        };
       } catch {
         // fallback to default
       }
@@ -57,6 +64,20 @@ export default function Profile() {
   const handleOpenEdit = () => {
     setEditFormData(profileData);
     setIsEditing(true);
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setEditFormData((current) => ({ ...current, avatarUrl: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -81,7 +102,7 @@ export default function Profile() {
           <div className="flex flex-col items-center text-center md:col-span-4 lg:col-span-3 pt-4">
             <div className="relative">
               <img
-                src={DEFAULT_AVATAR}
+                src={profileData.avatarUrl}
                 alt={profileData.fullName}
                 className="h-36 w-36 rounded-full object-cover ring-4 ring-slate-100 shadow-sm"
               />
@@ -264,6 +285,23 @@ export default function Profile() {
               onSubmit={handleSave}
               className="flex-1 overflow-y-auto p-6 space-y-4 text-xs"
             >
+              <div className="flex flex-col items-center gap-3 border-b border-slate-100 pb-5">
+                <img
+                  src={editFormData.avatarUrl || DEFAULT_AVATAR}
+                  alt={`${editFormData.fullName} profile`}
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-slate-100"
+                />
+                <label className="cursor-pointer rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
+                  Change Profile Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
                   Full Name

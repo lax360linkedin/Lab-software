@@ -19,7 +19,7 @@ export const ACCENT_COLORS = [
 
 export const DEFAULT_ACCENT = "#020617";
 export const DEFAULT_AVATAR =
-  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80";
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=200&h=200&q=80";
 
 interface ThemeContextType {
   accentColor: string;

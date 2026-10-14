@@ -12,6 +12,10 @@
   @apply hidden h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-slate-400;
 }
 
+.sidebar-collapse-toggle {
+  @apply flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white;
+}
+
 .sidebar-lab {
   @apply mx-4 mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3;
 }
@@ -129,10 +133,91 @@
   @apply fixed inset-0 z-40 bg-black/40;
 }
 
+.app-sidebar {
+  transition: width 0.25s ease, transform 0.25s ease;
+}
+
+.app-sidebar.sidebar-collapsed {
+  width: 72px;
+}
+
+.sidebar-collapsed .sidebar-header {
+  @apply h-auto flex-col justify-center gap-2 px-2 py-3;
+}
+
+.sidebar-collapsed .sidebar-lab {
+  @apply m-0 border-0 bg-transparent p-0;
+}
+
+.sidebar-collapsed .sidebar-lab-info,
+.sidebar-collapsed .sidebar-nav-label,
+.sidebar-collapsed .sidebar-expand-icon,
+.sidebar-collapsed .sidebar-submenu,
+.sidebar-collapsed .sidebar-footer {
+  display: none;
+}
+
+.sidebar-collapsed .sidebar-collapse-toggle {
+  @apply h-7 w-7;
+}
+
+.sidebar-collapsed .sidebar-navigation {
+  @apply px-2;
+}
+
+.sidebar-collapsed .sidebar-nav-item {
+  @apply justify-center gap-0 px-0;
+}
+
 @media (max-width: 1024px) {
   .app-sidebar {
+    width: 270px;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
+  }
+
+  .app-sidebar.sidebar-collapsed {
+    width: 270px;
+  }
+
+  .sidebar-collapse-toggle {
+    display: none;
+  }
+
+  .sidebar-collapsed .sidebar-header {
+    @apply h-[76px] flex-row justify-between gap-0 px-5 py-0;
+  }
+
+  .sidebar-collapsed .sidebar-lab {
+    @apply mx-4 mt-4 border border-white/10 bg-white/5 px-3 py-3;
+  }
+
+  .sidebar-collapsed .sidebar-lab-info {
+    display: flex;
+  }
+
+  .sidebar-collapsed .sidebar-nav-label {
+    display: block;
+  }
+
+  .sidebar-collapsed .sidebar-expand-icon {
+    display: block;
+  }
+
+  .sidebar-collapsed .sidebar-submenu {
+    display: block;
+  }
+
+  .sidebar-collapsed .sidebar-footer {
+    display: flex;
+  }
+
+  .sidebar-collapsed .sidebar-navigation {
+    @apply px-3;
+  }
+
+  .sidebar-collapsed .sidebar-nav-item {
+    @apply justify-start gap-3 px-3;
   }
 
   .app-sidebar.sidebar-open {

@@ -7,6 +7,11 @@
 .app-main {
   @apply flex min-w-0 flex-1 flex-col;
   margin-left: 270px;
+  transition: margin-left 0.25s ease;
+}
+
+.app-main.sidebar-main-collapsed {
+  margin-left: 72px;
 }
 
 .app-header {
@@ -133,6 +138,10 @@
 
 @media (max-width: 1024px) {
   .app-main {
+    margin-left: 0;
+  }
+
+  .app-main.sidebar-main-collapsed {
     margin-left: 0;
   }
 

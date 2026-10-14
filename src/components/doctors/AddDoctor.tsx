@@ -27,6 +27,7 @@ const getInitialFormData = (doctor: Doctor | null) => {
         doctorCode: doctor.doctorCode,
         doctorName: doctor.doctorName,
         specialization: doctor.specialization,
+        hospitalClinic: doctor.hospitalClinic ?? "",
         phone: doctor.phone,
         email: doctor.email,
         address: doctor.address,
@@ -35,6 +36,32 @@ const getInitialFormData = (doctor: Doctor | null) => {
         notes: doctor.notes,
     };
 };
+
+const compressDoctorPhoto = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        image.onload = () => {
+            const maxSize = 480;
+            const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(image.width * scale);
+            canvas.height = Math.round(image.height * scale);
+            const context = canvas.getContext("2d");
+            URL.revokeObjectURL(objectUrl);
+            if (!context) {
+                reject(new Error("Could not process this image."));
+                return;
+            }
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.82));
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Could not read this image."));
+        };
+        image.src = objectUrl;
+    });
 
 const AddDoctor = ({
     editingDoctor,
@@ -52,6 +79,8 @@ const AddDoctor = ({
     const [referralType, setReferralType] = useState(initialForm.referralType);
     const [commissionApplicable, setCommissionApplicable] = useState(initialForm.commissionApplicable);
     const [notes, setNotes] = useState(initialForm.notes);
+    const [photoUrl, setPhotoUrl] = useState(editingDoctor?.photoUrl ?? "");
+    const [photoError, setPhotoError] = useState("");
     const isEditing = Boolean(editingDoctor);
 
     const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -123,6 +152,9 @@ const AddDoctor = ({
 
             notes: notes.trim(),
 
+            photoUrl,
+            hospitalClinic: hospitalClinic.trim(),
+
             status:
                 editingDoctor?.status ??
                 "Active",
@@ -180,6 +212,55 @@ const AddDoctor = ({
                     </div>
 
                     <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
+                        <div className="md:col-span-2">
+                            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="doctor-photo">
+                                Doctor Photo
+                            </label>
+                            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-slate-300 p-4 sm:flex-row sm:items-center">
+                                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-blue-50 text-xl font-bold text-blue-700 ring-1 ring-inset ring-blue-100">
+                                    {photoUrl ? (
+                                        <img src={photoUrl} alt="Doctor preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        doctorName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "DR"
+                                    )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <input
+                                        id="doctor-photo"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={async (event) => {
+                                            const file = event.target.files?.[0];
+                                            if (!file) return;
+                                            if (!file.type.startsWith("image/")) {
+                                                setPhotoError("Choose an image file.");
+                                                return;
+                                            }
+                                            if (file.size > 10 * 1024 * 1024) {
+                                                setPhotoError("Choose an image smaller than 10 MB.");
+                                                return;
+                                            }
+                                            try {
+                                                setPhotoError("");
+                                                setPhotoUrl(await compressDoctorPhoto(file));
+                                            } catch {
+                                                setPhotoError("Could not load this image. Try another file.");
+                                            }
+                                            event.target.value = "";
+                                        }}
+                                        className="block w-full cursor-pointer text-sm text-slate-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                    <p className="mt-2 text-xs text-slate-500">Upload a professional headshot. JPG, PNG, or WEBP up to 10 MB.</p>
+                                    {photoError && <p className="mt-1 text-xs text-red-600">{photoError}</p>}
+                                    {photoUrl && (
+                                        <button type="button" onClick={() => setPhotoUrl("")} className="mt-2 text-xs font-medium text-red-600 hover:text-red-700">
+                                            Remove photo
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Doctor Name */}
                         <div>
                             <label className="mb-1.5 block text-sm font-medium text-slate-700">
@@ -271,7 +352,7 @@ const AddDoctor = ({
                             <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Phone{" "}
                                 <span className="text-red-500">
-                                    *
+                                    <span className="text-red-500">*</span>
                                 </span>
                             </label>
 

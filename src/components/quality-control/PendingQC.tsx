@@ -79,6 +79,7 @@ interface StoredSample {
     qcBy?: string;
     qcRemarks?: string;
     qcStatus?: "Passed" | "Failed";
+    sentForVerification?: boolean;
 }
 
 const PendingQC = () => {
@@ -240,6 +241,7 @@ const PendingQC = () => {
                 qcTime,
                 qcBy,
                 qcRemarks: qcRemarks.trim(),
+                sentForVerification: false,
             };
         });
 
@@ -252,7 +254,7 @@ const PendingQC = () => {
         closeDrawers();
 
         if (result === "Passed") {
-            navigate("/verification/pending");
+            navigate("/qc/passed");
         }
     };
 
