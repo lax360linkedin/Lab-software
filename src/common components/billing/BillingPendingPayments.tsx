@@ -8,6 +8,10 @@ import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutli
 import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import Table from "../Table";
 import Pagination from "../Pagination";
 import "./NewBillPrint.css";
@@ -473,14 +477,14 @@ const BillingPendingPayments = () => {
 
                 {/* Header */}
                 <div className="border-b border-slate-200 bg-white">
-                    <div className="p-4 sm:p-6">
+                    <div className="px-4 py-3 sm:px-6 sm:py-3.5">
 
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                            <div className="flex items-start gap-3">
+                            <div className="flex items-center gap-3">
 
-                                <div aria-hidden="true" className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600">
-                                    <PaymentsOutlinedIcon fontSize="small" />
+                                <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-100 bg-amber-50 text-amber-600 shadow-sm">
+                                    <PaymentsOutlinedIcon />
                                 </div>
 
                                 <div>
@@ -715,16 +719,15 @@ const BillingPendingPayments = () => {
                         {/* Drawer Header */}
                         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
 
-                            <div>
-                                <h2 className="text-lg font-semibold text-slate-800">
+                            <div className="flex items-center gap-3">
+                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-700">
+                                    {drawerMode === "payment" ? <PaymentsOutlinedIcon /> : <ReceiptLongOutlinedIcon />}
+                                </span>
+                                <h2 className="drawer-topic-heading-has-icon text-xl font-bold text-slate-950">
                                     {drawerMode === "payment"
                                         ? "Collect Payment"
                                         : "View Bill"}
                                 </h2>
-
-                                <p className="mt-1 text-sm text-slate-500">
-                                    {selectedBill.billNumber}
-                                </p>
                             </div>
 
                             <button
@@ -740,21 +743,38 @@ const BillingPendingPayments = () => {
                         {/* Drawer Content */}
                         <div className="flex-1 overflow-y-auto p-5">
 
+                            {drawerMode === "view" && (
+                                <div className="mb-5 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                    <div>
+                                        <p className="text-xs font-semibold text-amber-700">
+                                            Payment Status
+                                        </p>
+                                        <p className="mt-1 text-base font-bold text-amber-900">
+                                            Pending Payment
+                                        </p>
+                                    </div>
+                                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                                        PENDING
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Patient Information */}
                             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
 
-                                <h3 className="mb-4 text-sm font-semibold text-slate-800">
-                                    Patient Information
+                                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-950">
+                                    <PersonOutlineOutlinedIcon className="text-blue-700" fontSize="small" />
+                                    <span>Patient Information</span>
                                 </h3>
 
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Patient Name
                                         </p>
 
-                                        <p className="mt-1 font-medium text-slate-800">
+                                        <p className="mt-1 font-semibold text-slate-950">
                                             {
                                                 selectedBill.patientName
                                             }
@@ -762,11 +782,11 @@ const BillingPendingPayments = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Patient ID
                                         </p>
 
-                                        <p className="mt-1 font-medium text-slate-800">
+                                        <p className="mt-1 font-semibold text-slate-950">
                                             {
                                                 selectedBill.patientId
                                             }
@@ -774,15 +794,24 @@ const BillingPendingPayments = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Doctor / Referral
                                         </p>
 
-                                        <p className="mt-1 font-medium text-slate-800">
+                                        <p className="mt-1 font-semibold text-slate-950">
                                             {
                                                 selectedBill.doctorReferral ||
                                                 "-"
                                             }
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-medium text-slate-700">
+                                            Bill Number
+                                        </p>
+                                        <p className="mt-1 font-semibold text-slate-950">
+                                            {selectedBill.billNumber}
                                         </p>
                                     </div>
 
@@ -795,8 +824,9 @@ const BillingPendingPayments = () => {
 
                                 <div className="mb-3 flex items-center justify-between">
 
-                                    <h3 className="text-sm font-semibold text-slate-800">
-                                        Bill Details
+                                    <h3 className="flex items-center gap-2 text-sm font-bold text-slate-950">
+                                        <ScienceOutlinedIcon className="text-violet-700" fontSize="small" />
+                                        <span>Bill Details</span>
                                     </h3>
 
                                     {drawerMode === "view" && (
@@ -956,7 +986,7 @@ const BillingPendingPayments = () => {
                                                                 }
                                                             </p>
 
-                                                            <p className="text-xs text-slate-500">
+                                                            <p className="text-xs text-slate-700">
                                                                 {
                                                                     test.category
                                                                 }
@@ -989,7 +1019,7 @@ const BillingPendingPayments = () => {
                                                                     className="w-16 rounded-md border border-slate-300 px-2 py-1.5 text-center text-sm outline-none focus:border-blue-500"
                                                                 />
                                                             ) : (
-                                                                <span className="text-slate-600">
+                                                                <span className="text-slate-800">
                                                                     {
                                                                         test.quantity
                                                                     }
@@ -1027,7 +1057,7 @@ const BillingPendingPayments = () => {
                                                                                 test.id
                                                                             )
                                                                         }
-                                                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                                                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-800 transition hover:bg-red-50 hover:text-red-600"
                                                                     >
                                                                         <DeleteOutlineOutlinedIcon fontSize="small" />
                                                                     </button>
@@ -1050,9 +1080,14 @@ const BillingPendingPayments = () => {
                             {/* Amount */}
                             <div className="mt-5 rounded-xl border border-slate-200 p-4">
 
+                                <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-950">
+                                    <AccountBalanceWalletOutlinedIcon className="text-emerald-700" fontSize="small" />
+                                    <span>Amount Summary</span>
+                                </h3>
+
                                 <div className="flex justify-between py-2 text-sm">
 
-                                    <span className="text-slate-500">
+                                    <span className="text-slate-700">
                                         Subtotal
                                     </span>
 
@@ -1074,14 +1109,14 @@ const BillingPendingPayments = () => {
 
                                 <div className="flex items-center justify-between py-2 text-sm">
 
-                                    <span className="text-slate-500">
+                                    <span className="text-slate-700">
                                         Discount
                                     </span>
 
                                     {drawerMode === "view" ? (
                                         <div className="flex items-center gap-2">
 
-                                            <span className="text-slate-500">
+                                            <span className="text-slate-700">
                                                 ₹
                                             </span>
 
@@ -1121,14 +1156,14 @@ const BillingPendingPayments = () => {
 
                                 <div className="flex items-center justify-between py-2 text-sm">
 
-                                    <span className="text-slate-500">
+                                    <span className="text-slate-700">
                                         Tax
                                     </span>
 
                                     {drawerMode === "view" ? (
                                         <div className="flex items-center gap-2">
 
-                                            <span className="text-slate-500">
+                                            <span className="text-slate-700">
                                                 ₹
                                             </span>
 
@@ -1194,9 +1229,10 @@ const BillingPendingPayments = () => {
                             {drawerMode === "payment" && (
                                 <div className="mt-5">
 
-                                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                                        Payment Method
-                                    </label>
+                                    <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-950">
+                                        <PaymentsOutlinedIcon className="text-emerald-700" fontSize="small" />
+                                        <span>Payment Method</span>
+                                    </h3>
 
                                     <select
                                         value={paymentMethod}

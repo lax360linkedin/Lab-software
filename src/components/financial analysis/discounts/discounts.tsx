@@ -358,22 +358,27 @@ const Discounts = () => {
     <div className="discounts-page space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-              Financial Analysis
-            </span>
-            <span className="text-xs text-slate-300">•</span>
-            <span className="text-xs font-medium text-slate-500">
-              Concessions & Waivers
-            </span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-purple-50 text-purple-600 shadow-sm">
+            <PercentOutlinedIcon />
           </div>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Discounts & Concessions
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Auditing authorized fee concessions, promotional voucher deductions, and institutional tie-ups.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Financial Analysis
+              </span>
+              <span className="text-xs text-slate-300">•</span>
+              <span className="text-xs font-medium text-slate-500">
+                Concessions & Waivers
+              </span>
+            </div>
+            <h2 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
+              Discounts & Concessions
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Auditing authorized fee concessions, promotional voucher deductions, and institutional tie-ups.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">

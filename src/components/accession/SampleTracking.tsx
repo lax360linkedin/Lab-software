@@ -580,8 +580,8 @@ const SampleTracking = () => {
             {/* Header */}
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                    <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm">
-                        <QrCode2Icon fontSize="small" />
+                    <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-purple-50 text-purple-600 shadow-sm">
+                        <QrCode2Icon />
                     </div>
 
                     <div>

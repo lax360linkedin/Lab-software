@@ -38,6 +38,154 @@ const Layout = ({ children }: LayoutProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
+    const topics = [
+      { match: /patient/i, path: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+      { match: /bill|invoice/i, path: "M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8zm0 2 4 4h-4zm-6 8h8v2H8zm0 4h8v2H8z", color: "#4f46e5", bg: "#eef2ff", border: "#c7d2fe" },
+      { match: /test|analysis/i, path: "M9 3v2l1 1v5.59L4.59 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.41-3L14 11.59V6l1-1V3H9zm3 9 5 6H7l5-6z", color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+      { match: /sample|specimen/i, path: "M9 2v2h1v5.59l-5.7 7.6A3 3 0 0 0 6.7 22h10.6a3 3 0 0 0 2.4-4.8L14 9.59V4h1V2zm3 9 5.7 7.6a1 1 0 0 1-.8 1.6H6.7a1 1 0 0 1-.8-1.6z", color: "#0891b2", bg: "#ecfeff", border: "#a5f3fc" },
+      { match: /amount|payment|subtotal|total/i, path: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4v-6h16zm0-10H4V6h16z", color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
+      { match: /quality|\bqc\b|verified/i, path: "M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm-1 16-4-4 1.41-1.41L11 14.17l5.59-5.58L18 10z", color: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
+      { match: /result/i, path: "M3 17h18v2H3zm1-2 5-6 4 3 6-8 2 1.5-7.2 9.5-4.2-3.2L5.6 16z", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
+      { match: /report|document/i, path: "M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8zm0 2 4 4h-4zm-6 8h8v2H8zm0 4h8v2H8z", color: "#4f46e5", bg: "#eef2ff", border: "#c7d2fe" },
+      { match: /doctor|referral/i, path: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z", color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc" },
+      { match: /equipment|instrument/i, path: "M22.7 19 13.6 9.9a6 6 0 0 0-7.7-7.2l3.5 3.5-3.2 3.2-3.5-3.5a6 6 0 0 0 7.2 7.7l9.1 9.1a1.2 1.2 0 0 0 1.7 0l2-2a1.2 1.2 0 0 0 0-1.7z", color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+      { match: /department|laboratory|\blab\b/i, path: "M3 21V3h12v4h6v14H3zm2-2h8V5H5zm10 0h4V9h-4zM7 7h2v2H7zm4 0h2v2h-2zM7 11h2v2H7zm4 0h2v2h-2z", color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc" },
+      { match: /staff|role|permission|user/i, path: "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13z", color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+      { match: /expense|category|vendor/i, path: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5zm-2 14H7v-2h10zm0-4H7v-2h10zm0-4H7V7h10z", color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
+      { match: /history|timeline/i, path: "M13 3a9 9 0 0 0-9 9H1l4 4 4-4H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5l4.25 2.52 1.03-1.71L14 12V8z", color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc" },
+      { match: /status|details|information|summary/i, path: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z", color: "#475569", bg: "#f1f5f9", border: "#cbd5e1" },
+    ];
+
+    const enhancePanel = (panel: HTMLElement) => {
+      panel.classList.add("app-enhanced-drawer");
+      panel.querySelectorAll<HTMLElement>("h2, h3").forEach((heading) => {
+        if (heading.tagName.toLowerCase() === "h2") {
+          let headerRow = heading.parentElement;
+          while (headerRow && headerRow !== panel) {
+            if (headerRow.classList.contains("justify-between") && headerRow.querySelector("button")) {
+              headerRow.querySelectorAll<HTMLButtonElement>("button").forEach((button) =>
+                button.classList.add("app-drawer-close-button")
+              );
+              break;
+            }
+            headerRow = headerRow.parentElement;
+          }
+        }
+        if (!heading.dataset.drawerHeadingEnhanced) {
+          heading.dataset.drawerHeadingEnhanced = "true";
+          const headingText = heading.textContent?.trim() ?? "";
+          const topic = topics.find(({ match }) => match.test(headingText)) ?? topics[topics.length - 1];
+          const svg = `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"${topic.color}\" d=\"${topic.path}\"/></svg>`;
+          heading.style.setProperty("--drawer-topic-icon", `url("data:image/svg+xml,${encodeURIComponent(svg)}")`);
+          heading.style.setProperty("--drawer-topic-color", topic.color);
+          heading.style.setProperty("--drawer-topic-bg", topic.bg);
+          heading.style.setProperty("--drawer-topic-border", topic.border);
+          heading.classList.add("drawer-topic-heading", "font-bold", "text-slate-950");
+
+          let cursor = heading;
+          let existingIcon: Element | null = null;
+          const headingIcon = heading.querySelector("svg");
+          if (headingIcon) {
+            existingIcon = headingIcon;
+            headingIcon.setAttribute("class", `${headingIcon.getAttribute("class") ?? ""} drawer-topic-existing-icon`);
+          }
+          const directPrevious = heading.previousElementSibling;
+          const directIcon = existingIcon ?? directPrevious?.querySelector("svg") ??
+            (directPrevious?.tagName.toLowerCase() === "svg" ? directPrevious : null);
+          if (directIcon) {
+            existingIcon = directIcon;
+            if (directPrevious instanceof HTMLElement && directPrevious.tagName.toLowerCase() !== "svg") {
+              directPrevious.classList.add("drawer-topic-icon-box");
+              directPrevious.style.setProperty("--drawer-topic-color", topic.color);
+              directPrevious.style.setProperty("--drawer-topic-bg", topic.bg);
+              directPrevious.style.setProperty("--drawer-topic-border", topic.border);
+            } else {
+              directIcon.setAttribute("class", `${directIcon.getAttribute("class") ?? ""} drawer-topic-existing-icon`);
+            }
+          }
+          while (cursor.parentElement && cursor.parentElement !== panel) {
+            if (existingIcon) break;
+            const previous = cursor.parentElement.previousElementSibling;
+            const candidate = previous?.querySelector("svg") ?? (previous?.tagName.toLowerCase() === "svg" ? previous : null);
+            if (candidate) {
+              existingIcon = candidate;
+              if (previous instanceof HTMLElement && previous.tagName.toLowerCase() !== "svg") {
+                previous.classList.add("drawer-topic-icon-box");
+                previous.style.setProperty("--drawer-topic-color", topic.color);
+                previous.style.setProperty("--drawer-topic-bg", topic.bg);
+                previous.style.setProperty("--drawer-topic-border", topic.border);
+              } else {
+                candidate.setAttribute("class", `${candidate.getAttribute("class") ?? ""} drawer-topic-existing-icon`);
+              }
+              break;
+            }
+            cursor = cursor.parentElement;
+          }
+          if (existingIcon) heading.classList.add("drawer-topic-heading-has-icon");
+        }
+
+        // Recheck on every mutation: React may mount the heading before its real icon.
+        // If one appears later, suppress the generated pseudo-icon to avoid duplicates.
+        const activeHeadingText = heading.textContent?.trim() ?? "";
+        const activeTopic = topics.find(({ match }) => match.test(activeHeadingText)) ?? topics[topics.length - 1];
+        let liveIcon: Element | null = heading.querySelector("svg");
+        let iconWrapper: Element | null = null;
+        let iconCursor = heading;
+        while (!liveIcon && iconCursor.parentElement && iconCursor.parentElement !== panel) {
+          const previous = iconCursor.parentElement.previousElementSibling;
+          liveIcon = previous?.querySelector("svg") ??
+            (previous?.tagName.toLowerCase() === "svg" ? previous : null);
+          if (liveIcon) iconWrapper = previous;
+          iconCursor = iconCursor.parentElement;
+        }
+        if (liveIcon) {
+          heading.classList.add("drawer-topic-heading-has-icon");
+          if (!liveIcon.classList.contains("drawer-topic-existing-icon")) {
+            liveIcon.classList.add("drawer-topic-existing-icon");
+          }
+          if (iconWrapper instanceof HTMLElement && iconWrapper.tagName.toLowerCase() !== "svg") {
+            iconWrapper.classList.add("drawer-topic-icon-box");
+            iconWrapper.style.setProperty("--drawer-topic-color", activeTopic.color);
+            iconWrapper.style.setProperty("--drawer-topic-bg", activeTopic.bg);
+            iconWrapper.style.setProperty("--drawer-topic-border", activeTopic.border);
+          }
+        }
+      });
+
+      panel.querySelectorAll<HTMLElement>("p, span, label, th, td, li").forEach((node) => {
+        if (node.dataset.drawerTextEnhanced) return;
+        const muted = [...node.classList].filter((name) =>
+          /^(text-(slate|gray)-(400|500|600))$/.test(name)
+        );
+        if (muted.length) {
+          node.classList.remove(...muted);
+          node.classList.add("text-slate-800");
+          node.dataset.drawerTextEnhanced = "true";
+        }
+      });
+    };
+
+    const scan = () => {
+      document.querySelectorAll<HTMLButtonElement>("button").forEach((button) => {
+        if (button.textContent?.trim().toLowerCase() === "cancel") {
+          button.classList.add("app-cancel-button");
+        }
+      });
+      document.querySelectorAll<HTMLElement>(".fixed, .absolute, aside").forEach((panel) => {
+        if (!panel.querySelector("h2, h3")) return;
+        const isRightDrawer = panel.classList.contains("right-0") ||
+          (panel.classList.contains("fixed") && panel.classList.contains("justify-end"));
+        if (isRightDrawer) enhancePanel(panel);
+      });
+    };
+
+    scan();
+    const observer = new MutationObserver(scan);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const originalAlert = window.alert;
     window.alert = (msg?: unknown) => {
       setGlobalToast(String(msg ?? ""));

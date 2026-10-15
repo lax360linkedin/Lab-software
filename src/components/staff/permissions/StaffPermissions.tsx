@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
+import KeyOutlinedIcon from "@mui/icons-material/KeyOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
@@ -227,18 +228,23 @@ export default function StaffPermissions() {
     <div className="staff-permissions-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span>Staff / Users</span>
-            <span>•</span>
-            <span className="text-purple-600 font-semibold">Section 26 • Role Permissions</span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-purple-50 text-purple-600 shadow-sm">
+            <KeyOutlinedIcon />
           </div>
-          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Access Permissions Matrix
-          </h1>
-          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            Control module permissions for the 3 primary roles: <strong>Admin</strong>, <strong>Receptionist</strong>, and <strong>Lab Technician</strong>.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span>Staff / Users</span>
+              <span>•</span>
+              <span className="text-purple-600 font-semibold">Section 26 • Role Permissions</span>
+            </div>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Access Permissions Matrix
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Control module permissions for the 3 primary roles: <strong>Admin</strong>, <strong>Receptionist</strong>, and <strong>Lab Technician</strong>.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

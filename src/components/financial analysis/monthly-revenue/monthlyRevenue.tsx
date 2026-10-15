@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import EventRepeatOutlinedIcon from "@mui/icons-material/EventRepeatOutlined";
@@ -314,22 +315,27 @@ const MonthlyRevenue = () => {
     <div className="monthly-revenue-page space-y-6">
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-              Financial Analysis
-            </span>
-            <span className="text-xs text-slate-300">•</span>
-            <span className="text-xs font-medium text-slate-500">
-              Annual & Quarterly Performance
-            </span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm">
+            <CalendarMonthOutlinedIcon />
           </div>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Monthly Revenue
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Month-on-month laboratory revenue progression, test volume throughput, and quarterly fiscal trends.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Financial Analysis
+              </span>
+              <span className="text-xs text-slate-300">•</span>
+              <span className="text-xs font-medium text-slate-500">
+                Annual & Quarterly Performance
+              </span>
+            </div>
+            <h2 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
+              Monthly Revenue
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Month-on-month laboratory revenue progression, test volume throughput, and quarterly fiscal trends.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">

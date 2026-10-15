@@ -422,8 +422,8 @@ const ReceivedSamples = () => {
 
             <div className="mb-6 flex items-center gap-3">
 
-                <div aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
-                    <ScienceOutlinedIcon fontSize="small" />
+                <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm">
+                    <ScienceOutlinedIcon />
                 </div>
 
                 <div>

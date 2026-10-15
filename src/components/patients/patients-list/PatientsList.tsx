@@ -12,6 +12,7 @@ import Table from "../../../common components/Table";
 import Pagination from "../../../common components/Pagination";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 
 interface SelectedTest {
   testId: string;
@@ -289,16 +290,21 @@ const PatientList = () => {
 
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">
-            Patients
-          </h1>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm">
+            <PeopleAltOutlinedIcon />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">
+              Patients
+            </h1>
 
-          <p className="mt-1 text-sm text-slate-500">
-            {showExistingPatients
-              ? "Search existing patients and register a new visit without creating a duplicate patient."
-              : "Manage patient registrations, details and history."}
-          </p>
+            <p className="mt-1 text-sm text-slate-500">
+              {showExistingPatients
+                ? "Search existing patients and register a new visit without creating a duplicate patient."
+                : "Manage patient registrations, details and history."}
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -437,7 +443,7 @@ const PatientList = () => {
                         {patient.requiredTests
                           .length > 2 && (
                           <span className="inline-flex shrink-0 items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                            +{patient.requiredTests.length - 2}more...
+                            +{patient.requiredTests.length - 2} more...
                           </span>
                         )}
                       </>

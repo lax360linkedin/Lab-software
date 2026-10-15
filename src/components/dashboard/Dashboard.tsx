@@ -223,7 +223,9 @@ const Dashboard = ({ role }: DashboardProps) => {
       title: "Enter Result",
       description: "Enter test results",
       icon: DescriptionOutlinedIcon,
-      path: "/results/enter",
+      // Result entry is opened from the pending-results queue, which provides
+      // the sample selection and routes each row to its sample-specific form.
+      path: "/results/pending-results",
       roles: ["admin", "lab_technician"] as UserRole[],
     },
   ];

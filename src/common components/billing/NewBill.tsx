@@ -8,7 +8,6 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import LocalHospitalOutlinedIcon from "@mui/icons-material/LocalHospitalOutlined";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 
 /* =========================================================
    TYPES
@@ -304,9 +303,9 @@ const NewBill = () => {
       )
     );
 
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState("0");
 
-  const [tax, setTax] = useState(0);
+  const [tax, setTax] = useState("0");
 
   const [paymentMethod, setPaymentMethod] =
     useState("Cash");
@@ -562,8 +561,8 @@ const NewBill = () => {
 
             <div className="flex items-center gap-3">
 
-              <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
-                <ReceiptLongOutlinedIcon fontSize="small" />
+              <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm">
+                <ReceiptLongOutlinedIcon />
               </div>
 
               <div>
@@ -1231,19 +1230,19 @@ const NewBill = () => {
 
                 </div>
 
-                <div className="space-y-5 p-5">
+                <div className="space-y-4 p-5">
 
                   {/* PATIENT SUMMARY */}
 
-                  <div className="rounded-lg bg-slate-50 p-4">
+                  <div className="grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-4">
 
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
 
                       <span className="text-xs font-medium text-slate-500">
                         Patient
                       </span>
 
-                      <span className="max-w-[170px] truncate text-right text-sm font-semibold text-slate-700">
+                      <span className="mt-1 block max-w-full truncate text-sm font-semibold text-slate-700">
                         {
                           selectedPatient?.patientName ||
                           "Not selected"
@@ -1252,13 +1251,13 @@ const NewBill = () => {
 
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
 
                       <span className="text-xs font-medium text-slate-500">
                         Patient ID
                       </span>
 
-                      <span className="text-sm font-semibold text-slate-700">
+                      <span className="mt-1 block truncate text-sm font-semibold text-slate-700">
                         {
                           selectedPatient?.patientId ||
                           "—"
@@ -1328,14 +1327,12 @@ const NewBill = () => {
                             type="number"
                             min="0"
                             value={discount}
+                            onFocus={(event) => event.currentTarget.select()}
+                            onBlur={() => {
+                              if (discount === "") setDiscount("0");
+                            }}
                             onChange={(event) =>
-                              setDiscount(
-                                Number(
-                                  event
-                                    .target
-                                    .value
-                                )
-                              )
+                              setDiscount(event.target.value)
                             }
                             className="h-9 w-full rounded-lg border border-slate-200 pl-6 pr-2 text-right text-sm outline-none focus:border-blue-500"
                           />
@@ -1366,14 +1363,12 @@ const NewBill = () => {
                             type="number"
                             min="0"
                             value={tax}
+                            onFocus={(event) => event.currentTarget.select()}
+                            onBlur={() => {
+                              if (tax === "") setTax("0");
+                            }}
                             onChange={(event) =>
-                              setTax(
-                                Number(
-                                  event
-                                    .target
-                                    .value
-                                )
-                              )
+                              setTax(event.target.value)
                             }
                             className="h-9 w-full rounded-lg border border-slate-200 pl-6 pr-2 text-right text-sm outline-none focus:border-blue-500"
                           />
@@ -1402,33 +1397,6 @@ const NewBill = () => {
                           "en-IN"
                         )}
                       </p>
-
-                    </div>
-
-                  </div>
-
-                  {/* PAYMENT STATUS */}
-
-                  <div className="rounded-lg border border-slate-200 p-4">
-
-                    <div className="flex items-center gap-2">
-
-                      <CheckCircleOutlineOutlinedIcon
-                        fontSize="small"
-                        className="text-emerald-500"
-                      />
-
-                      <div>
-
-                        <p className="text-xs font-semibold text-slate-700">
-                          Payment Status
-                        </p>
-
-                        <p className="mt-0.5 text-xs text-slate-400">
-                          Bill will be created as pending
-                        </p>
-
-                      </div>
 
                     </div>
 

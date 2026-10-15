@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
+import FormatListBulletedOutlinedIcon from "@mui/icons-material/FormatListBulletedOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
@@ -319,18 +320,23 @@ export default function ExpenseList() {
     <div className="expense-list-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span>Expenses</span>
-            <span>•</span>
-            <span className="text-blue-600 font-semibold">Section 24.4 Ledger</span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm">
+            <FormatListBulletedOutlinedIcon />
           </div>
-          <h1 className="mt-0.5 text-2xl font-bold text-slate-900 sm:text-3xl">
-            Expense List
-          </h1>
-          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            Complete transaction register of operational costs, diagnostic kits, vendor bills, and audit logs.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span>Expenses</span>
+              <span>•</span>
+              <span className="text-blue-600 font-semibold">Section 24.4 Ledger</span>
+            </div>
+            <h1 className="mt-0.5 text-2xl font-bold text-slate-900 sm:text-3xl">
+              Expense List
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Complete transaction register of operational costs, diagnostic kits, vendor bills, and audit logs.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

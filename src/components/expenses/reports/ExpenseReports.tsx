@@ -335,18 +335,23 @@ export default function ExpenseReports() {
     <div className="expense-reports-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span>Expenses</span>
-            <span>•</span>
-            <span className="text-purple-600 font-semibold">Audit Ledger</span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-purple-50 text-purple-600 shadow-sm">
+            <RequestQuoteOutlinedIcon />
           </div>
-          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Lab Expense & GST Audit Reports
-          </h1>
-          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            Generate statement ledgers, tax claimable summaries, and departmental cost allocations.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span>Expenses</span>
+              <span>•</span>
+              <span className="text-purple-600 font-semibold">Audit Ledger</span>
+            </div>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Lab Expense & GST Audit Reports
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Generate statement ledgers, tax claimable summaries, and departmental cost allocations.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

@@ -213,18 +213,23 @@ export default function StaffRoles() {
     <div className="staff-roles-page min-h-full w-full px-4 py-5 sm:px-6 lg:px-8 space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span>Staff / Users</span>
-            <span>•</span>
-            <span className="text-blue-600 font-semibold">Access Roles</span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm">
+            <AdminPanelSettingsOutlinedIcon />
           </div>
-          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Staff Roles & Access Tiers
-          </h1>
-          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            Define role boundaries, security tiers, and module privilege assignments across clinical workflows.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span>Staff / Users</span>
+              <span>•</span>
+              <span className="text-blue-600 font-semibold">Access Roles</span>
+            </div>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Staff Roles & Access Tiers
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Define role boundaries, security tiers, and module privilege assignments across clinical workflows.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -392,7 +397,7 @@ export default function StaffRoles() {
 
                   <td className="px-4 py-3.5 text-left max-w-xs">
                     <div className="flex flex-wrap gap-1">
-                      {role.keyPrivileges.map((priv, idx) => (
+                      {role.keyPrivileges.slice(0, 2).map((priv, idx) => (
                         <span
                           key={idx}
                           className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700"
@@ -400,6 +405,11 @@ export default function StaffRoles() {
                           {priv}
                         </span>
                       ))}
+                      {role.keyPrivileges.length > 2 && (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                          +{role.keyPrivileges.length - 2} more...
+                        </span>
+                      )}
                     </div>
                   </td>
 

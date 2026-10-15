@@ -521,8 +521,8 @@ const collectionSamples = useMemo(() => {
             <div className="mb-6 flex flex-col gap-4">
                 <div className="flex items-center gap-3">
 
-                    <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
-                        <Inventory2OutlinedIcon fontSize="small" />
+                    <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm">
+                        <Inventory2OutlinedIcon />
                     </div>
 
                     <div>

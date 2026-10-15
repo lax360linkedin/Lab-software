@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 import type { Doctor, Referral } from "../../doctors/Doctor";
-import type { LabTest } from "../../tests/Tests";
+import { getStoredTests, type LabTest } from "../../tests/Tests";
 
 interface SelectedTest {
   testId: string;
@@ -22,6 +24,7 @@ interface FormData {
   gender: string;
   phone: string;
   address: string;
+  email: string;
   doctorId: string;
   doctorReferral: string;
   requiredTests: string[];
@@ -30,7 +33,6 @@ interface FormData {
 const DOCTOR_STORAGE_KEY = "lab_doctors";
 const PATIENT_STORAGE_KEY = "lab_patients";
 const REFERRAL_STORAGE_KEY = "lab_referrals";
-const TEST_STORAGE_KEY = "lab_tests";
 
 interface StoredPatient {
   patientId?: string;
@@ -39,6 +41,7 @@ interface StoredPatient {
   gender?: string;
   phone?: string;
   address?: string;
+  email?: string;
   doctorId?: string;
   doctorReferral?: string;
   registrationDate?: string;
@@ -94,22 +97,6 @@ const getReferrals = (): Referral[] => {
     const parsedReferrals = JSON.parse(storedReferrals);
 
     return Array.isArray(parsedReferrals) ? parsedReferrals : [];
-  } catch {
-    return [];
-  }
-};
-
-const getTests = (): LabTest[] => {
-  const storedTests = localStorage.getItem(TEST_STORAGE_KEY);
-
-  if (!storedTests) {
-    return [];
-  }
-
-  try {
-    const parsedTests = JSON.parse(storedTests);
-
-    return Array.isArray(parsedTests) ? parsedTests : [];
   } catch {
     return [];
   }
@@ -200,7 +187,8 @@ export default function NewRegistration() {
   const existingPatientId = searchParams.get("patientId");
   const isExistingPatient = Boolean(existingPatientId);
   const [doctors] = useState<Doctor[]>(() => getDoctors());
-  const [tests] = useState<LabTest[]>(() => getTests());
+  const [tests] = useState<LabTest[]>(() => getStoredTests());
+  const [testSearch, setTestSearch] = useState("");
 
   const existingPatient = getExistingPatient(existingPatientId);
 
@@ -210,11 +198,11 @@ export default function NewRegistration() {
     gender: existingPatient?.gender ?? "",
     phone: (existingPatient?.phone ?? "").replace(/\D/g, "").slice(0, 10),
     address: existingPatient?.address ?? "",
+    email: existingPatient?.email ?? "",
     doctorId: existingPatient?.doctorId ?? "",
     doctorReferral: existingPatient?.doctorReferral ?? "",
     requiredTests: [],
   }));
-
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -224,6 +212,7 @@ export default function NewRegistration() {
     registrationId: string;
     patientName: string;
     doctorName: string;
+    email?: string;
     tests: SelectedTest[];
   } | null>(null);
 
@@ -243,6 +232,19 @@ export default function NewRegistration() {
   };
 
   const handleDoctorChange = (doctorId: string) => {
+    if (doctorId === "SELF") {
+      setFormData((previous) => ({
+        ...previous,
+        doctorId: "SELF",
+        doctorReferral: "Self Referral",
+      }));
+      setErrors((previous) => ({
+        ...previous,
+        doctorId: "",
+      }));
+      return;
+    }
+
     const selectedDoctor = doctors.find(
       (doctor) => doctor.id === doctorId
     );
@@ -301,6 +303,12 @@ export default function NewRegistration() {
       newErrors.phone = "Enter exactly 10 digits";
     }
 
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = "Enter a valid email address";
+    }
+
     if (!formData.doctorId) {
       newErrors.doctorId =
         "Please select the concerned doctor";
@@ -325,9 +333,23 @@ export default function NewRegistration() {
       return;
     }
 
-    const selectedDoctor = doctors.find(
-      (doctor) => doctor.id === formData.doctorId
-    );
+    const isSelf = formData.doctorId === "SELF";
+    const selectedDoctor = isSelf
+      ? {
+          id: "SELF",
+          doctorCode: "SELF",
+          doctorName: "Self Referral",
+          specialization: "General / Walk-in",
+          phone: "-",
+          email: "-",
+          address: "-",
+          referralType: "Direct",
+          commissionApplicable: false,
+          notes: "Walk-in patient without external doctor",
+          status: "Active" as const,
+          createdAt: new Date().toISOString(),
+        }
+      : doctors.find((doctor) => doctor.id === formData.doctorId);
 
     if (!selectedDoctor) {
       setErrors({
@@ -382,6 +404,7 @@ export default function NewRegistration() {
       gender: formData.gender,
       phone: formData.phone.trim(),
       address: formData.address.trim(),
+      email: formData.email.trim(),
       doctorId: selectedDoctor.id,
       doctorReferral: selectedDoctor.doctorName,
       requiredTests: selectedTests,
@@ -457,6 +480,7 @@ export default function NewRegistration() {
       registrationId,
       patientName: formData.patientName.trim(),
       doctorName: selectedDoctor.doctorName,
+      email: formData.email.trim(),
       tests: selectedTests,
     });
 
@@ -536,6 +560,19 @@ export default function NewRegistration() {
                   {registeredPatient.doctorName}
                 </p>
               </div>
+
+              {/* Email / Gmail */}
+              {registeredPatient.email && (
+                <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
+                  <p className="text-xs font-medium text-slate-500">
+                    Email / Gmail
+                  </p>
+
+                  <p className="mt-1 font-semibold text-slate-800">
+                    {registeredPatient.email}
+                  </p>
+                </div>
+              )}
 
               {/* Selected Tests */}
               <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
@@ -625,70 +662,78 @@ export default function NewRegistration() {
     );
   }
 
+  const activeTests = tests.filter((test) => test.status !== "Inactive");
+  const query = testSearch.trim().toLowerCase();
+  const visibleTests = activeTests.filter((test) =>
+    !query ||
+    String(test.testCode || "").toLowerCase().includes(query) ||
+    String(test.testName || "").toLowerCase().includes(query) ||
+    String(test.category || "").toLowerCase().includes(query)
+  );
+
   /*
    * REGISTRATION FORM
    */
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="w-full">
       {/* HEADER */}
-        <div className="mb-6 flex items-center gap-3">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm"
             aria-hidden="true"
           >
-            <PersonAddOutlinedIcon />
+            <PersonAddOutlinedIcon fontSize="small" />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-xl font-bold text-slate-800">
               {isExistingPatient ? "Register New Visit" : "New Patient Registration"}
             </h1>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Register a patient and assign the concerned doctor.
+            <p className="text-xs text-slate-500">
+              Register patient, assign doctor/self, and select tests.
             </p>
           </div>
         </div>
+      </div>
 
-      <div className="mx-auto max-w-5xl">
-
+      <div className="mx-auto max-w-4xl">
         {existingPatientId && !existingPatient && (
           <div
             role="alert"
-            className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
           >
             <p className="font-semibold">Existing patient could not be found.</p>
-            <p className="mt-1">
+            <p className="mt-0.5">
               Return to the existing patient list and select a valid patient before
               registering a new visit.
             </p>
             <button
               type="button"
               onClick={() => navigate("/patients/existing")}
-              className="mt-2 font-semibold underline underline-offset-2"
+              className="mt-1 font-semibold underline underline-offset-2"
             >
               Back to Existing Patients
             </button>
           </div>
         )}
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
           {/* PATIENT INFORMATION */}
-          <div className="mb-8">
-            <div className="mb-5 flex items-center gap-2">
-              <PersonAddOutlinedIcon className="text-blue-600" />
+          <div className="mb-4">
+            <div className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2">
+              <PersonAddOutlinedIcon className="text-blue-600" fontSize="small" />
 
-              <h2 className="text-lg font-semibold text-slate-800">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                 Patient Information
               </h2>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
-
+            <div className="grid gap-3 sm:grid-cols-2">
               {/* Patient Name */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
                   Patient Name <span className="text-red-500">*</span>
                 </label>
 
@@ -696,17 +741,14 @@ export default function NewRegistration() {
                   type="text"
                   value={formData.patientName}
                   onChange={(event) =>
-                    handleChange(
-                      "patientName",
-                      event.target.value
-                    )
+                    handleChange("patientName", event.target.value)
                   }
                   placeholder="Enter patient name"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="h-9 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
 
                 {errors.patientName && (
-                  <p className="mt-1 text-xs text-red-500">
+                  <p className="mt-0.5 text-[11px] text-red-500">
                     {errors.patientName}
                   </p>
                 )}
@@ -714,7 +756,7 @@ export default function NewRegistration() {
 
               {/* Age */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
                   Age <span className="text-red-500">*</span>
                 </label>
 
@@ -723,17 +765,14 @@ export default function NewRegistration() {
                   min="0"
                   value={formData.age}
                   onChange={(event) =>
-                    handleChange(
-                      "age",
-                      event.target.value
-                    )
+                    handleChange("age", event.target.value)
                   }
                   placeholder="Enter age"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="h-9 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
 
                 {errors.age && (
-                  <p className="mt-1 text-xs text-red-500">
+                  <p className="mt-0.5 text-[11px] text-red-500">
                     {errors.age}
                   </p>
                 )}
@@ -741,31 +780,25 @@ export default function NewRegistration() {
 
               {/* Gender */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
                   Gender <span className="text-red-500">*</span>
                 </label>
 
                 <select
                   value={formData.gender}
                   onChange={(event) =>
-                    handleChange(
-                      "gender",
-                      event.target.value
-                    )
+                    handleChange("gender", event.target.value)
                   }
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
-                  <option value="">
-                    Select gender
-                  </option>
-
+                  <option value="">Select gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
 
                 {errors.gender && (
-                  <p className="mt-1 text-xs text-red-500">
+                  <p className="mt-0.5 text-[11px] text-red-500">
                     {errors.gender}
                   </p>
                 )}
@@ -773,7 +806,7 @@ export default function NewRegistration() {
 
               {/* Phone */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
                   Phone <span className="text-red-500">*</span>
                 </label>
 
@@ -783,261 +816,250 @@ export default function NewRegistration() {
                   maxLength={10}
                   pattern="[0-9]{10}"
                   value={formData.phone}
-                  onChange={(event) => handleChange("phone", event.target.value.replace(/\D/g, "").slice(0, 10))}
-                  placeholder="Enter phone number"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  onChange={(event) =>
+                    handleChange("phone", event.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                  placeholder="Enter 10-digit phone number"
+                  className="h-9 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
 
                 {errors.phone && (
-                  <p className="mt-1 text-xs text-red-500">
+                  <p className="mt-0.5 text-[11px] text-red-500">
                     {errors.phone}
                   </p>
                 )}
               </div>
 
               {/* Address */}
-              <div className="md:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
                   Address
                 </label>
 
                 <textarea
-                  rows={3}
                   value={formData.address}
                   onChange={(event) =>
-                    handleChange(
-                      "address",
-                      event.target.value
-                    )
+                    handleChange("address", event.target.value)
                   }
                   placeholder="Enter patient address"
-                  className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  rows={3}
+                  className="min-h-20 w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
+              </div>
+
+              {/* Email / Gmail */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  Email / Gmail <span className="text-red-500">*</span>
+                </label>
+
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(event) =>
+                    handleChange("email", event.target.value)
+                  }
+                  placeholder="Enter email (e.g. patient@gmail.com)"
+                  className="h-9 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+                {errors.email && (
+                  <p className="mt-0.5 text-[11px] text-red-500">
+                    {errors.email}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* DOCTOR / REFERRAL */}
-          <div className="mb-8 border-t border-slate-200 pt-8">
-            <h2 className="mb-5 text-lg font-semibold text-slate-800">
-              Doctor / Referral
-            </h2>
+          <div className="mt-4 border-t border-slate-100 pt-3.5">
+            <div className="mb-2.5 flex items-center justify-between border-b border-slate-100 pb-1.5">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Doctor / Referral
+              </h2>
+              <span className="text-[11px] text-slate-500">
+                Assign referring doctor or select Self
+              </span>
+            </div>
 
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Concerned Doctor <span className="text-red-500">*</span>
-              </label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-700">
+                  Concerned Doctor <span className="text-red-500">*</span>
+                </label>
 
-              <select
-                value={formData.doctorId}
-                onChange={(event) =>
-                  handleDoctorChange(
-                    event.target.value
-                  )
-                }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">
-                  Select concerned doctor
-                </option>
+                <select
+                  value={formData.doctorId}
+                  onChange={(event) => handleDoctorChange(event.target.value)}
+                  className={`h-9 w-full rounded-lg border px-3 py-1.5 text-xs sm:text-sm outline-none transition ${
+                    formData.doctorId === "SELF"
+                      ? "border-blue-500 bg-blue-50/60 font-medium text-blue-900"
+                      : "border-slate-300 bg-white text-slate-800"
+                  } focus:border-blue-500 focus:ring-2 focus:ring-blue-100`}
+                >
+                  <option value="">Select concerned doctor</option>
+                  <option value="SELF">Self</option>
+                  {doctors
+                    .filter((doctor) => doctor.status === "Active")
+                    .map((doctor) => (
+                      <option key={doctor.id} value={doctor.id}>
+                        {doctor.doctorName}{"\u2014"}{doctor.specialization}
+                      </option>
+                    ))}
+                </select>
 
-                {doctors
-                  .filter(
-                    (doctor) =>
-                      doctor.status === "Active"
-                  )
-                  .map((doctor) => (
-                    <option
-                      key={doctor.id}
-                      value={doctor.id}
-                    >
-                      {doctor.doctorName} —{" "}
-                      {doctor.specialization}
-                    </option>
-                  ))}
-              </select>
+                {errors.doctorId && (
+                  <p className="mt-0.5 text-[11px] text-red-500">
+                    {errors.doctorId}
+                  </p>
+                )}
+              </div>
 
-              {errors.doctorId && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.doctorId}
-                </p>
-              )}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-700" aria-hidden="true">
+                  &nbsp;
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate("/doctors?tab=add")}
+                  className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100 active:scale-[0.98]"
+                >
+                  <AddIcon sx={{ fontSize: 15 }} />
+                  Add Doctor
+                </button>
+              </div>
 
-              {doctors.filter(
-                (doctor) =>
-                  doctor.status === "Active"
-              ).length === 0 && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    No active doctors available. Please add a
-                    doctor before registering a referred patient.
+              {doctors.filter((doctor) => doctor.status === "Active").length === 0 &&
+                formData.doctorId !== "SELF" && (
+                  <p className="text-xs text-amber-600 sm:col-span-2">
+                    No active doctors available. Select &quot;Self&quot; or click &quot;Add Doctor&quot; to create one.
                   </p>
                 )}
             </div>
           </div>
 
           {/* REQUIRED TESTS */}
-          <div className="border-t border-slate-200 pt-8">
+          <div className="mt-4 border-t border-slate-100 pt-3.5">
+            <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Required Tests
+                </h2>
+                <p className="text-[11px] text-slate-500">
+                  Select tests requested for this patient.
+                </p>
+              </div>
 
-            <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Required Tests
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Select the tests requested for this patient
-                from the active Test List.
-              </p>
+              {/* Compact Test Search Box */}
+              <div className="relative w-full sm:w-64">
+                <SearchIcon
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  sx={{ fontSize: 16 }}
+                />
+                <input
+                  type="text"
+                  value={testSearch}
+                  onChange={(e) => setTestSearch(e.target.value)}
+                  placeholder="Search test by name / code..."
+                  className="h-7 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-xs outline-none transition focus:border-blue-400 focus:bg-white"
+                />
+              </div>
             </div>
 
             {/* NO TESTS */}
-            {tests.filter(
-              (test) => test.status === "Active"
-            ).length === 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-                  <p className="text-sm font-medium text-amber-800">
-                    No active tests available.
-                  </p>
+            {activeTests.length === 0 && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs">
+                <p className="font-semibold text-amber-800">
+                  No active tests available.
+                </p>
+                <p className="mt-0.5 text-amber-700">
+                  Please add and activate tests from the Test List before registering a patient.
+                </p>
+              </div>
+            )}
 
-                  <p className="mt-1 text-xs text-amber-700">
-                    Please add and activate tests from the Test
-                    List before registering a patient.
-                  </p>
-                </div>
-              )}
-
-            {/* TEST LIST */}
+            {/* TEST LIST - Compact cards */}
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-              {tests
-                .filter(
-                  (test) => test.status === "Active"
-                )
-                .map((test) => {
-                  const selected =
-                    formData.requiredTests.includes(
-                      test.testCode
-                    );
+              {visibleTests.map((test) => {
+                  const selected = formData.requiredTests.includes(test.testCode);
 
                   return (
                     <button
                       key={test.id}
                       type="button"
-                      onClick={() =>
-                        handleTestChange(
-                          test.testCode
-                        )
-                      }
-                      className={`rounded-xl border p-4 text-left transition ${selected
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
-                        }`}
+                      onClick={() => handleTestChange(test.testCode)}
+                      className={`flex min-h-[108px] flex-col justify-between rounded-xl border p-3 text-left transition ${
+                        selected
+                          ? "border-blue-500 bg-blue-50/80 shadow-sm"
+                          : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
+                      }`}
                     >
-                      <div className="flex items-center justify-between gap-3">
-
+                      <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`text-sm font-semibold ${selected
-                            ? "text-blue-700"
-                            : "text-slate-800"
-                            }`}
+                          className={`text-xs font-bold ${
+                            selected ? "text-blue-700" : "text-slate-800"
+                          }`}
                         >
                           {test.testCode}
                         </span>
 
                         <span
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${selected
-                            ? "border-blue-600 bg-blue-600"
-                            : "border-slate-300"
-                            }`}
+                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                            selected
+                              ? "border-blue-600 bg-blue-600 text-white"
+                              : "border-slate-300"
+                          }`}
                         >
-                          {selected && (
-                            <span className="text-xs text-white">
-                              ✓
-                            </span>
-                          )}
+                          {selected && <span className="text-[10px] leading-none">✓</span>}
                         </span>
                       </div>
 
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p
+                        className="mt-0.5 text-xs text-slate-700 truncate"
+                        title={test.testName}
+                      >
                         {test.testName}
                       </p>
 
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                      <div className="mt-1 flex items-center justify-between gap-1">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 truncate max-w-[110px]">
                           {test.category}
                         </span>
 
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
-                          {test.sampleType}
-                        </span>
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="text-xs text-slate-500">
-                          {test.turnaroundTime}
-                        </span>
-
-                        <span className="text-sm font-semibold text-slate-800">
-                          ₹
-                          {test.price.toLocaleString(
-                            "en-IN"
-                          )}
+                        <span className="text-xs font-bold text-slate-800">
+                          ₹{test.price.toLocaleString("en-IN")}
                         </span>
                       </div>
                     </button>
                   );
-                })}
+              })}
             </div>
 
+            {activeTests.length > 0 && visibleTests.length === 0 && (
+              <div className="mt-2 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                <span>No tests match “{testSearch}”.</span>
+                <button type="button" onClick={() => setTestSearch("")} className="font-semibold text-blue-600 hover:text-blue-800">
+                  Clear search
+                </button>
+              </div>
+            )}
+
             {errors.requiredTests && (
-              <p className="mt-2 text-xs text-red-500">
+              <p className="mt-1.5 text-xs text-red-500">
                 {errors.requiredTests}
               </p>
             )}
 
-            {/* SELECTED TEST SUMMARY */}
-            {formData.requiredTests.length > 0 && (
-              <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-blue-800">
-                    Selected Tests
-                  </p>
 
-                  <p className="text-sm font-semibold text-blue-800">
-                    {formData.requiredTests.length} selected
-                  </p>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {formData.requiredTests.map(
-                    (testCode) => {
-                      const selectedTest = tests.find(
-                        (test) =>
-                          test.testCode === testCode
-                      );
-
-                      return (
-                        <span
-                          key={testCode}
-                          className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200"
-                        >
-                          {selectedTest
-                            ? `${selectedTest.testCode} — ${selectedTest.testName}`
-                            : testCode}
-                        </span>
-                      );
-                    }
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* BUTTONS */}
-          <div className="mt-8 flex justify-end gap-3 border-t border-slate-200 pt-6">
-
+          <div className="mt-4 flex justify-end gap-2.5 border-t border-slate-100 pt-3">
             <button
               type="button"
               onClick={() => navigate("/patients")}
-              className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 px-4 py-1.5 text-xs sm:text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -1046,11 +1068,10 @@ export default function NewRegistration() {
               type="button"
               onClick={handleSubmit}
               disabled={Boolean(existingPatientId && !existingPatient)}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-blue-600 px-5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isExistingPatient ? "Register New Visit" : "Register Patient"}
             </button>
-
           </div>
         </div>
       </div>

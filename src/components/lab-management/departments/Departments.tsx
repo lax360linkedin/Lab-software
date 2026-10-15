@@ -347,18 +347,23 @@ export default function Departments() {
 
       {/* Header Banner */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span>Lab Management</span>
-            <span>•</span>
-            <span className="text-blue-600 font-semibold">Departments</span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm">
+            <BusinessOutlinedIcon />
           </div>
-          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Laboratory Departments
-          </h1>
-          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            Configure clinical pathology, biochemistry, hematology, and specialized testing divisions.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span>Lab Management</span>
+              <span>•</span>
+              <span className="text-blue-600 font-semibold">Departments</span>
+            </div>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Laboratory Departments
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Configure clinical pathology, biochemistry, hematology, and specialized testing divisions.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

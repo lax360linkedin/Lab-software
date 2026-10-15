@@ -267,11 +267,11 @@ const PendingQC = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Header */}
-            <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+            <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-3.5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600">
-                            <FactCheckOutlinedIcon fontSize="small" />
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm">
+                            <FactCheckOutlinedIcon />
                         </div>
 
                         <div>

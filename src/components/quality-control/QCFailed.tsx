@@ -6,8 +6,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
-import ReplayOutlinedIcon from "@mui/icons-material/ReplayOutlined";
+import BuildCircleOutlinedIcon from "@mui/icons-material/BuildCircleOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 
@@ -84,7 +85,7 @@ interface StoredSample {
 const QCFailed = () => {
     const navigate = useNavigate();
 
-    const [samples, setSamples] = useState<StoredSample[]>(() => {
+    const [samples] = useState<StoredSample[]>(() => {
         try {
             const stored = localStorage.getItem("lab_samples");
 
@@ -164,32 +165,9 @@ const QCFailed = () => {
         setSelectedSample(null);
     };
 
-    const handleReanalysis = (sample: StoredSample) => {
-        const updatedSamples = samples.map((item) => {
-            if (
-                item.id === sample.id ||
-                item.sampleId === sample.sampleId
-            ) {
-                return {
-                    ...item,
-                    status: "Processing" as StoredSample["status"],
-                    resultStatus: "Pending" as StoredSample["resultStatus"],
-                };
-            }
-
-            return item;
-        });
-
-        localStorage.setItem(
-            "lab_samples",
-            JSON.stringify(updatedSamples)
-        );
-
-        setSamples(updatedSamples);
-
+    const handleReanalysis = () => {
         handleCloseDrawer();
-
-        navigate("/analysis/processing");
+        navigate("/quality-control/corrective-actions");
     };
 
     return (
@@ -197,15 +175,20 @@ const QCFailed = () => {
             {/* Header */}
             <div className="mb-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800">
-                            QC Failed
-                        </h1>
+                    <div className="flex items-center gap-3">
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-600 shadow-sm">
+                            <ReportProblemOutlinedIcon />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-800">
+                                QC Failed
+                            </h1>
 
-                        <p className="mt-1 text-sm text-slate-500">
-                            Results that failed quality control and require
-                            corrective action or re-analysis
-                        </p>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Results that failed quality control and require
+                                corrective action or re-analysis
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700">
@@ -718,13 +701,11 @@ const QCFailed = () => {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    handleReanalysis(selectedSample)
-                                }
-                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700"
+                                onClick={handleReanalysis}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800"
                             >
-                                <ReplayOutlinedIcon fontSize="small" />
-                                Re-analysis
+                                <BuildCircleOutlinedIcon fontSize="small" />
+                                Start Corrective Action
                             </button>
                         </div>
                     </div>

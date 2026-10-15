@@ -271,10 +271,10 @@ const ResultEntry = () => {
     if (!selectedSample) {
         return (
             <div className="min-h-screen bg-slate-50">
-                <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+                <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-3.5">
                     <div className="flex items-center gap-3">
-                        <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600">
-                            <ScienceOutlinedIcon fontSize="small" />
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm">
+                            <ScienceOutlinedIcon />
                         </div>
 
                         <div>
@@ -303,7 +303,7 @@ const ResultEntry = () => {
 
                         <button
                             type="button"
-                            onClick={() => navigate("/results/pending")}
+                            onClick={() => navigate("/results/pending-results")}
                             className="mt-5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
                         >
                             Back to Pending Results
@@ -317,11 +317,11 @@ const ResultEntry = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Header */}
-            <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+            <div className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-3.5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600">
-                            <ScienceOutlinedIcon fontSize="small" />
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-sm">
+                            <ScienceOutlinedIcon />
                         </div>
 
                         <div>
@@ -355,7 +355,7 @@ const ResultEntry = () => {
                         <div className="flex items-center gap-2">
                             <PersonIcon className="text-blue-600" />
 
-                            <h2 className="text-base font-semibold text-slate-800">
+                            <h2 className="text-base font-bold text-slate-950">
                                 Patient & Sample Information
                             </h2>
                         </div>
@@ -363,7 +363,7 @@ const ResultEntry = () => {
 
                     <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-5">
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Patient
                             </p>
 
@@ -373,54 +373,54 @@ const ResultEntry = () => {
                                     className="text-slate-400"
                                 />
 
-                                <p className="text-sm font-semibold text-slate-700">
+                                <p className="text-sm font-normal text-slate-900">
                                     {selectedSample.patientName}
                                 </p>
                             </div>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-800">
                                 {selectedSample.patientId}
                             </p>
                         </div>
 
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Sample ID
                             </p>
 
-                            <p className="mt-1 text-sm font-semibold text-blue-600">
+                            <p className="mt-1 text-sm font-normal text-slate-900">
                                 {selectedSample.sampleId}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-800">
                                 Barcode: {selectedSample.barcode || "-"}
                             </p>
                         </div>
 
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Accession
                             </p>
 
-                            <p className="mt-1 text-sm font-semibold text-slate-700">
+                            <p className="mt-1 text-sm font-normal text-slate-900">
                                 {selectedSample.accessionNumber}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-800">
                                 {selectedSample.registrationId}
                             </p>
                         </div>
 
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Test
                             </p>
 
-                            <p className="mt-1 text-sm font-semibold text-slate-700">
+                            <p className="mt-1 text-sm font-normal text-slate-900">
                                 {selectedSample.testName}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-slate-800">
                                 {selectedSample.sampleType}
                             </p>
                         </div>
@@ -433,7 +433,7 @@ const ResultEntry = () => {
                         <div className="flex items-center gap-2">
                             <AssignmentOutlinedIcon className="text-blue-600" />
 
-                            <h2 className="text-base font-semibold text-slate-800">
+                            <h2 className="text-base font-bold text-slate-950">
                                 Analysis Information
                             </h2>
                         </div>
@@ -441,21 +441,21 @@ const ResultEntry = () => {
 
                     <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-5">
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Analyzer
                             </p>
 
-                            <p className="mt-1 text-sm font-medium text-slate-700">
+                            <p className="mt-1 text-sm font-normal text-slate-900">
                                 {selectedSample.analyzer || "-"}
                             </p>
                         </div>
 
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Method
                             </p>
 
-                            <p className="mt-1 text-sm font-medium text-slate-700">
+                            <p className="mt-1 text-sm font-normal text-slate-900">
                                 {selectedSample.method ||
                                     masterTest?.method ||
                                     "-"}
@@ -463,28 +463,28 @@ const ResultEntry = () => {
                         </div>
 
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Completed Date
                             </p>
 
                             <div className="mt-1 flex items-center gap-2">
                                 <AccessTimeIcon
                                     fontSize="small"
-                                    className="text-slate-400"
+                                    className="text-slate-600"
                                 />
 
-                                <p className="text-sm font-medium text-slate-700">
+                                <p className="text-sm font-normal text-slate-900">
                                     {selectedSample.completedDate || "-"}
                                 </p>
                             </div>
                         </div>
 
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Completed By
                             </p>
 
-                            <p className="mt-1 text-sm font-medium text-slate-700">
+                            <p className="mt-1 text-sm font-normal text-slate-900">
                                 {selectedSample.completedBy ||
                                     "Laboratory Technician"}
                             </p>
@@ -692,8 +692,8 @@ const ResultEntry = () => {
                     <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-5">
                         <button
                             type="button"
-                            onClick={() => navigate("/results/pending")}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                            onClick={() => navigate("/results/pending-results")}
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 sm:w-[184px]"
                         >
                             Cancel
                         </button>
@@ -701,7 +701,7 @@ const ResultEntry = () => {
                         <button
                             type="button"
                             onClick={handleSaveResult}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-[184px]"
                         >
                             <SaveOutlinedIcon fontSize="small" />
                             Save Result
