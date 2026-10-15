@@ -507,7 +507,6 @@ const ReportHistory: React.FC = () => {
                                 maxHeight="500px"
                                 minWidth="0px"
                                 maxWidth="100%"
-                                centeredColumns={["Action Prints"]}
                                 emptyMessage="No report history found matching criteria"
                                 renderRow={(sample: StoredSample) => {
                                     const ext = asExtended(sample);
