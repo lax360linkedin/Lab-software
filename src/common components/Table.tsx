@@ -8,8 +8,6 @@ interface TableProps<T> {
   emptyMessage?: string;
   minWidth?: string;
   maxWidth?: string;
-  
-  centeredColumns?: string[];
 }
 
 const Table = <T,>({
@@ -20,8 +18,6 @@ const Table = <T,>({
   emptyMessage = "No records found",
   minWidth = "1200px",
   maxWidth = "100%",
-
-  centeredColumns = [],
 }: TableProps<T>) => {
   return (
     <div className="w-full min-w-0 overflow-hidden">
