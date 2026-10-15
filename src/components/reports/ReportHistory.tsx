@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -61,6 +61,7 @@ type DrawerReportTab = "final" | "billing" | "analysis" | "trends";
 
 const ReportHistory: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const [samples] = useState<StoredSample[]>(() => {
         try {
@@ -72,7 +73,7 @@ const ReportHistory: React.FC = () => {
         }
     });
 
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
     const [priorityFilter, setPriorityFilter] = useState("All");
     const [dateFilter, setDateFilter] = useState<DateFilterOption>("All");
     const [customStartDate, setCustomStartDate] = useState("");

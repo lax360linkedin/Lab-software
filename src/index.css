@@ -21,6 +21,55 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* Keep icon-only actions consistent and visible across tables in every module. */
+td button:has(svg.MuiSvgIcon-root) {
+  display: inline-flex;
+  min-width: 32px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+}
+
+td button:has(svg.MuiSvgIcon-root) svg.MuiSvgIcon-root {
+  width: 17px !important;
+  height: 17px !important;
+  font-size: 17px !important;
+  flex-shrink: 0;
+}
+
+td button:has(svg[data-testid*="Visibility"]),
+td button[title*="view" i]:has(svg.MuiSvgIcon-root),
+td button[aria-label*="view" i]:has(svg.MuiSvgIcon-root) {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+td button:has(svg[data-testid*="Edit"]),
+td button[title*="edit" i]:has(svg.MuiSvgIcon-root),
+td button[aria-label*="edit" i]:has(svg.MuiSvgIcon-root) {
+  color: #b45309;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+td button:has(svg[data-testid*="History"]),
+td button[title*="history" i]:has(svg.MuiSvgIcon-root),
+td button[aria-label*="history" i]:has(svg.MuiSvgIcon-root) {
+  color: #6d28d9;
+  background-color: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+td button:has(svg[data-testid*="Delete"]),
+td button[title*="delete" i]:has(svg.MuiSvgIcon-root),
+td button[aria-label*="delete" i]:has(svg.MuiSvgIcon-root) {
+  color: #be123c;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+}
+
 /* Global Sleek Scrollbar (reduces vertical and horizontal thickness on all pages) */
 * {
   scrollbar-width: thin;

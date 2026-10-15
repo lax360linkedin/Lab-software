@@ -166,8 +166,13 @@ const QCFailed = () => {
     };
 
     const handleReanalysis = () => {
+        const sampleId = selectedSample?.sampleId;
         handleCloseDrawer();
-        navigate("/quality-control/corrective-actions");
+        navigate(
+            sampleId
+                ? `/quality-control/corrective-actions?sampleId=${encodeURIComponent(sampleId)}`
+                : "/quality-control/corrective-actions"
+        );
     };
 
     return (

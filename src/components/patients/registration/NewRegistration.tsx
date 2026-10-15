@@ -30,6 +30,8 @@ interface FormData {
   requiredTests: string[];
 }
 
+const agePattern = /^\d*$/;
+
 const DOCTOR_STORAGE_KEY = "lab_doctors";
 const PATIENT_STORAGE_KEY = "lab_patients";
 const REFERRAL_STORAGE_KEY = "lab_referrals";
@@ -761,13 +763,23 @@ export default function NewRegistration() {
                 </label>
 
                 <input
-                  type="number"
-                  min="0"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={formData.age}
-                  onChange={(event) =>
-                    handleChange("age", event.target.value)
-                  }
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (agePattern.test(value)) {
+                      handleChange("age", value);
+                    } else {
+                      setErrors((previous) => ({
+                        ...previous,
+                        age: "Enter numbers only for age.",
+                      }));
+                    }
+                  }}
                   placeholder="Enter age"
+                  aria-invalid={Boolean(errors.age)}
                   className="h-9 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs sm:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
 

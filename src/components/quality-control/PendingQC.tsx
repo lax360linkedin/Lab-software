@@ -253,9 +253,7 @@ const PendingQC = () => {
         setSamples(updatedSamples);
         closeDrawers();
 
-        if (result === "Passed") {
-            navigate("/qc/passed");
-        }
+        navigate(result === "Passed" ? "/qc/passed" : "/qc/failed");
     };
 
     const urgentCount = pendingQC.filter(

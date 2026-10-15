@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -99,6 +99,7 @@ const columns = [
 
 const Processing = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const [samples, setSamples] = useState<StoredSample[]>(() => {
         try {
@@ -128,7 +129,7 @@ const Processing = () => {
         }
     });
 
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(() => searchParams.get("sampleId") || "");
     const [analyzerFilter, setAnalyzerFilter] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
