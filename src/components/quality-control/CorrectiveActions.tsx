@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import BuildCircleOutlinedIcon from "@mui/icons-material/BuildCircleOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
@@ -41,6 +41,7 @@ interface FailedSample {
 
 const CorrectiveActions: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [capaList, setCapaList] = useState<CorrectiveActionRecord[]>(() => getStoredCAPA());
   const [failedSamples, setFailedSamples] = useState<FailedSample[]>(() => {
     try {
@@ -78,6 +79,31 @@ const CorrectiveActions: React.FC = () => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 4000);
   };
+
+  const startCapaForSample = useCallback((sample: FailedSample) => {
+    setSelectedFailedSample(sample);
+    setSelectedAnalyzer(sample.analyzer || "Analyzer not recorded");
+    setTestName(sample.testName);
+    setIdentifiedIssue(sample.qcRemarks || `QC failure for ${sample.testName}`);
+    setRootCauseDetails("");
+    setActionTaken("");
+    setRepeatRunValue(0);
+    setAuthorizeReanalysis(false);
+    setIsModalOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const requestedSampleId = searchParams.get("sampleId");
+    if (!requestedSampleId) return;
+
+    const failedSample = failedSamples.find(
+      (sample) => sample.sampleId === requestedSampleId || sample.id === requestedSampleId
+    );
+    if (failedSample) {
+      startCapaForSample(failedSample);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, failedSamples, setSearchParams, startCapaForSample]);
 
   const releaseSamplesToReanalysis = (record: CorrectiveActionRecord) => {
     const releasedIds = new Set(record.releasedSampleIds || []);
@@ -155,7 +181,10 @@ const CorrectiveActions: React.FC = () => {
 
     showToast(`Process finished for ${record.capaNumber}. Samples released to Analysis for re-analysis.`);
     setTimeout(() => {
-      navigate("/analysis/processing");
+      const sampleId = record.releasedSampleIds?.[0];
+      navigate(sampleId
+        ? `/analysis/processing?sampleId=${encodeURIComponent(sampleId)}`
+        : "/analysis/processing");
     }, 600);
   };
 
@@ -217,7 +246,9 @@ const CorrectiveActions: React.FC = () => {
       ? `CAPA ${newRecord.capaNumber} logged. Sample released to Analysis for re-analysis.`
       : `CAPA ${newRecord.capaNumber} logged and awaiting repeat QC.`);
     if (authorizeReanalysis && releasedSample) {
-      setTimeout(() => navigate("/analysis/processing"), 600);
+      setTimeout(() => navigate(
+        `/analysis/processing?sampleId=${encodeURIComponent(releasedSample.sampleId)}`
+      ), 600);
     }
   };
 
@@ -350,17 +381,7 @@ const CorrectiveActions: React.FC = () => {
                     <td className="px-4 py-3 text-center">
                       <button
                         type="button"
-                        onClick={() => {
-                          setSelectedFailedSample(sample);
-                          setSelectedAnalyzer(sample.analyzer || "Analyzer not recorded");
-                          setTestName(sample.testName);
-                          setIdentifiedIssue(sample.qcRemarks || `QC failure for ${sample.testName}`);
-                          setRootCauseDetails("");
-                          setActionTaken("");
-                          setRepeatRunValue(0);
-                          setAuthorizeReanalysis(false);
-                          setIsModalOpen(true);
-                        }}
+                        onClick={() => startCapaForSample(sample)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800 transition hover:bg-rose-100"
                       >
                         <BuildCircleOutlinedIcon fontSize="small" />
@@ -459,7 +480,12 @@ const CorrectiveActions: React.FC = () => {
                   {item.reanalysisAuthorized ? (
                     <button
                       type="button"
-                      onClick={() => navigate("/analysis/processing")}
+                      onClick={() => {
+                        const sampleId = item.releasedSampleIds?.[0];
+                        navigate(sampleId
+                          ? `/analysis/processing?sampleId=${encodeURIComponent(sampleId)}`
+                          : "/analysis/processing");
+                      }}
                       className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs border border-blue-200 transition"
                       title="Continue sample re-analysis"
                     >

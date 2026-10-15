@@ -16,6 +16,7 @@ import Pagination from "../../common components/Pagination";
 import ReportPrint from "./ReportPrint";
 import PersonIcon from "@mui/icons-material/Person";
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 
 const FinalReports = () => {
     const navigate = useNavigate();
@@ -164,7 +165,7 @@ ${selectedSample.resultRemarks || "-"}
                     <button
                         type="button"
                         onClick={() => navigate("/reports/history")}
-                        className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
                     >
                         Report History
                     </button>
@@ -293,16 +294,26 @@ ${selectedSample.resultRemarks || "-"}
                                         </td>
 
                                         <td className="px-4 py-4">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openReport(sample)
-                                                }
-                                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-100"
-                                            >
-                                                <VisibilityOutlinedIcon fontSize="small" />
-                                                View
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openReport(sample)}
+                                                    aria-label="View report"
+                                                    title="View report"
+                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-100"
+                                                >
+                                                    <VisibilityOutlinedIcon fontSize="small" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate("/reports/history?search=" + encodeURIComponent(sample.patientId || sample.patientName || sample.testName || ""))}
+                                                    aria-label={"View history for " + sample.patientName}
+                                                    title={"View history for " + sample.patientName}
+                                                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
+                                                >
+                                                    <HistoryOutlinedIcon fontSize="small" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </>
                                 )}
