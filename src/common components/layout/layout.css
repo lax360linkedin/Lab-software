@@ -133,7 +133,113 @@
 }
 
 .app-content {
-  @apply min-w-0 flex-1 p-6;
+  @apply min-w-0 flex-1 px-6 pb-6 pt-3.5;
+}
+
+/* Lift all page topics up closer to the top navigation bar with uniform top spacing */
+.app-content > div,
+.app-content > div[class*="min-h-"],
+.app-content > div[class*="-page"],
+.app-content > div[class*="space-y-"] {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.app-content > div[class*="min-h-"],
+.app-content > div[class*="-page"] {
+  min-height: auto !important;
+  background-color: transparent !important;
+}
+
+.drawer-topic-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+.drawer-topic-heading::before {
+  content: "";
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  border: 1px solid var(--drawer-topic-border);
+  border-radius: 0.6rem;
+  background-color: var(--drawer-topic-bg);
+  background-image: var(--drawer-topic-icon);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1.15rem;
+}
+
+.drawer-topic-heading-has-icon::before {
+  display: none;
+}
+
+.drawer-topic-icon-box {
+  border-color: var(--drawer-topic-border) !important;
+  background-color: var(--drawer-topic-bg) !important;
+  color: var(--drawer-topic-color) !important;
+}
+
+.drawer-topic-existing-icon {
+  color: var(--drawer-topic-color) !important;
+}
+
+/* Keep table headings and cells consistent across all paginated module lists. */
+.app-content table th,
+.app-content table td {
+  text-align: center !important;
+  font-size: 0.875rem !important;
+  line-height: 1.4 !important;
+  vertical-align: middle;
+}
+
+.app-content table th {
+  font-weight: 700 !important;
+}
+
+.app-content table th *,
+.app-content table td * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.app-enhanced-drawer .app-drawer-close-button {
+  color: #0f172a !important;
+}
+
+.app-enhanced-drawer .app-drawer-close-button svg {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+  color: #0f172a !important;
+}
+
+.app-enhanced-drawer .app-drawer-close-button:hover {
+  background-color: #e2e8f0 !important;
+  color: #020617 !important;
+}
+
+.app-cancel-button {
+  min-height: 2.5rem !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+}
+
+/* Compact header padding for inner header bars */
+.app-content .border-b.bg-white {
+  background-color: transparent !important;
+}
+
+.app-content .border-b.bg-white > div {
+  padding-top: 0 !important;
+}
+
+.app-content .border-b.bg-white.px-4 {
+  padding-top: 0 !important;
 }
 
 @media (max-width: 1024px) {
@@ -172,7 +278,7 @@
   }
 
   .app-content {
-    @apply p-4;
+    @apply px-4 pb-4 pt-2.5;
   }
 }
 
@@ -454,7 +560,7 @@
   }
 
   .app-content {
-    padding-top: 60px;
+    padding-top: 60px !important;
   }
 
   .header-user-info {

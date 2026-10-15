@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
@@ -11,6 +10,7 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
+import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
@@ -61,6 +61,7 @@ interface StoredSample {
     analyzer?: string;
     method?: string;
     priority?: "Normal" | "Urgent" | "STAT";
+    resultStatus?: "Pending" | "Entered" | "QC Pending" | "QC Passed" | "QC Failed" | "Verified";
 }
 
 interface LabTest {
@@ -103,7 +104,7 @@ const columns = [
 const Completed = () => {
     const navigate = useNavigate();
 
-    const [samples, ] = useState<StoredSample[]>(() => {
+    const [samples, setSamples] = useState<StoredSample[]>(() => {
         try {
             const stored = localStorage.getItem("lab_samples");
 
@@ -188,7 +189,10 @@ const Completed = () => {
                         sample.method ||
                         masterTest?.method ||
                         "Standard Laboratory Method",
-                    resultStatus: "Ready for Results",
+                    resultStatus:
+                        !sample.resultStatus || sample.resultStatus === "Pending"
+                            ? "Ready for Results"
+                            : "Result Entered",
 
                     status: "Completed",
 
@@ -235,6 +239,29 @@ const Completed = () => {
     const resultEnteredCount = completedTests.filter(
         (test) => test.resultStatus === "Result Entered"
     ).length;
+
+    const handleReadyForResult = (test: CompletedTest) => {
+        try {
+            const stored = localStorage.getItem("lab_samples");
+            const parsed: unknown = stored ? JSON.parse(stored) : [];
+            const latestSamples: StoredSample[] = Array.isArray(parsed) ? parsed : [];
+            const hasSample = latestSamples.some(
+                (sample) => sample.id === test.id || sample.sampleId === test.sampleId
+            );
+            if (!hasSample) return;
+
+            const updatedSamples = latestSamples.map((sample) =>
+                sample.id === test.id || sample.sampleId === test.sampleId
+                    ? { ...sample, resultStatus: "Pending" as const }
+                    : sample
+            );
+            localStorage.setItem("lab_samples", JSON.stringify(updatedSamples));
+            setSamples(updatedSamples);
+            navigate("/results/pending-results");
+        } catch {
+            console.error("Could not move the completed sample to pending results.");
+        }
+    };
     const handleReset = () => {
         setSearchTerm("");
         setResultStatusFilter("All");
@@ -268,12 +295,9 @@ const Completed = () => {
 
                 <div className="flex items-center gap-3">
 
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50"
-                    >
-                        <ArrowBackIcon fontSize="small" />
-                    </button>
+                    <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-green-100 bg-green-50 text-green-600 shadow-sm">
+                        <TaskAltOutlinedIcon />
+                    </div>
 
                     <div>
                         <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">
@@ -657,9 +681,7 @@ const Completed = () => {
 
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            navigate("/results/pending-results")
-                                        }
+                                        onClick={() => handleReadyForResult(test)}
                                         title="Go to Pending Results"
                                         className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-semibold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-600 hover:text-white"
                                     >

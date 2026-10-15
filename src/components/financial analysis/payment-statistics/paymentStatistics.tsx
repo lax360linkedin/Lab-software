@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
 import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
 import QrCode2OutlinedIcon from "@mui/icons-material/QrCode2Outlined";
 import LocalAtmOutlinedIcon from "@mui/icons-material/LocalAtmOutlined";
@@ -345,22 +346,27 @@ const PaymentStatistics = () => {
     <div className="payment-statistics-page space-y-6">
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-              Financial Analysis
-            </span>
-            <span className="text-xs text-slate-300">•</span>
-            <span className="text-xs font-medium text-slate-500">
-              Gateway & Channel Analytics
-            </span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-600 shadow-sm">
+            <PieChartOutlineOutlinedIcon />
           </div>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Payment Statistics
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Comprehensive audit of collection modes, POS terminal transactions, digital gateways, and settlements.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Financial Analysis
+              </span>
+              <span className="text-xs text-slate-300">•</span>
+              <span className="text-xs font-medium text-slate-500">
+                Gateway & Channel Analytics
+              </span>
+            </div>
+            <h2 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
+              Payment Statistics
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Comprehensive audit of collection modes, POS terminal transactions, digital gateways, and settlements.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">

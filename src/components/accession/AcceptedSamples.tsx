@@ -266,8 +266,8 @@ const AcceptedSamples = () => {
 
             <div className="mb-6 flex items-center gap-3">
 
-                <div aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm">
-                    <CheckCircleOutlineIcon fontSize="small" />
+                <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm">
+                    <CheckCircleOutlineIcon />
                 </div>
 
                 <div>

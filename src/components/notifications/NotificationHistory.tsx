@@ -745,8 +745,13 @@ Lax Lab Diagnostic Center`;
                   <td className="whitespace-nowrap px-4 py-4 text-xs">
                     <div>
                       <span className="font-semibold text-slate-800">
-                        {report.tests.map((t) => t.testCode).join(", ")}
+                        {report.tests.slice(0, 2).map((t) => t.testCode).join(", ")}
                       </span>
+                      {report.tests.length > 2 && (
+                        <span className="ml-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                          +{report.tests.length - 2} more...
+                        </span>
+                      )}
                       <span className="text-[11px] font-bold text-emerald-700 block">
                         Total: ₹{report.testTotal.toLocaleString("en-IN")}
                       </span>

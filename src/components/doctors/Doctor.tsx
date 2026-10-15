@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import DoctorList from "./DoctorList";
 import AddDoctor from "./AddDoctor";
@@ -229,10 +229,25 @@ const Doctors = ({ initialTab = "list" }: DoctorsProps) => {
             ? "referred"
             : tabFromUrl === "history"
                 ? "history"
-                : initialTab;
+                : tabFromUrl === "add"
+                    ? "add"
+                    : initialTab;
     const [activeTab, setActiveTab] = useState< "list" | "add" | "referred" | "history" >(initialActiveTab);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
     const [selectedReferralDoctor, setSelectedReferralDoctor] = useState<Doctor | null>(null);
+
+    useEffect(() => {
+        if (tabFromUrl === "add") {
+            setEditingDoctor(null);
+            setActiveTab("add");
+        } else if (tabFromUrl === "referred") {
+            setActiveTab("referred");
+        } else if (tabFromUrl === "history") {
+            setActiveTab("history");
+        } else if (tabFromUrl === "list") {
+            setActiveTab("list");
+        }
+    }, [tabFromUrl]);
 
     const handleSaveDoctor = (doctor: Doctor) => {
         let updatedDoctors: Doctor[];

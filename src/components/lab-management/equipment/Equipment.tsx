@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
+import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
@@ -1681,10 +1682,18 @@ export default function Equipment() {
         <>
           {/* Top Header matching reference image: Title on left, Search & Filter on right */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Equipment
-              </h1>
+            <div className="flex items-center gap-3">
+              <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-100 bg-teal-50 text-teal-600 shadow-sm">
+                <PrecisionManufacturingOutlinedIcon />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  Equipment
+                </h1>
+                <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+                  Track laboratory instrumentation, maintenance schedules, and operational readiness.
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">

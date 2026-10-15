@@ -8,6 +8,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PersonIcon from "@mui/icons-material/Person";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import RuleOutlinedIcon from "@mui/icons-material/RuleOutlined";
 import Pagination from "../../common components/Pagination";
 import Table from "../../common components/Table";
 
@@ -233,14 +234,19 @@ const VerificationPending = () => {
             {/* Header */}
             <div className="mb-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800">
-                            Verification Pending
-                        </h1>
+                    <div className="flex items-center gap-3">
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-100 bg-amber-50 text-amber-600 shadow-sm">
+                            <RuleOutlinedIcon />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-800">
+                                Verification Pending
+                            </h1>
 
-                        <p className="mt-1 text-sm text-slate-500">
-                            Review QC-passed results before final verification
-                        </p>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Review QC-passed results before final verification
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">

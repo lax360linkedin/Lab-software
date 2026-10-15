@@ -3,6 +3,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import Table from "../Table";
 import Pagination from "../Pagination";
 
@@ -525,20 +530,26 @@ const Payments = () => {
         <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
 
             <div className="mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800">
-                        Payments
-                    </h1>
+                <div className="flex items-center gap-3">
+                    <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm">
+                        <PaymentsOutlinedIcon />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-800">
+                            Payments
+                        </h1>
 
-                    <p className="mt-1 text-sm text-slate-500">
-                        View completed payments and print receipts
-                        whenever required.
-                    </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                            View completed payments and print receipts
+                            whenever required.
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex min-h-[128px] items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 grid grid-cols-1 items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex min-h-[84px] items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
                     <p className="text-sm font-semibold text-slate-900">
                         Total Received
                     </p>
@@ -548,7 +559,7 @@ const Payments = () => {
                     </p>
                 </div>
 
-                <div className="flex min-h-[128px] items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex min-h-[84px] items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
                     <p className="text-sm font-semibold text-slate-900">
                         Completed Payments
                     </p>
@@ -557,10 +568,9 @@ const Payments = () => {
                         {payments.length}
                     </p>
                 </div>
-            </div>
-
-            <div className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="relative max-w-md">
+              </div>
+              <div className="flex items-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="relative w-full">
                     <SearchIcon
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                         fontSize="small"
@@ -574,6 +584,7 @@ const Payments = () => {
                         className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                 </div>
+              </div>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -583,6 +594,7 @@ const Payments = () => {
                             <Table
                                 columns={columns}
                                 data={currentPayments}
+                                headerTone="light"
                                 maxHeight="500px"
                                 renderRow={(payment: Bill) => (
                                     <>
@@ -707,15 +719,18 @@ const Payments = () => {
 
             {selectedBill && (
                 <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-                    <div className="flex h-full w-full max-w-xl flex-col bg-white shadow-2xl">
+                        <div className="flex h-full w-full max-w-xl flex-col bg-white text-slate-900 shadow-2xl">
                         {/* Drawer Header */}
                         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-800">
+                                <h2 className="flex items-center gap-3 text-xl font-bold text-slate-950">
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700">
+                                        <PaymentsOutlinedIcon />
+                                    </span>
                                     Payment Details
                                 </h2>
 
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="ml-[52px] mt-1 text-xs font-medium text-slate-700">
                                     {selectedBill.paymentId || "-"}
                                 </p>
                             </div>
@@ -754,13 +769,14 @@ const Payments = () => {
 
                             {/* Patient Details */}
                             <div className="mb-5">
-                                <h3 className="mb-3 text-sm font-semibold text-slate-800">
+                                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-950">
+                                    <PersonOutlineOutlinedIcon className="text-blue-700" fontSize="small" />
                                     Patient Information
                                 </h3>
 
                                 <div className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-2">
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Patient Name
                                         </p>
 
@@ -770,7 +786,7 @@ const Payments = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Patient ID
                                         </p>
 
@@ -780,7 +796,7 @@ const Payments = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Doctor / Referral
                                         </p>
 
@@ -794,13 +810,14 @@ const Payments = () => {
 
                             {/* Bill Details */}
                             <div className="mb-5">
-                                <h3 className="mb-3 text-sm font-semibold text-slate-800">
+                                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-950">
+                                    <ReceiptLongOutlinedIcon className="text-indigo-700" fontSize="small" />
                                     Payment Information
                                 </h3>
 
                                 <div className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-2">
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Bill Number
                                         </p>
 
@@ -810,7 +827,7 @@ const Payments = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Payment Method
                                         </p>
 
@@ -821,7 +838,7 @@ const Payments = () => {
                                     </div>
 
                                     <div>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs font-medium text-slate-700">
                                             Payment Date
                                         </p>
 
@@ -836,7 +853,8 @@ const Payments = () => {
 
                             {/* Tests */}
                             <div className="mb-5">
-                                <h3 className="mb-3 text-sm font-semibold text-slate-800">
+                                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-950">
+                                    <ScienceOutlinedIcon className="text-violet-700" fontSize="small" />
                                     Tests
                                 </h3>
 
@@ -923,9 +941,13 @@ const Payments = () => {
 
                             {/* Amount Summary */}
                             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-950">
+                                    <AccountBalanceWalletOutlinedIcon className="text-emerald-700" fontSize="small" />
+                                    Amount Summary
+                                </h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500">
+                                        <span className="font-medium text-slate-700">
                                             Subtotal
                                         </span>
 
@@ -938,7 +960,7 @@ const Payments = () => {
                                     </div>
 
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500">
+                                        <span className="font-medium text-slate-700">
                                             Discount
                                         </span>
 
@@ -951,7 +973,7 @@ const Payments = () => {
                                     </div>
 
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500">
+                                        <span className="font-medium text-slate-700">
                                             Tax
                                         </span>
 

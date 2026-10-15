@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import HourglassEmptyOutlinedIcon from "@mui/icons-material/HourglassEmptyOutlined";
+import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import PhoneCallbackOutlinedIcon from "@mui/icons-material/PhoneCallbackOutlined";
@@ -374,22 +375,27 @@ const PendingPayments = () => {
     <div className="pending-payments-page space-y-6">
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-              Financial Analysis
-            </span>
-            <span className="text-xs text-slate-300">•</span>
-            <span className="text-xs font-medium text-slate-500">
-              Receivables Management
-            </span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-100 bg-amber-50 text-amber-600 shadow-sm">
+            <PendingActionsOutlinedIcon />
           </div>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Pending Payments
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Aging analysis of overdue patient invoices, unpaid credit accounts, and payment reminder tracking.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Financial Analysis
+              </span>
+              <span className="text-xs text-slate-300">•</span>
+              <span className="text-xs font-medium text-slate-500">
+                Receivables Management
+              </span>
+            </div>
+            <h2 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
+              Pending Payments
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Aging analysis of overdue patient invoices, unpaid credit accounts, and payment reminder tracking.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">

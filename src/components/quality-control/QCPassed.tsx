@@ -7,6 +7,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PersonIcon from "@mui/icons-material/Person";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
+import GppGoodOutlinedIcon from "@mui/icons-material/GppGoodOutlined";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 
@@ -171,14 +172,19 @@ const QCPassed = () => {
             {/* Header */}
             <div className="mb-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800">
-                            QC Passed
-                        </h1>
+                    <div className="flex items-center gap-3">
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm">
+                            <GppGoodOutlinedIcon />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-800">
+                                QC Passed
+                            </h1>
 
-                        <p className="mt-1 text-sm text-slate-500">
-                            Results that successfully passed quality control
-                        </p>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Results that successfully passed quality control
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
@@ -699,7 +705,7 @@ const QCPassed = () => {
                                     setShowDetails(false);
                                     setSelectedSample(null);
                                 }}
-                                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                className="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:w-[220px]"
                             >
                                 Close
                             </button>
@@ -711,7 +717,7 @@ const QCPassed = () => {
                                         "/verification/pending"
                                     )
                                 }
-                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-[220px]"
                             >
                                 <VerifiedOutlinedIcon fontSize="small" />
                                 Go to Verification

@@ -195,12 +195,13 @@ const defaultTests: LabTest[] = [
     },
 ];
 
-const getStoredTests = (): LabTest[] => {
+export const getStoredTests = (): LabTest[] => {
     try {
         const stored = localStorage.getItem(TEST_STORAGE_KEY);
 
         if (stored) {
-            return JSON.parse(stored);
+            const parsed: unknown = JSON.parse(stored);
+            if (Array.isArray(parsed)) return parsed as LabTest[];
         }
 
         localStorage.setItem(TEST_STORAGE_KEY, JSON.stringify(defaultTests));
@@ -341,7 +342,7 @@ const Tests = () => {
         <div className="min-h-screen bg-slate-50">
             {/* PAGE HEADER */}
             <div className="border-b border-slate-200 bg-white">
-                <div className="flex flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-4 px-4 py-3 sm:px-6 sm:py-3.5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-3">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                             <ScienceOutlined />

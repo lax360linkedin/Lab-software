@@ -306,6 +306,7 @@ const MessageTemplates: React.FC = () => {
                 <div className="font-semibold text-slate-800">{item.targetAudience}</div>
                 <div className="text-[11px] text-slate-400 font-mono truncate max-w-xs">
                   {item.recentRecipients.slice(0, 2).join(", ")}
+                  {item.recentRecipients.length > 2 && ` +${item.recentRecipients.length - 2} more...`}
                 </div>
               </td>
 
@@ -323,7 +324,8 @@ const MessageTemplates: React.FC = () => {
                   {item.eventType}
                 </span>
                 <div className="text-[11px] text-slate-400 mt-0.5">
-                  {item.supportedChannels.join(", ")}
+                  {item.supportedChannels.slice(0, 2).join(", ")}
+                  {item.supportedChannels.length > 2 && ` +${item.supportedChannels.length - 2} more...`}
                 </div>
               </td>
 

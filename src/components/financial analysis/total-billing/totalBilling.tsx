@@ -381,22 +381,27 @@ const TotalBilling = () => {
     <div className="total-billing-page space-y-6">
       {/* Top Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-              Financial Analysis
-            </span>
-            <span className="text-xs text-slate-300">•</span>
-            <span className="text-xs font-medium text-slate-500">
-              Invoicing & Billings
-            </span>
+        <div className="flex items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm">
+            <ReceiptLongOutlinedIcon />
           </div>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Total Billing
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Consolidated overview of generated laboratory bills, revenue streams, and payment clearances.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Financial Analysis
+              </span>
+              <span className="text-xs text-slate-300">•</span>
+              <span className="text-xs font-medium text-slate-500">
+                Invoicing & Billings
+              </span>
+            </div>
+            <h2 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
+              Total Billing
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              Consolidated overview of generated laboratory bills, revenue streams, and payment clearances.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">

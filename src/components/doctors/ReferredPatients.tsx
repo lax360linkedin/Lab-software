@@ -454,7 +454,7 @@ const ReferredPatients = ({
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex max-w-[220px] flex-wrap gap-1">
-                          {referral.tests.map((test) => (
+                          {referral.tests.slice(0, 2).map((test) => (
                             <span
                               key={test}
                               className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600"
@@ -462,6 +462,11 @@ const ReferredPatients = ({
                               {test}
                             </span>
                           ))}
+                          {referral.tests.length > 2 && (
+                            <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                              +{referral.tests.length - 2} more...
+                            </span>
+                          )}
                         </div>
                       </td>
 

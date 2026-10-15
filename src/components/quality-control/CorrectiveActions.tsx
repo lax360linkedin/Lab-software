@@ -22,22 +22,43 @@ import {
   type CorrectiveActionRecord,
   type QCRunRecord,
 } from "./qcData";
-import {
-  getStoredResults,
-  saveResultsStore,
-  type TestResultItem,
-} from "../results/resultsData";
 import "./qualityControl.css";
+
+interface FailedSample {
+  id: string;
+  sampleId: string;
+  patientId: string;
+  patientName: string;
+  testName: string;
+  analyzer?: string;
+  qcRemarks?: string;
+  qcDate?: string;
+  qcTime?: string;
+  qcBy?: string;
+  resultStatus?: string;
+  status?: string;
+}
 
 const CorrectiveActions: React.FC = () => {
   const navigate = useNavigate();
   const [capaList, setCapaList] = useState<CorrectiveActionRecord[]>(() => getStoredCAPA());
+  const [failedSamples, setFailedSamples] = useState<FailedSample[]>(() => {
+    try {
+      const parsed: unknown = JSON.parse(localStorage.getItem("lab_samples") || "[]");
+      return Array.isArray(parsed)
+        ? parsed.filter((sample): sample is FailedSample => sample?.resultStatus === "QC Failed")
+        : [];
+    } catch {
+      return [];
+    }
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // New CAPA Investigation Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFailedSample, setSelectedFailedSample] = useState<FailedSample | null>(null);
   const [selectedAnalyzer, setSelectedAnalyzer] = useState("Cobas c311");
   const [testName, setTestName] = useState("Blood Glucose (Hexokinase)");
   const [identifiedIssue, setIdentifiedIssue] = useState("Control reading shifted +3.6 SD outside acceptable envelope (1-3s rejection rule).");
@@ -58,61 +79,30 @@ const CorrectiveActions: React.FC = () => {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  const releaseSamplesToResults = (record: CorrectiveActionRecord) => {
-    const results = getStoredResults();
-    const existingSampleIds = new Set(results.map((r: TestResultItem) => r.sampleId));
-
-    // Release existing held samples
-    const updatedResults = results.map((r: TestResultItem) => {
-      const isTarget =
-        record.releasedSampleIds?.includes(r.sampleId) ||
-        r.status === "QC_FAILED" ||
-        (r.testName === record.testName && r.status === "AWAITING_ENTRY");
-
-      if (isTarget) {
-        return {
-          ...r,
-          status: "AWAITING_ENTRY" as const,
-          qcStatus: "PASSED" as const,
-          notes: `${r.notes || ""} | Released following CAPA ${record.capaNumber}. Process finished, ready for results.`,
-        };
+  const releaseSamplesToReanalysis = (record: CorrectiveActionRecord) => {
+    const releasedIds = new Set(record.releasedSampleIds || []);
+    if (releasedIds.size) {
+      try {
+        const parsed: unknown = JSON.parse(localStorage.getItem("lab_samples") || "[]");
+        const samples: FailedSample[] = Array.isArray(parsed) ? parsed : [];
+        const updatedSamples = samples.map((sample) =>
+          releasedIds.has(sample.sampleId) || releasedIds.has(sample.id)
+            ? {
+                ...sample,
+                status: "Processing",
+                resultStatus: "Pending",
+                qcStatus: undefined,
+                qcRemarks: `${sample.qcRemarks || "QC failure"} | Released for re-analysis after CAPA ${record.capaNumber}`,
+              }
+            : sample
+        );
+        localStorage.setItem("lab_samples", JSON.stringify(updatedSamples));
+        setFailedSamples(updatedSamples.filter((sample) => sample.resultStatus === "QC Failed"));
+      } catch {
+        showToast("Could not release the failed sample for re-analysis.");
+        return;
       }
-      return r;
-    });
-
-    // If any sample in releasedSampleIds is not in resultsStore yet, create an entry so it shows in Results
-    const newItems: typeof results = [];
-    if (record.releasedSampleIds && record.releasedSampleIds.length > 0) {
-      record.releasedSampleIds.forEach((smpId, idx) => {
-        if (!existingSampleIds.has(smpId)) {
-          newItems.push({
-            id: `RES-CAPA-${Date.now()}-${idx}`,
-            sampleId: smpId,
-            accessionId: `ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-            patientId: `PAT-${Math.floor(1000 + Math.random() * 9000)}`,
-            patientName: `Patient (${smpId})`,
-            age: 45,
-            gender: "Male",
-            phone: "+91 98401 00000",
-            testId: "TST-CAPA",
-            testName: record.testName,
-            department: "Biochemistry",
-            sampleType: "Blood Specimen",
-            analyzer: record.analyzerName,
-            technician: record.investigatedBy,
-            completedDate: getFormattedCurrentDate(),
-            completedTime: getFormattedCurrentTime(),
-            status: "AWAITING_ENTRY",
-            qcStatus: "PASSED",
-            qcRunId: record.qcRunId,
-            parameters: [],
-            notes: `Released following CAPA ${record.capaNumber}. Process finished, ready for results.`,
-          });
-        }
-      });
     }
-
-    saveResultsStore([...newItems, ...updatedResults]);
 
     // Resolve in Failed QC
     const failed = getStoredFailedQC();
@@ -161,11 +151,11 @@ const CorrectiveActions: React.FC = () => {
     setCapaList(updated);
     saveCAPA(updated);
 
-    releaseSamplesToResults(finishedRecord);
+    releaseSamplesToReanalysis(finishedRecord);
 
-    showToast(`Process finished for ${record.capaNumber}! Samples released. Moving to Results...`);
+    showToast(`Process finished for ${record.capaNumber}. Samples released to Analysis for re-analysis.`);
     setTimeout(() => {
-      navigate("/results/enter");
+      navigate("/analysis/processing");
     }, 600);
   };
 
@@ -175,8 +165,8 @@ const CorrectiveActions: React.FC = () => {
     const newRecord: CorrectiveActionRecord = {
       id: `CAPA-${Date.now()}`,
       capaNumber: `CAPA-2026-0${Math.floor(10 + Math.random() * 90)}`,
-      failedQcId: "FAIL-001",
-      qcRunId: "QC-RUN-904",
+      failedQcId: selectedFailedSample?.id || `FAIL-${Date.now()}`,
+      qcRunId: selectedFailedSample?.id || `QC-CAPA-${Date.now()}`,
       analyzerName: selectedAnalyzer,
       testName,
       identifiedIssue,
@@ -184,13 +174,13 @@ const CorrectiveActions: React.FC = () => {
       rootCauseDetails,
       actionTaken,
       repeatRunValue: Number(repeatRunValue),
-      repeatRunStatus: "Passed",
+      repeatRunStatus: authorizeReanalysis ? "Passed" : "Retest Required",
       reanalysisAuthorized: authorizeReanalysis,
-      releasedSampleIds: ["SMP-10010", "SMP-10014", "SMP-10015", "SMP-10018"],
+      releasedSampleIds: selectedFailedSample ? [selectedFailedSample.sampleId] : [],
       investigatedBy: investigatorName,
       actionDate: getFormattedCurrentDate(),
       actionTime: getFormattedCurrentTime(),
-      approvalStatus: "Approved & Released",
+      approvalStatus: authorizeReanalysis ? "Approved & Released" : "Pending Review",
     };
 
     const updatedCapa = [newRecord, ...capaList];
@@ -199,7 +189,7 @@ const CorrectiveActions: React.FC = () => {
 
     // If re-analysis authorized, release patient samples to Results store
     if (authorizeReanalysis) {
-      releaseSamplesToResults(newRecord);
+      releaseSamplesToReanalysis(newRecord);
     }
 
     // Call backend API asynchronously
@@ -213,7 +203,7 @@ const CorrectiveActions: React.FC = () => {
           rootCause: newRecord.rootCauseCategory,
           actionTaken: newRecord.actionTaken,
           repeatResult: String(newRecord.repeatRunValue),
-          resolutionStatus: "Resolved",
+          resolutionStatus: authorizeReanalysis ? "Resolved" : "Pending Review",
         }),
       });
     } catch {
@@ -221,12 +211,14 @@ const CorrectiveActions: React.FC = () => {
     }
 
     setIsModalOpen(false);
-    showToast(
-      `CAPA ${newRecord.capaNumber} logged! Process finished and samples released. Moving to Results...`
-    );
-    setTimeout(() => {
-      navigate("/results/enter");
-    }, 600);
+    const releasedSample = selectedFailedSample;
+    setSelectedFailedSample(null);
+    showToast(authorizeReanalysis
+      ? `CAPA ${newRecord.capaNumber} logged. Sample released to Analysis for re-analysis.`
+      : `CAPA ${newRecord.capaNumber} logged and awaiting repeat QC.`);
+    if (authorizeReanalysis && releasedSample) {
+      setTimeout(() => navigate("/analysis/processing"), 600);
+    }
   };
 
   const confirmDelete = () => {
@@ -312,7 +304,10 @@ const CorrectiveActions: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedFailedSample(null);
+            setIsModalOpen(true);
+          }}
           className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow hover:bg-teal-700 transition"
         >
           <AddIcon fontSize="small" />
@@ -324,9 +319,61 @@ const CorrectiveActions: React.FC = () => {
       <div className="rounded-2xl border border-teal-200 bg-teal-50/50 p-4">
         <div className="flex items-center justify-between text-xs text-teal-900 font-semibold">
           <span>Standard Resolution Flow:</span>
-          <span>QC Failure &rarr; Root Cause Identified &rarr; Corrective Action Taken &rarr; Repeat QC Pass &rarr; Release to Re-analysis &rarr; Result Entry</span>
+          <span>QC Failure &rarr; Root Cause Identified &rarr; Corrective Action Taken &rarr; Repeat QC Pass &rarr; Re-analysis &rarr; Result Entry</span>
         </div>
       </div>
+
+      {failedSamples.length > 0 && (
+        <section className="overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-sm">
+          <div className="border-b border-rose-100 bg-rose-50 px-5 py-4">
+            <h2 className="text-base font-bold text-slate-950">Failed QC Requiring Corrective Action</h2>
+            <p className="mt-1 text-sm text-slate-700">These samples failed QC and must be investigated before repeat QC and re-analysis.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[850px]">
+              <thead className="bg-slate-50 text-slate-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase">Sample</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase">Patient</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase">Test / Analyzer</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase">QC Failure</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {failedSamples.map((sample) => (
+                  <tr key={sample.id}>
+                    <td className="px-4 py-3 text-sm font-semibold text-slate-900">{sample.sampleId}</td>
+                    <td className="px-4 py-3 text-sm text-slate-900">{sample.patientName}<span className="ml-1 text-slate-600">({sample.patientId})</span></td>
+                    <td className="px-4 py-3 text-sm text-slate-900">{sample.testName}<span className="block text-xs text-slate-700">{sample.analyzer || "Analyzer not recorded"}</span></td>
+                    <td className="max-w-xs px-4 py-3 text-sm text-slate-800">{sample.qcRemarks || "QC failed; investigation required"}</td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFailedSample(sample);
+                          setSelectedAnalyzer(sample.analyzer || "Analyzer not recorded");
+                          setTestName(sample.testName);
+                          setIdentifiedIssue(sample.qcRemarks || `QC failure for ${sample.testName}`);
+                          setRootCauseDetails("");
+                          setActionTaken("");
+                          setRepeatRunValue(0);
+                          setAuthorizeReanalysis(false);
+                          setIsModalOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800 transition hover:bg-rose-100"
+                      >
+                        <BuildCircleOutlinedIcon fontSize="small" />
+                        Start CAPA
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* Table Card */}
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -386,7 +433,7 @@ const CorrectiveActions: React.FC = () => {
                 {item.reanalysisAuthorized ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
                     <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 13 }} />
-                    Released to Result Entry
+                    Released to Re-analysis
                   </span>
                 ) : (
                   <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
@@ -412,11 +459,11 @@ const CorrectiveActions: React.FC = () => {
                   {item.reanalysisAuthorized ? (
                     <button
                       type="button"
-                      onClick={() => navigate("/results/enter")}
+                      onClick={() => navigate("/analysis/processing")}
                       className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-xs border border-blue-200 transition"
-                      title="View in Results"
+                      title="Continue sample re-analysis"
                     >
-                      Results &rarr;
+                      Re-analysis &rarr;
                     </button>
                   ) : (
                     <button

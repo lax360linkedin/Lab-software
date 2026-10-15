@@ -14,11 +14,13 @@ import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import HistoryEduOutlinedIcon from "@mui/icons-material/HistoryEduOutlined";
 import "./ReportPrint.css";
 import type { StoredSample } from "./ReportPrint";
 import Table from "../../common components/Table";
 import Pagination from "../../common components/Pagination";
 import ReportPrint from "./ReportPrint";
+import { INITIAL_TEMPLATES } from "../notifications/notificationsData";
 
 export interface LabReportParameter {
     name?: string;
@@ -35,6 +37,10 @@ export interface LabSampleMetadata {
     createdAt?: string;
     patientPhone?: string;
     phone?: string;
+    email?: string;
+    patientEmail?: string;
+    doctorName?: string;
+    verificationDate?: string;
     totalAmount?: number | string;
     paidAmount?: number | string;
     dueAmount?: number | string;
@@ -71,11 +77,15 @@ const ReportHistory: React.FC = () => {
     const [dateFilter, setDateFilter] = useState<DateFilterOption>("All");
     const [customStartDate, setCustomStartDate] = useState("");
     const [customEndDate, setCustomEndDate] = useState("");
-    const [selectedPatientId, setSelectedPatientId] = useState<string>("All");
     const [selectedSample, setSelectedSample] = useState<StoredSample | null>(null);
     const [showDetails, setShowDetails] = useState(false);
     const [showShareOptions, setShowShareOptions] = useState(false);
-    const [, setShareText] = useState("");
+    const [shareChannel, setShareChannel] = useState<"SMS" | "Email" | "WhatsApp" | null>(null);
+    const [shareRecipient, setShareRecipient] = useState("");
+    const [shareSubject, setShareSubject] = useState("");
+    const [shareMessage, setShareMessage] = useState("");
+    const [sharePhone, setSharePhone] = useState("");
+    const [shareEmail, setShareEmail] = useState("");
     const [activeReportTab, setActiveReportTab] = useState<DrawerReportTab>("final");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -164,9 +174,6 @@ const ReportHistory: React.FC = () => {
             const matchesPriority =
                 priorityFilter === "All" || sample.priority === priorityFilter;
 
-            const matchesPatient =
-                selectedPatientId === "All" || sample.patientId === selectedPatientId;
-
             const ext = asExtended(sample);
             const dateValue =
                 sample.reportGeneratedDate ||
@@ -176,28 +183,9 @@ const ReportHistory: React.FC = () => {
 
             const matchesDate = matchesDateFilter(dateValue);
 
-            return matchesSearch && matchesPriority && matchesPatient && matchesDate;
+            return matchesSearch && matchesPriority && matchesDate;
         });
-    }, [samples, searchTerm, priorityFilter, selectedPatientId, matchesDateFilter,]);
-
-    const uniquePatients = useMemo(() => {
-        const map = new Map<string, { id: string; name: string; count: number }>();
-        samples.forEach((s) => {
-            if (s.patientId) {
-                const current = map.get(s.patientId);
-                if (current) {
-                    current.count += 1;
-                } else {
-                    map.set(s.patientId, {
-                        id: s.patientId,
-                        name: s.patientName || "Unknown Patient",
-                        count: 1,
-                    });
-                }
-            }
-        });
-        return Array.from(map.values());
-    }, [samples]);
+    }, [samples, searchTerm, priorityFilter, matchesDateFilter]);
 
     const patientAllReports = useMemo(() => {
         if (!selectedSample) return [];
@@ -319,41 +307,65 @@ const ReportHistory: React.FC = () => {
             setShowShareOptions(false);
             return;
         }
+        let storedPatient: Record<string, unknown> = {};
+        try {
+            const patients: unknown = JSON.parse(localStorage.getItem("lab_patients") || "[]");
+            if (Array.isArray(patients)) {
+                const reportPatientId = String(selectedSample.patientId || "").trim().toLowerCase();
+                const patient = patients.find((item) => {
+                    if (!item || typeof item !== "object") return false;
+                    const record = item as Record<string, unknown>;
+                    return String(record.patientId || "").trim().toLowerCase() === reportPatientId;
+                });
+                if (patient && typeof patient === "object") storedPatient = patient as Record<string, unknown>;
+            }
+        } catch {
+            storedPatient = {};
+        }
 
-        const params = getParametersList(selectedSample);
-        const resultsFormatted = params.length
-            ? params.map((p) => `${p.name || ""}: ${p.value ?? ""} ${p.unit || ""}`).join("\n")
-            : "-";
+        const ext = asExtended(selectedSample);
+        const firstContact = (...values: unknown[]) =>
+            values.map((value) => String(value ?? "").trim()).find(Boolean) || "";
+        const phone = firstContact(storedPatient.phone, ext?.patientPhone, ext?.phone);
+        const email = firstContact(storedPatient.email, ext?.patientEmail, ext?.email);
+        setSharePhone(phone);
+        setShareEmail(email);
+        setShareChannel(null);
+        setShareRecipient("");
 
-        const reportText = `Laboratory Report
-                            Report ID: ${selectedSample.reportId || "-"}
-                            Patient: ${selectedSample.patientName} (${selectedSample.patientId})
-                            Test: ${selectedSample.testName}
-                            Report Date: ${selectedSample.reportGeneratedDate || "-"}
-
-            Results:${resultsFormatted}
-            Remarks: ${selectedSample.resultRemarks || "-"}
-            `.trim();
-
-        setShareText(reportText);
+        const readyTemplate = INITIAL_TEMPLATES.find((template) => template.eventType === "Report Ready" && template.isActive);
+        const tags: Record<string, string> = {
+            patient_name: selectedSample.patientName || "Patient",
+            patient_id: selectedSample.patientId || "",
+            test_name: selectedSample.testName || "Laboratory test",
+            report_url: `${window.location.origin}/reports/history`,
+            lab_name: "Lax Lab",
+            doctor_name: ext?.doctorName || "",
+            verified_date: ext?.verificationDate || selectedSample.reportGeneratedDate || "",
+        };
+        const fillTemplate = (value: string) => value.replace(/{{\s*([^}]+)\s*}}/g, (_, tag: string) => tags[tag] ?? "");
+        const fallbackMessage = `Dear ${tags.patient_name}, your ${tags.test_name} report (${selectedSample.reportId || selectedSample.sampleId}) is ready. You can view it in your Lax Lab report history.`;
+        setShareSubject(fillTemplate(readyTemplate?.subjectTemplate || "Your {{test_name}} report is ready - {{lab_name}}"));
+        setShareMessage(fillTemplate(readyTemplate?.bodyTemplate || fallbackMessage));
+        setShowDetails(false);
         setShowShareOptions(true);
     };
 
-    const handleChannelShare = (channel: string) => {
-        if (!selectedSample) return;
-        const ext = asExtended(selectedSample);
-        const patientPhone = ext?.patientPhone || ext?.phone || "";
-        const cleanPhone = patientPhone.replace(/[^0-9]/g, "");
+    const handleChannelShare = (channel: "SMS" | "Email" | "WhatsApp") => {
+        setShareChannel(channel);
+        setShareRecipient(channel === "Email" ? shareEmail : sharePhone);
+    };
 
-        if (channel === "WhatsApp") {
-            const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-                `Dear ${selectedSample.patientName}, your lab report (${selectedSample.reportId || selectedSample.sampleId}) is ready.`
-            )}`;
-            window.open(url, "_blank");
-        } else if (channel === "Email") {
-            window.location.href = `mailto:?subject=Lab Report - ${selectedSample.reportId}&body=Dear ${selectedSample.patientName}, please find your test report attached.`;
+    const handleSendShare = () => {
+        if (!shareChannel || !shareRecipient.trim()) return;
+        const recipient = shareRecipient.trim();
+        if (shareChannel === "WhatsApp") {
+            const cleanPhone = recipient.replace(/[^0-9]/g, "");
+            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(shareMessage)}`, "_blank", "noopener,noreferrer");
+        } else if (shareChannel === "Email") {
+            window.location.href = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(shareSubject)}&body=${encodeURIComponent(shareMessage)}`;
         } else {
-            alert(`SMS trigger sent to registered contact ${patientPhone || "for patient"}`);
+            window.location.href = `sms:${encodeURIComponent(recipient)}?body=${encodeURIComponent(shareMessage)}`;
         }
         setShowShareOptions(false);
     };
@@ -369,15 +381,18 @@ const ReportHistory: React.FC = () => {
         <>
             <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-violet-100 bg-violet-50 text-violet-600 shadow-sm">
+                            <HistoryEduOutlinedIcon />
+                        </div>
+                        <div>
                             <h1 className="text-2xl font-bold text-slate-800">
                                 Patient Report History
                             </h1>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Search patient to view all visit records, billing receipts, analysis completed sheets, and 6-month historical trends
+                            </p>
                         </div>
-                        <p className="mt-1 text-sm text-slate-500">
-                            Search patient to view all visit records, billing receipts, analysis completed sheets, and 6-month historical trends
-                        </p>
                     </div>
 
                     <button
@@ -481,42 +496,6 @@ const ReportHistory: React.FC = () => {
                         </div>
                     )}
 
-                    {uniquePatients.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                Group by Patient:
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setSelectedPatientId("All");
-                                    setCurrentPage(1);
-                                }}
-                                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${selectedPatientId === "All"
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                    }`}
-                            >
-                                All Patients ({samples.length})
-                            </button>
-                            {uniquePatients.slice(0, 8).map((p) => (
-                                <button
-                                    key={p.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedPatientId(p.id);
-                                        setCurrentPage(1);
-                                    }}
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${selectedPatientId === p.id
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                        }`}
-                                >
-                                    {p.name} ({p.id}) • {p.count}
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -528,6 +507,7 @@ const ReportHistory: React.FC = () => {
                                 maxHeight="500px"
                                 minWidth="0px"
                                 maxWidth="100%"
+                                centeredColumns={["Action Prints"]}
                                 emptyMessage="No report history found matching criteria"
                                 renderRow={(sample: StoredSample) => {
                                     const ext = asExtended(sample);
@@ -560,8 +540,8 @@ const ReportHistory: React.FC = () => {
                                                 {sample.reportGeneratedDate || ext?.collectionDate || "-"}
                                             </td>
 
-                                            <td className="w-[20%] px-3 py-3">
-                                                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                            <td className="w-[20%] px-3 py-3 text-center">
+                                                <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                                                     <button
                                                         type="button"
                                                         onClick={() => openReport(sample, "final")}
@@ -1070,42 +1050,75 @@ const ReportHistory: React.FC = () => {
             {/* Share Modal */}
             {showShareOptions && selectedSample && (
                 <div
-                    className="fixed left-1/2 top-1/2 z-[100] flex h-72 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-16 rounded-2xl border border-slate-200 bg-white px-10 shadow-2xl"
-                    role="group"
-                    aria-label="Share report"
+                    className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+                    onClick={() => setShowShareOptions(false)}
                 >
-                    <button
-                        type="button"
-                        onClick={() => handleChannelShare("SMS")}
-                        aria-label="SMS"
-                        title="SMS"
-                        className="flex h-20 w-20 flex-col items-center justify-center rounded-2xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition"
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="share-report-title"
+                        className="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                        onClick={(event) => event.stopPropagation()}
                     >
-                        <SmsOutlinedIcon sx={{ fontSize: 42 }} />
-                        <span className="text-xs font-semibold mt-1">SMS</span>
-                    </button>
+                        <div className="flex items-start justify-between bg-gradient-to-r from-blue-50 via-white to-indigo-50 px-6 py-5">
+                            <div>
+                                <h2 id="share-report-title" className="text-lg font-bold text-slate-900">Share patient report</h2>
+                                <p className="mt-1 text-sm text-slate-600">{selectedSample.patientName} · {selectedSample.patientId}</p>
+                            </div>
+                            <button type="button" onClick={() => setShowShareOptions(false)} className="rounded-lg p-2 text-slate-600 hover:bg-white hover:text-slate-900" aria-label="Close share dialog">
+                                <CloseIcon fontSize="small" />
+                            </button>
+                        </div>
 
-                    <button
-                        type="button"
-                        onClick={() => handleChannelShare("Email")}
-                        aria-label="Email"
-                        title="Email"
-                        className="flex h-20 w-20 flex-col items-center justify-center rounded-2xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition"
-                    >
-                        <EmailOutlinedIcon sx={{ fontSize: 42 }} />
-                        <span className="text-xs font-semibold mt-1">Email</span>
-                    </button>
+                        <div className="space-y-5 p-6">
+                            <div className="grid grid-cols-3 gap-3">
+                                <button type="button" onClick={() => handleChannelShare("SMS")} className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${shareChannel === "SMS" ? "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100" : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/50"}`}>
+                                    <SmsOutlinedIcon /> <span className="text-sm font-semibold">SMS</span>
+                                </button>
+                                <button type="button" onClick={() => handleChannelShare("Email")} className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${shareChannel === "Email" ? "border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-100" : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/50"}`}>
+                                    <EmailOutlinedIcon /> <span className="text-sm font-semibold">Email</span>
+                                </button>
+                                <button type="button" onClick={() => handleChannelShare("WhatsApp")} className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${shareChannel === "WhatsApp" ? "border-green-500 bg-green-50 text-green-700 ring-2 ring-green-100" : "border-slate-200 bg-white text-slate-700 hover:border-green-300 hover:bg-green-50/50"}`}>
+                                    <WhatsAppIcon /> <span className="text-sm font-semibold">WhatsApp</span>
+                                </button>
+                            </div>
 
-                    <button
-                        type="button"
-                        onClick={() => handleChannelShare("WhatsApp")}
-                        aria-label="WhatsApp"
-                        title="WhatsApp"
-                        className="flex h-20 w-20 flex-col items-center justify-center rounded-2xl bg-slate-50 text-green-600 hover:bg-green-50 transition"
-                    >
-                        <WhatsAppIcon sx={{ fontSize: 42 }} />
-                        <span className="text-xs font-semibold mt-1">WhatsApp</span>
-                    </button>
+                            {shareChannel && (
+                                <div className="space-y-4 border-t border-slate-100 pt-4">
+                                    <label className="block text-sm font-semibold text-slate-700">
+                                        {shareChannel === "Email" ? "Patient email" : "Patient phone number"}
+                                        <input
+                                            type={shareChannel === "Email" ? "email" : "tel"}
+                                            value={shareRecipient}
+                                            onChange={(event) => setShareRecipient(event.target.value)}
+                                            placeholder={shareChannel === "Email" ? "Enter patient email" : "Enter patient phone number"}
+                                            className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        />
+                                    </label>
+                                    {shareChannel === "Email" && (
+                                        <label className="block text-sm font-semibold text-slate-700">
+                                            Subject
+                                            <input value={shareSubject} onChange={(event) => setShareSubject(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                                        </label>
+                                    )}
+                                    <label className="block text-sm font-semibold text-slate-700">
+                                        Message
+                                        <textarea value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} rows={5} className="mt-1.5 w-full resize-y rounded-lg border border-slate-300 px-3 py-2.5 font-normal leading-relaxed text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                                    </label>
+                                    <p className="text-xs text-slate-500">Patient details are filled from the report and registration record. The message opens in your {shareChannel} app for you to review and send.</p>
+                                </div>
+                            )}
+
+                            <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+                                <button type="button" onClick={() => setShowShareOptions(false)} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                                {shareChannel && (
+                                    <button type="button" onClick={handleSendShare} disabled={!shareRecipient.trim()} className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+                                        Continue to {shareChannel}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </section>
                 </div>
             )}
         </>
