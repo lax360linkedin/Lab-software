@@ -594,7 +594,7 @@ const Payments = () => {
                             <Table
                                 columns={columns}
                                 data={currentPayments}
-                                headerTone="light"
+                              
                                 maxHeight="500px"
                                 renderRow={(payment: Bill) => (
                                     <>

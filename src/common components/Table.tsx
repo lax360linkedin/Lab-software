@@ -8,6 +8,8 @@ interface TableProps<T> {
   emptyMessage?: string;
   minWidth?: string;
   maxWidth?: string;
+  
+  centeredColumns?: string[];
 }
 
 const Table = <T,>({
@@ -18,6 +20,8 @@ const Table = <T,>({
   emptyMessage = "No records found",
   minWidth = "1200px",
   maxWidth = "100%",
+
+  centeredColumns = [],
 }: TableProps<T>) => {
   return (
     <div className="w-full min-w-0 overflow-hidden">
@@ -33,7 +37,7 @@ const Table = <T,>({
             tableLayout: "auto",
           }}
         >
-          <thead className="sticky top-0 z-20 bg-slate-700 shadow-sm">
+           <thead className="sticky top-0 z-20 bg-slate-700 shadow-sm">
             <tr className="border-b border-slate-600">
               {columns.map((column, index) => (
                 <th
