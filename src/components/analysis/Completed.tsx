@@ -569,7 +569,7 @@ const Completed = () => {
                     <Table
                         columns={columns}
                         data={currentData}
-                        maxHeight="380px"
+                        maxHeight="400px"
                         renderRow={(test: CompletedTest) => (
                             <>
                                 <td className="px-4 py-3">
